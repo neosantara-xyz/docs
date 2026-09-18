@@ -14,18 +14,6 @@
     },
     "decoration": "grid"
   },
-  "fonts": {
-    "heading": {
-      "family": "Inter",
-      "weight": 750,
-      "display": "swap"
-    },
-    "body": {
-      "family": "Inter",
-      "weight": 400,
-      "display": "swap"
-    }
-  },
   "icons": {
     "library": "lucide"
   },
@@ -81,7 +69,7 @@
       "vscode",
       "assistant"
     ],
-    "display": "toc"
+    "display": "header"
   },
   "footer": {
     "socials": {
