@@ -11,7 +11,7 @@ related:
 
 import SetApiKey from '/snippets/set-api-key.mdx';
 
-DSPy separates program logic from text prompts. You define task signatures and modules such as `Predict` or `ChainOfThought`, and DSPy compiles and optimizes prompts and parameters automatically.
+DSPy (Declarative Self-improving Python) is a framework for programmatically building and optimizing language model pipelines. Instead of manually tuning brittle prompt strings, you define structured input/output *Signatures* and compose workflows using modules like `Predict`, `ChainOfThought`, or `ReAct`. DSPy automatically compiles and optimizes prompt instructions and few-shot demonstrations against your evaluation metrics.
 
 ## Setup
 
@@ -25,7 +25,7 @@ pip install -U dspy
 
 ## Client Configuration
 
-DSPy uses LiteLLM internally for model execution. Because Neosantara is a native provider in LiteLLM, you can use the `neosantara/` model prefix directly without configuring `api_base` or `base_url`.
+Initialize your language model using the `dspy.LM` class with the `neosantara/<model>` prefix.
 
 ```python
 import os

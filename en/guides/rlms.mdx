@@ -1,0 +1,249 @@
+---
+title: "Recursive Language Models (RLMs)"
+sidebarTitle: "RLMs"
+description: "Process massive context windows using an isolated Python REPL sandbox, recursive sub-agent orchestration, and real-time execution streaming."
+icon: "microchip"
+related:
+  - /en/integrations/dspy
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/guides/guardrails
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Based on the paper [Recursive Language Models](https://arxiv.org/abs/2512.24601) (Alex L. Zhang, Tim Kraska, Omar Khattab - MIT CSAIL, 2025), Recursive Language Models (RLMs) resolve context window bottlenecks by storing long inputs as programmatic state inside an isolated Python REPL sandbox rather than stuffing millions of tokens into a single prompt.
+
+The orchestrator model writes Python code iteratively to filter, compute, and delegate semantic sub-tasks to worker models via `llm_query()`. Every reasoning step, REPL code execution, and sub-agent output streams in real time.
+
+```python
+import logging
+import sys
+import dspy
+
+logger = logging.getLogger("dspy.predict.rlm")
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+dspy.configure(lm=dspy.LM("neosantara/deepseek-v4.1-flash"))
+sub_worker = dspy.LM("neosantara/gemini-3.8-flash")
+
+audit_data = """
+[LOG 01:10] Initialization of node-jkt-01 complete. Memory 64GB.
+[LOG 02:15] Upstream latency /v1/chat/completions: 240ms.
+[LOG 03:22] Security anomaly: secret token SECRET-CODE-GARUDA-882 detected on user dev_malicious_x.
+[LOG 04:00] System health: NORMAL.
+"""
+
+rlm = dspy.RLM("audit_data, query -> answer", sub_lm=sub_worker, max_iters=5, verbose=True)
+result = rlm(audit_data=audit_data, query="Find the secret token and the anomaly culprit.")
+print("\nAnswer:", result.answer)
+```
+
+<CardGroup cols={2}>
+  <Card title="RLM Research Paper" icon="newspaper" href="https://arxiv.org/abs/2512.24601">
+    Read arXiv:2512.24601 on the formal REPL-based Recursive Language Model architecture.
+  </Card>
+  <Card title="DSPy Integration" icon="/images/integrations/dspy.svg" href="/en/integrations/dspy">
+    Configure Neosantara models with DSPy declarative modules and pipelines.
+  </Card>
+</CardGroup>
+
+## Architecture Comparison
+
+| Characteristic | In-Context Prompting | Recursive Language Model (RLM) |
+| :--- | :--- | :--- |
+| **Input Boundary** | Constrained by context limits (128k - 1M tokens) | Limited only by Python REPL runtime memory |
+| **Data Retrieval** | Passive model attention (susceptible to haystack loss) | Active inspection via string slicing, regex, and Python indexing |
+| **Semantic Analysis** | Single monolithic forward pass | Modular calls to sub-workers (`llm_query`) on filtered chunks |
+| **Numerical Logic** | Probabilistic token guessing (hallucination risk) | 100% deterministic precision executed by the Python runtime |
+| **Execution Observability** | Single final black-box response | Full trajectory: iterative reasoning, code, and REPL stdout |
+
+## Implementation Workflow
+
+<Steps>
+  <Step title="Install Sandbox Runtime">
+    DSPy RLM executes generated Python code inside an isolated Deno runtime.
+
+    ```bash
+    pip install -U dspy "dspy[deno]" litellm
+    ```
+
+    <SetApiKey />
+  </Step>
+
+  <Step title="Configure Dual-Model Routing">
+    Split responsibilities across two specialized models to balance capability and throughput:
+
+    - **Orchestrator (`dspy.configure(lm=...)`)**: A high-reasoning model (`neosantara/deepseek-v4.1-flash`) that plans investigation trajectories, generates Python code, and compiles final outputs.
+    - **Sub-Worker (`sub_lm=...`)**: A high-speed, cost-effective model (`neosantara/gemini-3.8-flash`) called inside the sandbox to process semantic text segments via `llm_query()`.
+  </Step>
+
+  <Step title="Run Multi-Tenant Audit Scenario">
+    The following production scenario aggregates transaction amounts, detects security anomalies, verifies compliance redactions, and streams the reasoning trajectory.
+  </Step>
+</Steps>
+
+## Code & Execution Streaming
+
+<CodeGroup>
+```python audit_rlm.py
+import logging
+import sys
+import dspy
+
+# Stream real-time logs to stdout
+logger = logging.getLogger("dspy.predict.rlm")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter("\n%(message)s"))
+logger.addHandler(handler)
+
+orchestrator = dspy.LM("neosantara/deepseek-v4.1-flash")
+worker = dspy.LM("neosantara/gemini-3.8-flash")
+dspy.configure(lm=orchestrator)
+
+raw_audit_logs = """
+[2026-09-18T02:00:10Z] INFO [AuthService] User admin_jkt logged in from IP 103.24.50.12. Session: sess_01.
+[2026-09-18T02:05:33Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 45.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+[2026-09-18T02:11:45Z] TRANSACTION [PaymentService] Tenant: tenant_cv_maju, Amount: Rp 15.000.000, Status: SUCCESS, Gateway: Mayar_VA.
+[2026-09-18T02:30:12Z] WARN [GuardrailService] Anomaly on tenant_pt_cyber: Payload contains NIK: 3174051203990001 and NPWP: 09.254.332.1-015.000.
+[2026-09-18T02:31:00Z] ALERT [SecurityAgent] Script execution attempt by user 'dev_malicious_x' on /v1/eval blocked.
+[2026-09-18T02:35:19Z] TRANSACTION [PaymentService] Tenant: tenant_pt_cyber, Amount: Rp 82.500.000, Status: BLOCKED_FRAUD_PREVENTION.
+[2026-09-18T02:40:02Z] INFO [AuditLogger] UU PDP No. 27/2022: 2 personal data fields automatically redacted by Neosantara X-Guard.
+[2026-09-18T02:45:50Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 10.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+"""
+
+class SecurityAuditSignature(dspy.Signature):
+    """Multi-tenant security and transaction audit."""
+    logs = dspy.InputField(desc="Raw log lines")
+    task = dspy.InputField(desc="Audit directives")
+    total_successful_idr = dspy.OutputField(desc="Total SUCCESS transaction amount in integer Rupiah")
+    security_culprit = dspy.OutputField(desc="Identity of the threat actor")
+    pii_violations = dspy.OutputField(desc="List of detected personal data categories")
+    executive_summary = dspy.OutputField(desc="Executive summary of audit findings")
+
+rlm_auditor = dspy.RLM(
+    SecurityAuditSignature,
+    sub_lm=worker,
+    max_iters=6,
+    max_llm_calls=25,
+    verbose=True
+)
+
+task_instruction = (
+    "1. Sum total SUCCESS transactions in integer Rupiah.\n"
+    "2. Use llm_query to confirm the identity of the security threat actor.\n"
+    "3. Extract personal data fields subject to data protection violations.\n"
+    "4. Formulate an executive summary and return results via SUBMIT()."
+)
+
+pred = rlm_auditor(logs=raw_audit_logs, task=task_instruction)
+```
+
+````text realtime_stream.log
+RLM iteration 1/6
+Reasoning: The log data contains financial transactions and security alerts. First, examine line structure and partition logs into list elements.
+Code:
+```python
+lines = [line.strip() for line in logs.split("\n") if line.strip()]
+print(f"Total log lines: {len(lines)}")
+for i, l in enumerate(lines):
+    print(f"[{i}] {l}")
+```
+Output (1048 chars):
+Total log lines: 8
+[0] [2026-09-18T02:00:10Z] INFO [AuthService] User admin_jkt logged in from IP 103.24.50.12. Session: sess_01.
+[1] [2026-09-18T02:05:33Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 45.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+[2] [2026-09-18T02:11:45Z] TRANSACTION [PaymentService] Tenant: tenant_cv_maju, Amount: Rp 15.000.000, Status: SUCCESS, Gateway: Mayar_VA.
+[3] [2026-09-18T02:30:12Z] WARN [GuardrailService] Anomaly on tenant_pt_cyber: Payload contains NIK: 3174051203990001 and NPWP: 09.254.332.1-015.000.
+[4] [2026-09-18T02:31:00Z] ALERT [SecurityAgent] Script execution attempt by user 'dev_malicious_x' on /v1/eval blocked.
+[5] [2026-09-18T02:35:19Z] TRANSACTION [PaymentService] Tenant: tenant_pt_cyber, Amount: Rp 82.500.000, Status: BLOCKED_FRAUD_PREVENTION.
+[6] [2026-09-18T02:40:02Z] INFO [AuditLogger] UU PDP No. 27/2022: 2 personal data fields automatically redacted by Neosantara X-Guard.
+[7] [2026-09-18T02:45:50Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 10.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+
+RLM iteration 2/6
+Reasoning: Extract numerical amounts from SUCCESS transactions and compute sum. Call sub-agent llm_query to identify the actor on the ALERT line.
+Code:
+```python
+import re
+
+successful_total = 0
+for line in lines:
+    if "TRANSACTION" in line and "Status: SUCCESS" in line:
+        match = re.search(r"Amount: Rp ([\d\.]+)", line)
+        if match:
+            nominal = int(match.group(1).replace(".", ""))
+            successful_total += nominal
+
+print("Total Successful:", successful_total)
+
+alert_line = [l for l in lines if "ALERT" in l][0]
+culprit_analysis = llm_query(f"Who is the threat actor in this log? Return username only: {alert_line}")
+print("Sub-agent culprit result:", culprit_analysis)
+```
+Output (98 chars):
+Total Successful: 70000000
+Sub-agent culprit result: dev_malicious_x
+
+RLM iteration 3/6
+Reasoning: Total successful transactions equal Rp 70,000,000. Threat actor is dev_malicious_x. PII violations cover NIK and NPWP mitigated by Neosantara X-Guard. Call SUBMIT() to return structured results.
+Code:
+```python
+total = 70000000
+culprit = "dev_malicious_x"
+pii = ["NIK", "NPWP"]
+summary = (
+    "Multi-tenant audit confirmed successful transactions totaling Rp 70,000,000. "
+    "A fraudulent transaction of Rp 82,500,000 was intercepted. "
+    "Sandbox escape attempt by user 'dev_malicious_x' was contained. "
+    "Personal data exposure (NIK and NPWP) was redacted by Neosantara X-Guard."
+)
+
+SUBMIT(total, culprit, pii, summary)
+```
+Output:
+FINAL: total_successful_idr=70000000, security_culprit=dev_malicious_x, pii_violations=['NIK', 'NPWP']
+````
+
+```python inspect_trajectory.py
+# Inspect reasoning trajectory and REPL code per iteration
+for idx, step in enumerate(pred.trajectory):
+    print(f"--- Iteration {idx + 1} ---")
+    print("Reasoning:", step.get("reasoning", "").strip())
+    print("REPL Code:\n", step.get("code", "").strip())
+    print("REPL Output:\n", step.get("output", "").strip())
+
+print("\n--- Executive Summary ---")
+print(pred.executive_summary)
+print(f"Total Successful Transactions: Rp {pred.total_successful_idr:,}")
+print("Threat Actor:", pred.security_culprit)
+print("Protected PII:", pred.pii_violations)
+```
+</CodeGroup>
+
+## REPL Sandbox Primitives
+
+The orchestrator model has access to the following built-in primitives inside the execution sandbox:
+
+| Primitive | Description | Example Call |
+| :--- | :--- | :--- |
+| `llm_query(prompt)` | Dispatches a single semantic query to `sub_lm`. | `llm_query("Summarize chunk: " + chunk)` |
+| `llm_query_batched(prompts)` | Dispatches multiple semantic queries concurrently to `sub_lm`. | `llm_query_batched([f"Classify: {p}" for p in items])` |
+| `print(*args)` | Writes stdout to the REPL memory for the orchestrator to inspect in subsequent iterations. | `print(f"Matched {len(matches)} items")` |
+| `SUBMIT(*fields)` | Terminates the RLM execution loop and yields structured signature values. | `SUBMIT(result_val, summary_text)` |
+
+<Tip>
+Use `llm_query_batched` when classifying or evaluating multiple items. Sub-agent requests execute in parallel, reducing total latency.
+</Tip>
+
+<Note>
+The isolated Deno/WASM sandbox prevents arbitrary filesystem access and unauthorized outbound connections outside of the Neosantara LLM interface.
+</Note>
+
+## Related Resources
+
+- [Recursive Language Models Paper (arXiv:2512.24601)](https://arxiv.org/abs/2512.24601)
+- [DSPy Integration](/en/integrations/dspy)
+- [Model Catalog & Token Pricing](/en/gateway/models)
+- [Automated Guardrails & UU PDP](/en/guides/guardrails)

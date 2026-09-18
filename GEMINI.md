@@ -279,6 +279,23 @@ Translate the surrounding explanation:
 ✅ Set `model="deepseek-v4.1-flash"` to execute reasoning requests.  
 ❌ Set `model_name="deepseek-v4.1-flash"` untuk menjalankan penalaran.
 
+### 15. Explain what things are, not irrelevant trivia or setup omissions
+
+Explain what a framework, tool, or feature actually does, how it works, and what developer problem it solves. Do not fixate on negative details or irrelevant trivia, such as repeatedly asserting that "no base URL is needed", or explaining internal dependency chains that the developer does not care about (e.g. explaining which underlying client a framework wraps internally just to justify a parameter format).
+
+Card descriptions must summarize the tool's core utility and workflow, not trivial setup omissions.
+
+```
+❌ "DSPy uses LiteLLM internally for model execution. Because Neosantara is a native provider in LiteLLM, you can use the neosantara/ model prefix directly without configuring api_base or base_url."
+✅ "DSPy (Declarative Self-improving Python) replaces manual prompt engineering with declarative modules, structured signatures, and automated prompt optimizers."
+
+❌ "Panduan konfigurasi Neosantara sebagai provider native pada DSPy tanpa base URL manual."
+✅ "Panduan konfigurasi Neosantara pada framework pemrograman modular DSPy."
+
+❌ "Configure Neosantara as a native provider in DSPy without manual base URL configuration."
+✅ "Configure Neosantara models with DSPy declarative modules and pipelines."
+```
+
 ---
 
 ## Multilingual Documentation
@@ -384,10 +401,11 @@ Before writing any billing, rate limit, or routing documentation, ALWAYS verify 
      - `Standard`: 1.000 RPM, 2.000.000 ITPM, 320.000 OTPM
      - `Pro`: 2.000 RPM, 5.000.000 ITPM, 800.000 OTPM
      - `Enterprise`: 4.000 RPM, 10.000.000 ITPM, 1.600.000 OTPM
-2. **Native Frameworks (Zero `base_url` required)**:
+2. **Native Frameworks**:
    - **Any-LLM**: `any-llm-sdk[neosantara]` with provider id `neosantara` (`AnyLLM.create("neosantara")`).
    - **LiteLLM**: Native provider `completion(model="neosantara/<model>", ...)`.
    - **Agno**: Native model provider `from agno.models.neosantara import Neosantara`, `Agent(model=Neosantara(id="..."))`.
+   - **DSPy**: Native model integration via `dspy.LM("neosantara/<model>")`. Focus on explaining declarative programming, task signatures, modules (`Predict`, `ChainOfThought`, `RLM`), and optimizers. Do not mention internal LiteLLM wiring or harp on omitted base URLs.
 3. **Durable PAYG Billing (`service/billingReservationService.js`)**:
    - Credit lifecycle: `reserve` -> `settle` -> `refund`.
    - Balances and ledger use `NUMERIC(20,6)` in Rupiah (IDR). Minimum deposit floor is Rp 15.000 via Mayar (QRIS/VA).

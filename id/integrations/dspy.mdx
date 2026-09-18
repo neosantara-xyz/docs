@@ -11,7 +11,7 @@ related:
 
 import SetApiKey from '/snippets/set-api-key.mdx';
 
-DSPy memisahkan logika program dari prompt teks. Anda mendefinisikan signature tugas dan modul seperti `Predict` atau `ChainOfThought`, lalu DSPy mengoptimalkan prompt dan parameter secara otomatis.
+DSPy (Declarative Self-improving Python) adalah framework pemrograman model bahasa yang menggantikan rekayasa prompt manual dengan modul deklaratif dan optimizer algoritmik. Anda mendefinisikan *Signature* input/output terstruktur dan merangkai alur kerja menggunakan modul seperti `Predict`, `ChainOfThought`, atau `ReAct`. DSPy mengoptimalkan demonstrasi few-shot dan instruksi prompt secara otomatis berdasarkan metrik evaluasi.
 
 ## Pengaturan
 
@@ -25,7 +25,7 @@ pip install -U dspy
 
 ## Konfigurasi Client
 
-DSPy menggunakan LiteLLM secara internal untuk eksekusi panggilan model. Karena Neosantara adalah provider bawaan (*native provider*) di LiteLLM, Anda cukup menggunakan prefix `neosantara/` pada parameter model tanpa perlu menyetel `api_base` atau `base_url`.
+Inisialisasi model bahasa menggunakan kelas `dspy.LM` dengan prefix `neosantara/<model>`.
 
 ```python
 import os

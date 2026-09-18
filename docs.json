@@ -394,7 +394,8 @@
                 "pages": [
                   "id/guides/rate-limits",
                   "id/guides/guardrails",
-                  "id/guides/webhooks"
+                  "id/guides/webhooks",
+                  "id/guides/rlms"
                 ],
                 "icon": "shield-check"
               }
@@ -702,7 +703,8 @@
                 "pages": [
                   "en/guides/rate-limits",
                   "en/guides/guardrails",
-                  "en/guides/webhooks"
+                  "en/guides/webhooks",
+                  "en/guides/rlms"
                 ],
                 "icon": "shield-check"
               }

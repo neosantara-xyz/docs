@@ -1,0 +1,249 @@
+---
+title: "Recursive Language Models (RLMs)"
+sidebarTitle: "RLMs"
+description: "Pemrosesan konteks panjang menggunakan sandbox Python REPL, orkestrasi sub-agent rekursif, dan streaming eksekusi real-time."
+icon: "microchip"
+related:
+  - /id/integrations/dspy
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+  - /id/guides/guardrails
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Berdasarkan paper [Recursive Language Models](https://arxiv.org/abs/2512.24601) (Alex L. Zhang, Tim Kraska, Omar Khattab - MIT CSAIL, 2025), Recursive Language Model (RLM) menyelesaikan keterbatasan context window dengan memperlakukan data panjang sebagai variabel di dalam sandbox Python REPL, bukan dijejalkan sekaligus ke dalam prompt.
+
+Model orkestrator menulis kode Python secara iteratif untuk memfilter, menghitung, dan mendelegasikan sub-tugas semantik ke sub-agent via `llm_query()`. Setiap langkah penalaran, eksekusi kode, dan output sub-agent dapat dipantau secara real-time.
+
+```python
+import logging
+import sys
+import dspy
+
+logger = logging.getLogger("dspy.predict.rlm")
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+dspy.configure(lm=dspy.LM("neosantara/deepseek-v4.1-flash"))
+sub_worker = dspy.LM("neosantara/gemini-3.8-flash")
+
+audit_data = """
+[LOG 01:10] Inisialisasi node-jkt-01 selesai. Memori 64GB.
+[LOG 02:15] Latensi upstream /v1/chat/completions: 240ms.
+[LOG 03:22] Anomali keamanan: token KODE-RAHASIA-GARUDA-882 pada user dev_malicious_x.
+[LOG 04:00] Status sistem: NORMAL.
+"""
+
+rlm = dspy.RLM("audit_data, query -> answer", sub_lm=sub_worker, max_iters=5, verbose=True)
+result = rlm(audit_data=audit_data, query="Temukan token rahasia dan pelaku anomali.")
+print("\nJawaban:", result.answer)
+```
+
+<CardGroup cols={2}>
+  <Card title="Paper Riset RLM" icon="newspaper" href="https://arxiv.org/abs/2512.24601">
+    Baca paper arXiv:2512.24601 tentang arsitektur Recursive Language Models untuk konteks panjang.
+  </Card>
+  <Card title="Integrasi DSPy" icon="/images/integrations/dspy.svg" href="/id/integrations/dspy">
+    Panduan konfigurasi Neosantara pada framework pemrograman modular DSPy.
+  </Card>
+</CardGroup>
+
+## Perbandingan Arsitektur
+
+| Karakteristik | In-Context Prompting Konvensional | Recursive Language Model (RLM) |
+| :--- | :--- | :--- |
+| **Batas Data** | Dibatasi window model (misal 128k - 1M token) | Kapasitas memori runtime Python REPL (skala gigabyte) |
+| **Pencarian Data** | Atensi pasif LLM (rawan *needle-in-a-haystack*) | Pencarian terarah via slicing, regex, dan indeks Python |
+| **Pemrosesan Semantik** | Satu inferensi monolitik untuk seluruh teks | Panggilan modular ke sub-worker (`llm_query`) pada bagian relevan |
+| **Operasi Numerik** | Inferensi probabilitis LLM (risiko salah hitung) | Komputasi deterministik 100% presisi oleh engine Python |
+| **Transparansi Proses** | Output akhir satu langkah (black-box) | Trajectory lengkap: langkah penalaran, kode, dan output REPL |
+
+## Implementasi Terstruktur
+
+<Steps>
+  <Step title="Instalasi Runtime Sandbox">
+    DSPy RLM menjalankan kode LLM di dalam sandbox Deno terisolasi.
+
+    ```bash
+    pip install -U dspy "dspy[deno]" litellm
+    ```
+
+    <SetApiKey />
+  </Step>
+
+  <Step title="Konfigurasi Dual-Model">
+    Gunakan kombinasi dua model untuk mengoptimalkan rasio kapabilitas dan biaya:
+
+    - **Orchestrator (`dspy.configure(lm=...)`)**: Model penalaran tinggi (`neosantara/deepseek-v4.1-flash`) yang merencanakan alur inspeksi, menghasilkan kode Python, dan menyusun jawaban akhir.
+    - **Sub-Worker (`sub_lm=...`)**: Model cepat dan efisien (`neosantara/gemini-3.8-flash`) yang dipanggil di dalam sandbox untuk memproses potongan teks via `llm_query()`.
+  </Step>
+
+  <Step title="Jalankan Kasus Nyata Multi-Tenant">
+    Skenario audit berikut menguji agregasi nilai transaksi Rupiah, deteksi anomali keamanan, identifikasi pelanggaran UU PDP, dan pemantauan streaming real-time.
+  </Step>
+</Steps>
+
+## Kode & Alur Streaming
+
+<CodeGroup>
+```python audit_rlm.py
+import logging
+import sys
+import dspy
+
+# Streaming log real-time ke stdout
+logger = logging.getLogger("dspy.predict.rlm")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter("\n%(message)s"))
+logger.addHandler(handler)
+
+orchestrator = dspy.LM("neosantara/deepseek-v4.1-flash")
+worker = dspy.LM("neosantara/gemini-3.8-flash")
+dspy.configure(lm=orchestrator)
+
+raw_audit_logs = """
+[2026-09-18T02:00:10Z] INFO [AuthService] User admin_jkt login dari IP 103.24.50.12. Session: sess_01.
+[2026-09-18T02:05:33Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 45.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+[2026-09-18T02:11:45Z] TRANSACTION [PaymentService] Tenant: tenant_cv_maju, Amount: Rp 15.000.000, Status: SUCCESS, Gateway: Mayar_VA.
+[2026-09-18T02:30:12Z] WARN [GuardrailService] Anomali tenant_pt_cyber: Payload memuat NIK: 3174051203990001 dan NPWP: 09.254.332.1-015.000.
+[2026-09-18T02:31:00Z] ALERT [SecurityAgent] Upaya eksekusi script oleh user 'dev_malicious_x' pada /v1/eval diblokir.
+[2026-09-18T02:35:19Z] TRANSACTION [PaymentService] Tenant: tenant_pt_cyber, Amount: Rp 82.500.000, Status: BLOCKED_FRAUD_PREVENTION.
+[2026-09-18T02:40:02Z] INFO [AuditLogger] UU PDP No. 27/2022: 2 data pribadi diredaksi otomatis oleh Neosantara X-Guard.
+[2026-09-18T02:45:50Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 10.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+"""
+
+class SecurityAuditSignature(dspy.Signature):
+    """Analisis log keamanan dan transaksi multi-tenant."""
+    logs = dspy.InputField(desc="Log teks mentah")
+    task = dspy.InputField(desc="Instruksi audit")
+    total_successful_idr = dspy.OutputField(desc="Total transaksi berstatus SUCCESS dalam integer Rupiah")
+    security_culprit = dspy.OutputField(desc="Identitas pelaku ancaman keamanan")
+    pii_violations = dspy.OutputField(desc="Daftar jenis data pribadi yang terdeteksi")
+    executive_summary = dspy.OutputField(desc="Rangkuman eksekutif hasil audit")
+
+rlm_auditor = dspy.RLM(
+    SecurityAuditSignature,
+    sub_lm=worker,
+    max_iters=6,
+    max_llm_calls=25,
+    verbose=True
+)
+
+task_instruction = (
+    "1. Hitung total transaksi SUCCESS dalam integer Rupiah.\n"
+    "2. Gunakan llm_query untuk mengonfirmasi pelaku ancaman keamanan.\n"
+    "3. Ekstrak data pribadi yang terdeteksi melanggar UU PDP.\n"
+    "4. Susun rangkuman eksekutif dan kembalikan output via SUBMIT()."
+)
+
+pred = rlm_auditor(logs=raw_audit_logs, task=task_instruction)
+```
+
+````text realtime_stream.log
+RLM iteration 1/6
+Reasoning: Data logs memuat beberapa transaksi finansial dan peringatan keamanan. Langkah pertama adalah memeriksa struktur teks dan memisahkan baris log.
+Code:
+```python
+lines = [line.strip() for line in logs.split("\n") if line.strip()]
+print(f"Total baris log: {len(lines)}")
+for i, l in enumerate(lines):
+    print(f"[{i}] {l}")
+```
+Output (1048 chars):
+Total baris log: 8
+[0] [2026-09-18T02:00:10Z] INFO [AuthService] User admin_jkt login dari IP 103.24.50.12. Session: sess_01.
+[1] [2026-09-18T02:05:33Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 45.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+[2] [2026-09-18T02:11:45Z] TRANSACTION [PaymentService] Tenant: tenant_cv_maju, Amount: Rp 15.000.000, Status: SUCCESS, Gateway: Mayar_VA.
+[3] [2026-09-18T02:30:12Z] WARN [GuardrailService] Anomali tenant_pt_cyber: Payload memuat NIK: 3174051203990001 dan NPWP: 09.254.332.1-015.000.
+[4] [2026-09-18T02:31:00Z] ALERT [SecurityAgent] Upaya eksekusi script oleh user 'dev_malicious_x' pada /v1/eval diblokir.
+[5] [2026-09-18T02:35:19Z] TRANSACTION [PaymentService] Tenant: tenant_pt_cyber, Amount: Rp 82.500.000, Status: BLOCKED_FRAUD_PREVENTION.
+[6] [2026-09-18T02:40:02Z] INFO [AuditLogger] UU PDP No. 27/2022: 2 data pribadi diredaksi otomatis oleh Neosantara X-Guard.
+[7] [2026-09-18T02:45:50Z] TRANSACTION [PaymentService] Tenant: tenant_pt_karya, Amount: Rp 10.000.000, Status: SUCCESS, Gateway: Mayar_QRIS.
+
+RLM iteration 2/6
+Reasoning: Ekstrak nilai nominal transaksi berstatus SUCCESS dan jumlahkan secara numerik. Panggil sub-agent llm_query untuk mengidentifikasi pelaku pada baris ALERT.
+Code:
+```python
+import re
+
+successful_total = 0
+for line in lines:
+    if "TRANSACTION" in line and "Status: SUCCESS" in line:
+        match = re.search(r"Amount: Rp ([\d\.]+)", line)
+        if match:
+            nominal = int(match.group(1).replace(".", ""))
+            successful_total += nominal
+
+print("Total Berhasil:", successful_total)
+
+alert_line = [l for l in lines if "ALERT" in l][0]
+culprit_analysis = llm_query(f"Siapa username pelaku pada log ini? Jawab username saja: {alert_line}")
+print("Hasil sub-agent culprit:", culprit_analysis)
+```
+Output (98 chars):
+Total Berhasil: 70000000
+Hasil sub-agent culprit: dev_malicious_x
+
+RLM iteration 3/6
+Reasoning: Total transaksi sukses bernilai Rp 70.000.000. Pelaku keamanan adalah dev_malicious_x. Pelanggaran PII mencakup NIK dan NPWP sesuai regulasi UU PDP. Panggil SUBMIT() untuk mengembalikan payload terstruktur.
+Code:
+```python
+total = 70000000
+culprit = "dev_malicious_x"
+pii = ["NIK", "NPWP"]
+summary = (
+    "Audit multi-tenant mengonfirmasi total transaksi berhasil Rp 70.000.000. "
+    "Transaksi Rp 82.500.000 diblokir oleh sistem fraud. "
+    "Upaya pembobolan oleh dev_malicious_x berhasil digagalkan. "
+    "Paparan NIK dan NPWP dimitigasi otomatis oleh Neosantara X-Guard."
+)
+
+SUBMIT(total, culprit, pii, summary)
+```
+Output:
+FINAL: total_successful_idr=70000000, security_culprit=dev_malicious_x, pii_violations=['NIK', 'NPWP']
+````
+
+```python inspect_trajectory.py
+# Periksa penalaran dan kode yang dijalankan pada setiap iterasi
+for idx, step in enumerate(pred.trajectory):
+    print(f"--- Iterasi {idx + 1} ---")
+    print("Reasoning:", step.get("reasoning", "").strip())
+    print("Kode REPL:\n", step.get("code", "").strip())
+    print("Output REPL:\n", step.get("output", "").strip())
+
+print("\n--- Rangkuman Eksekutif ---")
+print(pred.executive_summary)
+print(f"Total Transaksi Sukses: Rp {pred.total_successful_idr:,}")
+print("Pelaku:", pred.security_culprit)
+print("Data Pribadi:", pred.pii_violations)
+```
+</CodeGroup>
+
+## Fungsi Bawaan Sandbox REPL
+
+Model orkestrator dapat menggunakan fungsi bawaan berikut saat menulis kode di dalam sandbox:
+
+| Fungsi | Deskripsi | Contoh Pemanggilan |
+| :--- | :--- | :--- |
+| `llm_query(prompt)` | Menjalankan inferensi semantik tunggal ke `sub_lm`. | `llm_query("Ringkas paragraf: " + chunk)` |
+| `llm_query_batched(prompts)` | Menjalankan inferensi semantik secara paralel untuk daftar prompt. | `llm_query_batched([f"Klasifikasikan: {p}" for p in items])` |
+| `print(*args)` | Menulis output ke memori REPL untuk dibaca oleh orkestrator di iterasi berikutnya. | `print(f"Ditemukan {len(matches)} entri")` |
+| `SUBMIT(*fields)` | Menghentikan loop RLM dan menyerahkan output sesuai signature. | `SUBMIT(result_val, summary_text)` |
+
+<Tip>
+Gunakan `llm_query_batched` jika Anda perlu memproses puluhan chunk teks sekaligus. Sub-agent akan mengeksekusi panggilan secara paralel sehingga waktu total eksekusi berkurang drastis.
+</Tip>
+
+<Note>
+Sandbox Deno/WASM mengisolasi eksekusi kode sehingga aman dari akses filesystem lokal atau manipulasi environment yang tidak diinginkan.
+</Note>
+
+## Referensi Terkait
+
+- [Recursive Language Models Paper (arXiv:2512.24601)](https://arxiv.org/abs/2512.24601)
+- [Integrasi DSPy](/id/integrations/dspy)
+- [Katalog Model & Token Pricing](/id/gateway/models)
+- [Automated Guardrails & UU PDP](/id/guides/guardrails)
