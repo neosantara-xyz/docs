@@ -1,0 +1,129 @@
+---
+title: "Penalaran Responses API"
+description: "Kontrol kedalaman pemikiran model menggunakan OpenAI SDK dan parameter reasoning effort."
+icon: "brain"
+related:
+  - /id/gateway/responses-api
+  - /id/gateway/chat-completions/reasoning
+  - /id/gateway/anthropic-messages/thinking
+---
+
+Pada endpoint `/v1/responses`, Anda dapat mengatur intensitas proses penalaran model AI menggunakan parameter `reasoning` melalui OpenAI SDK resmi.
+
+## Konfigurasi Tingkat Intensitas Penalaran
+
+Gunakan parameter `reasoning` (atau `extra_body={"reasoning": ...}` pada Python SDK) untuk menentukan anggaran penalaran model.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Gunakan parameter reasoning secara langsung (atau extra_body pada SDK versi lama)
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Buktikan secara matematis mengapa akar kuadrat dari 2 adalah bilangan irasional.",
+    reasoning={
+        "effort": "high"
+    }
+)
+
+print("Hasil Analisis:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Buktikan secara matematis mengapa akar kuadrat dari 2 adalah bilangan irasional.",
+  // @ts-expect-error - ekstensi skema responses
+  reasoning: {
+    effort: "high",
+  },
+});
+
+console.log("Hasil Analisis:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## Mengakses Jejak Pemikiran dan Akuntansi Token
+
+Saat menggunakan model penalaran seperti `deepseek-r1`, Anda dapat memeriksa alokasi token penalaran internal melalui properti `usage.completion_tokens_details`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-r1",
+    input="Berapa banyak digit nol di akhir dari 100 faktorial (100!)?",
+    reasoning={"effort": "high"}
+)
+
+# Memeriksa rincian token penalaran
+print(f"Token Output: {response.usage.completion_tokens}")
+if hasattr(response.usage, "completion_tokens_details"):
+    details = response.usage.completion_tokens_details
+    print(f"Token Penalaran: {getattr(details, 'reasoning_tokens', 'N/A')}")
+
+print("\nJawaban Final:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-r1",
+  input: "Berapa banyak digit nol di akhir dari 100 faktorial (100!)?",
+  // @ts-expect-error - ekstensi skema responses
+  reasoning: { effort: "high" },
+});
+
+console.log(`Token Output: ${response.usage?.completion_tokens}`);
+// @ts-expect-error - reasoning_tokens property
+console.log(`Token Penalaran: ${response.usage?.completion_tokens_details?.reasoning_tokens}`);
+console.log("\nJawaban Final:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## Tingkat Intensitas `effort`
+
+| Nilai | Keterangan |
+| :--- | :--- |
+| `"low"` | Alokasi anggaran penalaran minimal. Cocok untuk tugas terstruktur yang membutuhkan respons cepat. |
+| `"medium"` | Keseimbangan optimal antara kecepatan dan kedalaman pemikiran (default). |
+| `"high"` | Alokasi penalaran maksimum untuk pembuktian matematika, analisis kode rumit, dan logika multi-langkah. |
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Extended Thinking di Anthropic | [Anthropic Extended Thinking](/id/gateway/anthropic-messages/thinking) |
+| Reasoning di Chat Completions | [Penalaran OpenAI](/id/gateway/chat-completions/reasoning) |
+| Tugas Latar Belakang | [Background Tasks](/id/gateway/responses-api/background-jobs) |

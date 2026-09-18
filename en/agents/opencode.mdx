@@ -1,0 +1,65 @@
+---
+title: "OpenCode Integration"
+description: "Connect OpenCode terminal agent to Neosantara API gateway."
+icon: "laptop"
+related:
+  - /en/agents/claude-code
+  - /en/agents/cursor
+  - /en/gateway/chat-completions
+---
+
+OpenCode is an open-source terminal coding assistant designed for agentic workflows, repository refactoring, and automated debugging. You can route its requests directly through Neosantara's OpenAI-compatible gateway.
+
+## Environment Configuration
+
+The fastest method to configure OpenCode is exporting credentials in your terminal environment:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+export OPENAI_MODEL="deepseek-v4.1-flash"
+```
+
+## Project Configuration File
+
+Create or update your OpenCode settings file (`opencode.json` at your project root or `~/.config/opencode/config.json` for global settings):
+
+```json
+{
+  "provider": "openai",
+  "baseURL": "https://api.neosantara.xyz/v1",
+  "apiKey": "nsk_your_api_key_here",
+  "model": "deepseek-v4.1-flash",
+  "temperature": 0.2
+}
+```
+
+## Recommended Models
+
+| Use Case | Recommended Model | Context Window |
+| :--- | :--- | :--- |
+| **Deep Reasoning & Complex Coding** | `deepseek-v4.1-flash` | 1,000,000 tokens |
+| **Rapid Iteration & Low Latency** | `gemini-3.8-flash` | 1,000,000 tokens |
+| **Lightweight Tasks & Cost Efficiency** | `gpt-5.4-mini` | 128,000 tokens |
+
+## Running OpenCode
+
+After saving the configuration, launch OpenCode from your repository directory:
+
+```bash
+opencode
+```
+
+Prompt the agent to inspect your project or generate tests:
+
+```text
+> Review all modules in src/services and generate unit tests using Vitest.
+```
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Configure Claude Code | [Claude Code Integration](/en/agents/claude-code) |
+| Configure Cursor | [Cursor Integration](/en/agents/cursor) |
+| Review MCP Keys | [MCP API Keys](/en/agents/mcp-keys) |

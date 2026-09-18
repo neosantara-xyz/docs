@@ -1,0 +1,127 @@
+---
+title: "Function Calling (Tools)"
+description: "Connect AI models to external functions, databases, and APIs using OpenAI Tool Calling."
+icon: "wrench"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/anthropic-messages/tool-use
+  - /en/gateway/responses-api/tools
+  - /en/agents/mcp-connector
+---
+
+import ModelsToolsTable from '/snippets/models-tools-table.mdx';
+
+Function Calling on `/v1/chat/completions` allows models to intelligently detect when external functions should be invoked and generate structured JSON arguments matching your specified schema.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import json
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_stock_price",
+            "description": "Fetch real-time stock price by ticker symbol.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ticker": {"type": "string", "description": "Stock ticker (e.g. BBCA)"}
+                },
+                "required": ["ticker"]
+            }
+        }
+    }
+]
+
+# Step 1: Model evaluates request
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "What is the stock price of BBCA today?"}],
+    tools=tools,
+    tool_choice="auto"
+)
+
+message = response.choices[0].message
+
+# Step 2: Check if model generated tool calls
+if message.tool_calls:
+    for tool_call in message.tool_calls:
+        print(f"Function: {tool_call.function.name}")
+        print(f"Arguments: {tool_call.function.arguments}")
+        
+        # Step 3: Execute local function
+        tool_result = json.dumps({"ticker": "BBCA", "price": 9850, "currency": "IDR"})
+        
+        # Step 4: Supply result back to model
+        final_response = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=[
+                {"role": "user", "content": "What is the stock price of BBCA today?"},
+                message,
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": tool_result
+                }
+            ]
+        )
+        print("Final Answer:", final_response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "Check BBCA price"}],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_stock_price",
+          "description": "Fetch stock price",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticker": {"type": "string"}
+            },
+            "required": ["ticker"]
+          }
+        }
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## The `tool_choice` Parameter
+
+| Value | Behavior |
+| :--- | :--- |
+| `"auto"` | Model decides whether to call a function or respond with text (default). |
+| `"none"` | Forces model to respond with text without invoking any function. |
+| `"required"` | Forces model to invoke at least one function from the provided list. |
+| `{"type": "function", "function": {"name": "get_stock_price"}}` | Forces model to call that specific function. |
+
+## Models Supporting Tool Calling
+
+<ModelsToolsTable />
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Enforce Schema Compliance | [Structured Outputs](/en/gateway/chat-completions/structured-outputs) |
+| Token Streaming | [Streaming Responses](/en/gateway/chat-completions/streaming) |
+| Anthropic Tool Use | [Anthropic Tool Use](/en/gateway/anthropic-messages/tool-use) |

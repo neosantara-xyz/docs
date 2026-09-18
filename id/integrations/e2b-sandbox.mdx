@@ -1,0 +1,381 @@
+---
+title: "E2B Sandbox"
+sidebarTitle: "Sandboxes"
+description: "Buat dan kelola sandbox E2B untuk eksekusi shell, operasi file, dan proses multi-step."
+icon: "/images/integrations/e2b.svg"
+related:
+  - /id/integrations/e2b
+  - /id/integrations/daytona
+  - /id/gateway/chat-completions/tool-calling
+  - /id/gateway/models
+---
+
+E2B Sandbox menyediakan lingkungan terisolasi berbasis microVM Firecracker untuk menjalankan proses, mengelola file, dan mengeksekusi perintah shell. Berbeda dari E2B Code Interpreter yang berfokus pada eksekusi kode Python dan visualisasi, Sandbox memberikan kontrol penuh atas lingkungan runtime termasuk instalasi paket, manipulasi filesystem, dan eksekusi multi-step.
+
+## Kredensial Akses
+
+```bash icon="terminal"
+export NEOSANTARA_API_KEY="nsk_..."
+export E2B_API_KEY="e2b_..."
+```
+
+## Integrasi Framework dan SDK
+
+<Tabs>
+  <Tab title="Agno" icon="/images/integrations/agno.svg">
+    Agno menyediakan `E2BTools` dengan mode sandbox penuh untuk menjalankan shell command dan mengelola file.
+
+    ### Instalasi Library
+
+    ```bash icon="terminal"
+    pip install -U agno e2b
+    ```
+
+    ### Contoh Implementasi
+
+    ```python icon="python"
+    from agno.agent import Agent
+    from agno.models.neosantara import Neosantara
+    from agno.tools.e2b import E2BTools
+
+    agent = Agent(
+        model=Neosantara(id="deepseek-v4.1-flash"),
+        tools=[E2BTools()],
+        markdown=True,
+        show_tool_calls=True,
+        instructions=[
+            "Gunakan E2B sandbox untuk menjalankan perintah shell dan mengelola file.",
+            "Tampilkan output eksekusi secara lengkap."
+        ]
+    )
+
+    agent.print_response(
+        "Buat direktori project-demo, inisialisasi git repo di dalamnya, "
+        "buat file hello.py yang mencetak 'Hello Neosantara', lalu jalankan."
+    )
+    ```
+  </Tab>
+
+  <Tab title="OpenAI SDK" icon="/images/integrations/openai.svg">
+    Gunakan function calling untuk mengeksekusi perintah shell dan operasi file di sandbox E2B. Tersedia untuk Python dan Node.js.
+
+    ### Instalasi Library
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U openai e2b
+    ```
+
+    ```bash npm icon="js"
+    npm install openai e2b
+    ```
+
+    </CodeGroup>
+
+    ### Contoh Implementasi
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    import json
+    from openai import OpenAI
+    from e2b import Sandbox
+
+    client = OpenAI(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "run_shell",
+                "description": "Jalankan perintah shell di sandbox terisolasi E2B.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "command": {"type": "string", "description": "Perintah shell yang akan dieksekusi."}
+                    },
+                    "required": ["command"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "write_file",
+                "description": "Tulis file di sandbox E2B.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string", "description": "Path file di sandbox."},
+                        "content": {"type": "string", "description": "Isi file."}
+                    },
+                    "required": ["path", "content"]
+                }
+            }
+        }
+    ]
+
+    messages = [{"role": "user", "content": "Buat file requirements.txt berisi requests dan httpx, lalu install dengan pip."}]
+
+    response = client.chat.completions.create(
+        model="deepseek-v4.1-flash",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+
+    message = response.choices[0].message
+    sandbox = Sandbox(api_key=os.environ["E2B_API_KEY"])
+
+    if message.tool_calls:
+        for tool_call in message.tool_calls:
+            args = json.loads(tool_call.function.arguments)
+
+            if tool_call.function.name == "run_shell":
+                result = sandbox.commands.run(args["command"])
+                output = result.stdout
+            elif tool_call.function.name == "write_file":
+                sandbox.files.write(args["path"], args["content"])
+                output = f"File {args['path']} written."
+
+            messages.append(message)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": output
+            })
+
+        final = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=messages
+        )
+        print(final.choices[0].message.content)
+
+    sandbox.kill()
+    ```
+
+    ```javascript Node.js icon="js"
+    import OpenAI from "openai";
+    import { Sandbox } from "e2b";
+
+    const client = new OpenAI({
+      baseURL: "https://api.neosantara.xyz/v1",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "run_shell",
+          description: "Jalankan perintah shell di sandbox terisolasi E2B.",
+          parameters: {
+            type: "object",
+            properties: {
+              command: { type: "string", description: "Perintah shell yang akan dieksekusi." },
+            },
+            required: ["command"],
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "write_file",
+          description: "Tulis file di sandbox E2B.",
+          parameters: {
+            type: "object",
+            properties: {
+              path: { type: "string", description: "Path file di sandbox." },
+              content: { type: "string", description: "Isi file." },
+            },
+            required: ["path", "content"],
+          },
+        },
+      },
+    ];
+
+    const messages = [
+      { role: "user", content: "Buat file requirements.txt berisi requests dan httpx, lalu install dengan pip." },
+    ];
+
+    const response = await client.chat.completions.create({
+      model: "deepseek-v4.1-flash",
+      messages,
+      tools,
+      tool_choice: "auto",
+    });
+
+    const message = response.choices[0].message;
+    const sandbox = await Sandbox.create();
+
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      for (const toolCall of message.tool_calls) {
+        const args = JSON.parse(toolCall.function.arguments);
+        let output;
+
+        if (toolCall.function.name === "run_shell") {
+          const result = await sandbox.commands.run(args.command);
+          output = result.stdout;
+        } else if (toolCall.function.name === "write_file") {
+          await sandbox.files.write(args.path, args.content);
+          output = `File ${args.path} written.`;
+        }
+
+        messages.push(message);
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: output,
+        });
+      }
+
+      const final = await client.chat.completions.create({
+        model: "deepseek-v4.1-flash",
+        messages,
+      });
+
+      console.log(final.choices[0].message.content);
+    }
+
+    await sandbox.kill();
+    ```
+
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Anthropic SDK" icon="/images/integrations/claude.svg">
+    Gunakan antarmuka tool use Anthropic dengan endpoint Neosantara. Tersedia untuk Python dan Node.js.
+
+    ### Instalasi Library
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U anthropic e2b
+    ```
+
+    ```bash npm icon="js"
+    npm install @anthropic-ai/sdk e2b
+    ```
+
+    </CodeGroup>
+
+    ### Contoh Implementasi
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    from anthropic import Anthropic
+    from e2b import Sandbox
+
+    client = Anthropic(
+        base_url="https://api.neosantara.xyz/anthropic",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    tools = [
+        {
+            "name": "run_shell",
+            "description": "Jalankan perintah shell di sandbox terisolasi E2B.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "command": {"type": "string", "description": "Perintah shell yang akan dieksekusi."}
+                },
+                "required": ["command"]
+            }
+        }
+    ]
+
+    response = client.messages.create(
+        model="claude-3-7-sonnet",
+        max_tokens=1024,
+        tools=tools,
+        messages=[{"role": "user", "content": "Cek versi Python dan pip yang terinstall di sandbox."}]
+    )
+
+    sandbox = Sandbox(api_key=os.environ["E2B_API_KEY"])
+
+    for block in response.content:
+        if block.type == "tool_use":
+            command = block.input.get("command")
+            result = sandbox.commands.run(command)
+            print("Output:", result.stdout)
+
+    sandbox.kill()
+    ```
+
+    ```javascript Node.js icon="js"
+    import Anthropic from "@anthropic-ai/sdk";
+    import { Sandbox } from "e2b";
+
+    const client = new Anthropic({
+      baseURL: "https://api.neosantara.xyz/anthropic",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const tools = [
+      {
+        name: "run_shell",
+        description: "Jalankan perintah shell di sandbox terisolasi E2B.",
+        input_schema: {
+          type: "object",
+          properties: {
+            command: { type: "string", description: "Perintah shell yang akan dieksekusi." },
+          },
+          required: ["command"],
+        },
+      },
+    ];
+
+    const response = await client.messages.create({
+      model: "claude-3-7-sonnet",
+      max_tokens: 1024,
+      tools,
+      messages: [{ role: "user", content: "Cek versi Python dan pip yang terinstall di sandbox." }],
+    });
+
+    const sandbox = await Sandbox.create();
+
+    for (const block of response.content) {
+      if (block.type === "tool_use") {
+        const command = block.input.command;
+        const result = await sandbox.commands.run(command);
+        console.log("Output:", result.stdout);
+      }
+    }
+
+    await sandbox.kill();
+    ```
+
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Kapabilitas Sandbox
+
+| Fitur | API | Keterangan |
+| :-- | :-- | :-- |
+| **Shell command** | `sandbox.commands.run()` | Eksekusi perintah shell dengan stdout/stderr |
+| **File write** | `sandbox.files.write()` | Tulis file ke filesystem sandbox |
+| **File read** | `sandbox.files.read()` | Baca isi file dari sandbox |
+| **File list** | `sandbox.files.list()` | List file dan direktori |
+| **Upload** | `sandbox.files.write()` | Upload konten biner atau teks |
+| **Download** | `sandbox.files.read()` | Download file dari sandbox |
+| **Timeout** | `timeout` parameter | Kontrol durasi maksimal eksekusi |
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Eksekusi kode Python dan visualisasi | [E2B Code Interpreter](/id/integrations/e2b) |
+| Sandbox Daytona dengan git dan filesystem | [Daytona](/id/integrations/daytona) |
+| Tool calling pada Gateway | [Tool Calling Chat Completions](/id/gateway/chat-completions/tool-calling) |
+| Katalog model yang didukung | [Daftar Model & Harga](/id/gateway/models) |

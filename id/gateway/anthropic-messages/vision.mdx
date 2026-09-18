@@ -1,0 +1,101 @@
+---
+title: "Vision Anthropic"
+description: "Kirim gambar multimodal ke model Claude menggunakan blok source Base64 dan URL."
+icon: "eye"
+related:
+  - /id/gateway/anthropic-messages
+  - /id/gateway/chat-completions/vision
+  - /id/gateway/capabilities/ocr
+---
+
+Endpoint `/anthropic/v1/messages` mendukung pemrosesan dokumen dan visual menggunakan blok gambar Anthropic standar.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK - Base64) icon="python"
+from anthropic import Anthropic
+import base64
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("diagram_arsitektur.png", "rb") as img_file:
+    image_data = base64.b64encode(img_file.read()).decode("utf-8")
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_data
+                    }
+                },
+                {
+                    "type": "text",
+                    "text": "Jelaskan alur data antar komponen pada diagram arsitektur ini."
+                }
+            ]
+        }
+    ]
+)
+
+print(response.content[0].text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image",
+            "source": {
+              "type": "url",
+              "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+            }
+          },
+          {
+            "type": "text",
+            "text": "Analisis grafik ini."
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Format Media yang Didukung
+
+- `image/jpeg`
+- `image/png`
+- `image/gif`
+- `image/webp`
+
+Ukuran berkas maksimum per gambar adalah 20 MB.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Vision di Chat Completions | [OpenAI Vision](/id/gateway/chat-completions/vision) |
+| Ekstraksi Teks Otomatis | [OCR Dokumen](/id/gateway/capabilities/ocr) |
+| Extended Thinking | [Extended Thinking](/id/gateway/anthropic-messages/thinking) |

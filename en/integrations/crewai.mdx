@@ -1,0 +1,109 @@
+---
+title: "CrewAI"
+description: "Build and coordinate autonomous multi-agent systems with Neosantara and CrewAI."
+icon: "/images/integrations/crewai.svg"
+related:
+  - /en/integrations/agno
+  - /en/integrations/autogen
+  - /en/agents/overview
+  - /en/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+CrewAI is a production-grade multi-agent orchestration framework. It allows autonomous agents to collaborate by assuming specific roles, sharing context, and executing interdependent tasks.
+
+## Setup
+
+Install the CrewAI package:
+
+```bash
+pip install -U crewai
+```
+
+<SetApiKey />
+
+## LLM Initialization
+
+Use the `crewai.LLM` class with the `openai/` model prefix to connect Neosantara models to your CrewAI agents.
+
+```python
+import os
+from crewai import LLM
+
+llm = LLM(
+    model="openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    base_url="https://api.neosantara.xyz/v1"
+)
+```
+
+## Multi-Agent Workflow Example
+
+The following example orchestrates two agents: a **Researcher** that gathers insights, and a **Writer** that compiles a concise technical overview from the research.
+
+```python
+import os
+from crewai import Agent, Task, Crew, Process, LLM
+
+llm = LLM(
+    model="openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    base_url="https://api.neosantara.xyz/v1"
+)
+
+# Define Agents
+researcher = Agent(
+    role="AI Infrastructure Analyst",
+    goal="Identify emerging trends in Indonesian LLM gateways and routing latency",
+    backstory="You are an experienced systems researcher specializing in Indonesian AI infrastructure and latency optimization.",
+    llm=llm,
+    verbose=True
+)
+
+writer = Agent(
+    role="Technical Content Strategist",
+    goal="Compose a crisp 2-paragraph briefing based on the research report",
+    backstory="You are a technical writer who communicates infrastructure concepts clearly and concisely.",
+    llm=llm,
+    verbose=True
+)
+
+# Define Tasks
+task_research = Task(
+    description="Analyze the key advantages of Indonesia's AI Gateway for local developer teams over US-only endpoints.",
+    expected_output="A bulleted summary highlighting latency benefits, local billing currency, and Indonesian data guardrails.",
+    agent=researcher
+)
+
+task_write = Task(
+    description="Write a 2-paragraph technical briefing using the research output.",
+    expected_output="A 2-paragraph executive briefing ready for publication.",
+    agent=writer
+)
+
+# Assemble and Kick off the Crew
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[task_research, task_write],
+    process=Process.sequential,
+    verbose=True
+)
+
+result = crew.kickoff()
+print(result)
+```
+
+## Model Selection by Agent Role
+
+| Agent Role | Recommended Model | Rationale |
+| :-- | :-- | :-- |
+| **Orchestrator / Manager** | `claude-4.5-sonnet` | Reliable multi-step planning and structured task delegation |
+| **Researcher & Deep Reasoning** | `deepseek-v4.1-flash` | Thorough analytical output with a 1M token context window |
+| **Fast Worker & Formatter** | `gemini-3.8-flash` | High throughput and cost efficiency for formatting and quick lookups |
+
+## Next Steps
+
+- [Model Context Protocol (MCP) Guide](/en/agents/overview)
+- [Model Catalog & Pricing](/en/gateway/models)
+- [Agno Native Integration](/en/integrations/agno)

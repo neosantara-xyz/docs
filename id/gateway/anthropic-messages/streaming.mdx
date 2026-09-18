@@ -1,0 +1,91 @@
+---
+title: "Streaming Respons Anthropic"
+description: "Aliran event real-time Server-Sent Events (SSE) menggunakan Anthropic Messages API."
+icon: "zap"
+related:
+  - /id/gateway/anthropic-messages
+  - /id/gateway/chat-completions/streaming
+  - /id/gateway/anthropic-messages/thinking
+---
+
+Endpoint `/anthropic/v1/messages` mendukung streaming token berbasis event Anthropic, kompatibel penuh dengan Anthropic Python SDK dan TypeScript SDK.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with client.messages.stream(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Tuliskan panduan arsitektur microservices."}]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+print()
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://api.neosantara.xyz/anthropic",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const stream = await client.messages.stream({
+  model: "claude-sonnet-4-6",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Jelaskan konsep event-driven architecture." }],
+});
+
+for await (const event of stream) {
+  if (
+    event.type === "content_block_delta" &&
+    event.delta.type === "text_delta"
+  ) {
+    process.stdout.write(event.delta.text);
+  }
+}
+console.log();
+```
+
+```bash cURL icon="terminal"
+curl -N -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Halo"}],
+    "stream": true
+  }'
+```
+
+</CodeGroup>
+
+## Urutan Event Streaming Anthropic
+
+Berbeda dengan OpenAI yang hanya mengirim delta konten teks, Anthropic mengirimkan siklus hidup blok konten:
+
+1. `message_start`: Metadata inisial pesan (id, model, role).
+2. `content_block_start`: Awal dari blok konten baru (teks atau thinking).
+3. `content_block_delta`: Pembaruan teks (`text_delta`) atau pemikiran (`thinking_delta`).
+4. `content_block_stop`: Penutupan blok konten tertentu.
+5. `message_delta`: Metadata akhir (alasan berhenti `stop_reason` dan jumlah output token).
+6. `message_stop`: Sinyal penutup aliran pesan.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Extended Thinking | [Extended Thinking](/id/gateway/anthropic-messages/thinking) |
+| Tool Use Anthropic | [Anthropic Tool Use](/id/gateway/anthropic-messages/tool-use) |
+| Spesifikasi Messages API | [Anthropic Messages](/id/gateway/anthropic-messages) |

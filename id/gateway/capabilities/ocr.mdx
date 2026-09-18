@@ -1,0 +1,68 @@
+---
+title: "OCR Dokumen"
+description: "Ekstraksi teks, tabel, dan formula dari gambar atau pindaian dokumen via /v1/ocr."
+icon: "file-search"
+related:
+  - /id/gateway/chat-completions/vision
+  - /id/gateway/operations/files
+  - /id/gateway/models
+---
+
+import ModelsOcrTable from '/snippets/models-ocr-table.mdx';
+
+Endpoint `/v1/ocr` mengekstraksi teks dari dokumen, invoice, formulir, dan tabel secara terstruktur dengan model OCR berbasis AI (DeepSeek OCR dan GLM OCR).
+
+<CodeGroup>
+
+```python Python icon="python"
+import requests
+import base64
+import os
+
+url = "https://api.neosantara.xyz/v1/ocr"
+headers = {
+    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
+    "Content-Type": "application/json"
+}
+
+with open("faktur.png", "rb") as f:
+    encoded_image = base64.b64encode(f.read()).decode("utf-8")
+
+payload = {
+    "model": "deepseek-ocr",
+    "image": encoded_image,
+    "image_type": "base64",
+    "prompt": "Ekstrak seluruh baris invoice ke dalam tabel Markdown."
+}
+
+response = requests.post(url, headers=headers, json=payload)
+data = response.json()
+print(data.get("extracted_text"))
+```
+
+```bash cURL (URL Gambar) icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/ocr \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-ocr",
+    "image": "https://example.com/invoice.jpg",
+    "image_type": "url"
+  }'
+```
+
+</CodeGroup>
+
+## Parameter Permintaan
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Ya | `deepseek-ocr`, `glm-ocr`, atau `zai-ocr`. |
+| `image` | `string` | Ya | URL gambar publik atau string Base64. |
+| `image_type` | `string` | Ya | Nilai: `"url"` atau `"base64"`. |
+| `prompt` | `string` | Opsional | Instruksi khusus untuk penataan format teks (didukung pada `glm-ocr`). |
+| `return_image` | `boolean` | Opsional | Kembalikan data visual yang telah diproses. Default `false`. |
+
+## Model OCR yang Tersedia
+
+<ModelsOcrTable />

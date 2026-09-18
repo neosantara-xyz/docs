@@ -1,0 +1,165 @@
+---
+title: "Server Tools & Integrasi MCP"
+description: "Eksekusi tools server-side dan integrasi remote MCP server menggunakan OpenAI SDK."
+icon: "wrench"
+related:
+  - /id/gateway/responses-api
+  - /id/gateway/chat-completions/tool-calling
+  - /id/agents/mcp-connector
+---
+
+Responses API (`/v1/responses`) mendukung dua jenis tools: pemanggilan fungsi standar di sisi klien (_client-side function tools_) dan tools yang didelegasikan langsung oleh gateway ke server remote melalui **Model Context Protocol (MCP)**.
+
+## Integrasi Server MCP Remote
+
+Dengan menambahkan konfigurasi server MCP ke dalam array `tools`, Neosantara bertindak sebagai klien MCP dan mengeksekusi alat secara langsung di lapisan gateway tanpa melibatkan kode orkestrasi di sisi klien.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Sertakan server MCP remote di dalam array tools
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Periksa daftar isu bug prioritas tinggi di repositori kami.",
+    tools=[
+        {
+            "type": "mcp",
+            "server_label": "github",
+            "server_url": "https://mcp.github-service.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer gh_mcp_token_secret"
+            },
+            "allowed_tools": ["list_issues", "get_issue"]
+        }
+    ]
+)
+
+print(response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Cek inventaris stok barang untuk SKU-9821.",
+  tools: [
+    {
+      type: "mcp",
+      server_label: "inventory",
+      server_url: "https://mcp.warehouse.example.com/mcp",
+      headers: {
+        Authorization: "Bearer warehouse_secret_token",
+      },
+    },
+  ],
+});
+
+console.log(response.output_text);
+```
+
+</CodeGroup>
+
+## Deklarasi Fungsi Client-Side
+
+Jika Anda ingin model menentukan parameter dan membiarkan aplikasi klien Anda yang menjalankan logika lokalnya, deklarasikan skema fungsi standar JSON.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Deklarasi fungsi kustom untuk dievaluasi oleh model
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Berapa perkiraan cuaca di Bandung hari ini?",
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Ambil cuaca terkini berdasarkan kota",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string"}
+                    },
+                    "required": ["city"]
+                }
+            }
+        }
+    ]
+)
+
+print(response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Berapa perkiraan cuaca di Bandung hari ini?",
+  tools: [
+    {
+      type: "function",
+      function: {
+        name: "get_weather",
+        description: "Ambil cuaca terkini berdasarkan kota",
+        parameters: {
+          type: "object",
+          properties: {
+            city: { type: "string" },
+          },
+          required: ["city"],
+        },
+      },
+    },
+  ],
+});
+
+console.log(response.output_text);
+```
+
+</CodeGroup>
+
+## Keunggulan Server MCP di Responses API
+
+Pada Chat Completions biasa, ketika model AI memutuskan memanggil tool, klien harus menangkap `tool_calls`, mengeksekusi kode sendiri di server lokal, lalu mengirimkan balik hasilnya ke gateway.
+
+Pada Responses API dengan tool tipe `mcp`:
+1. **Gateway Mengeksekusi Otomatis:** Neosantara menghubungi server MCP Anda secara langsung.
+2. **Klien Cukup Menunggu Respons:** Klien tidak perlu menulis loop orkestrasi pemanggilan fungsi.
+3. **Kompatibel dengan Mode Asinkron:** Sangat cocok dipadukan dengan `background=True` untuk proses data intensif.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Panduan MCP Connector Lengkap | [MCP Connector](/id/agents/mcp-connector) |
+| Tugas Latar Belakang | [Background Tasks](/id/gateway/responses-api/background-jobs) |
+| Simpan State Percakapan | [Percakapan & State](/id/gateway/responses-api/conversations) |

@@ -1,0 +1,61 @@
+---
+title: "Claude Desktop Integration"
+description: "Connect Claude Desktop application to Neosantara Model Context Protocol server."
+icon: "monitor"
+related:
+  - /en/agents/claude-code
+  - /en/agents/mcp-connector
+  - /en/agents/mcp-keys
+---
+
+Connect the Claude Desktop application directly to Neosantara's MCP Gateway using Server-Sent Events (SSE) transport.
+
+## Configuration File Path
+
+Open your Claude Desktop configuration file based on your operating system:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+## MCP Server Configuration
+
+Insert the `neosantara` entry inside the `mcpServers` object:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+
+<Note>
+MCP connections require a dedicated API key prefixed with `nsk_mcp_`. See [MCP API Keys](/en/agents/mcp-keys).
+</Note>
+
+## Verifying Connection
+
+1. Close and restart the Claude Desktop application.
+2. In the bottom right corner of the chat input box, a hammer icon will appear indicating active tools.
+3. Click the hammer icon to review available tools: `chat`, `list-models`, `generate-image`, and `list-image-models`.
+
+## Test Prompt Example
+
+Send this prompt in Claude Desktop to verify tool execution:
+
+```text
+List available Neosantara models with their context windows and token pricing using the MCP tool.
+```
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Configure Claude Code | [Claude Code Integration](/en/agents/claude-code) |
+| Configure Cursor | [Cursor Integration](/en/agents/cursor) |
+| Review MCP Keys | [MCP API Keys](/en/agents/mcp-keys) |

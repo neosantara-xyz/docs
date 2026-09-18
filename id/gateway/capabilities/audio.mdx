@@ -1,0 +1,59 @@
+---
+title: "Audio & Transkripsi"
+description: "Transkripsi file suara menjadi teks menggunakan model Whisper-1 dan Whisper Large."
+icon: "mic"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+  - /id/gateway/operations/files
+---
+
+Endpoint `/v1/audio/transcriptions` menyediakan paritas penuh dengan format OpenAI Audio API untuk transkripsi audio multibahasa.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("rekaman.mp3", "rb") as audio_file:
+    transcription = client.audio.transcriptions.create(
+        model="whisper-large-v3-turbo",
+        file=audio_file,
+        language="id",
+        response_format="json"
+    )
+
+print(transcription.text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/audio/transcriptions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -F file="@rekaman.mp3" \
+  -F model="whisper-large-v3-turbo" \
+  -F language="id"
+```
+
+</CodeGroup>
+
+## Parameter Transkripsi
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `file` | `binary` | Ya | File audio dalam format multipart/form-data. |
+| `model` | `string` | Ya | `whisper-large-v3-turbo` atau `whisper-1`. |
+| `language` | `string` | Opsional | Kode bahasa ISO-639-1 (contoh: `id` untuk Bahasa Indonesia, `en` untuk Inggris). |
+| `prompt` | `string` | Opsional | Petunjuk konteks atau ejaan istilah khusus (glossary). |
+| `response_format` | `string` | Opsional | Format respons: `json`, `text`, atau `verbose_json`. |
+| `temperature` | `number` | Opsional | Nilai sampling antara `0` dan `1`. Default `0`. |
+
+## Format Berkas yang Didukung
+
+- Audio: `mp3`, `mp4`, `m4a`, `wav`, `webm`, `ogg`, `flac`.
+- Ukuran berkas maksimum standar: 25 MB per permintaan.

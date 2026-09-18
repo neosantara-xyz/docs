@@ -1,0 +1,79 @@
+---
+title: "Cline & Roo Code Integration"
+description: "Configure Cline and Roo Code autonomous coding agents in VS Code using Neosantara."
+icon: "play"
+related:
+  - /en/agents/cursor
+  - /en/agents/opencode
+  - /en/gateway/chat-completions
+---
+
+Cline and Roo Code are autonomous AI coding agent extensions for Visual Studio Code that read repositories, modify files, run terminal commands, and call MCP tools.
+
+## Method 1: Model Provider (OpenAI-Compatible)
+
+Configure Cline to route inference through Neosantara models:
+
+<Steps>
+  <Step title="Open Extension Settings">
+    Open the Cline or Roo Code panel in the VS Code sidebar and click the **Settings** gear icon.
+  </Step>
+
+  <Step title="Select API Provider">
+    In the **API Provider** dropdown, select **OpenAI Compatible**.
+  </Step>
+
+  <Step title="Enter Gateway Credentials">
+    - **Base URL**: `https://api.neosantara.xyz/v1`
+    - **API Key**: Your Neosantara API key (`nsk_...`)
+    - **Model ID**: `deepseek-v4.1-flash`
+  </Step>
+
+  <Step title="Save Configuration">
+    Click **Done** to save. Start a new chat session to verify the connection.
+  </Step>
+</Steps>
+
+## Method 2: Adding Neosantara MCP Server
+
+Cline supports the Model Context Protocol to expand agent capabilities with extra tools.
+
+<Steps>
+  <Step title="Open MCP Servers Tab">
+    In the Cline settings panel, click the **MCP Servers** tab and select **Configure MCP Servers**.
+  </Step>
+
+  <Step title="Update Configuration JSON">
+    Open `cline_mcp_settings.json` and insert the `neosantara` entry:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+  </Step>
+
+  <Step title="Save and Verify">
+    Save the file. The server status in the MCP tab will display a green indicator, listing available Neosantara tools (`chat`, `list-models`, `generate-image`).
+  </Step>
+</Steps>
+
+<Note>
+MCP tool connections require a dedicated API key prefixed with `nsk_mcp_`.
+</Note>
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Configure Claude Code | [Claude Code Integration](/en/agents/claude-code) |
+| Configure OpenCode | [OpenCode Integration](/en/agents/opencode) |
+| Configure Cursor | [Cursor Integration](/en/agents/cursor) |
+| Review MCP Keys | [MCP API Keys](/en/agents/mcp-keys) |

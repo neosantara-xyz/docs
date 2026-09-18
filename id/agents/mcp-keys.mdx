@@ -1,0 +1,72 @@
+---
+title: "API Key MCP"
+description: "Buat dan kelola API key khusus untuk integrasi Model Context Protocol."
+icon: "key"
+related:
+  - /id/agents/mcp-connector
+  - /id/agents/cursor
+  - /id/guides/rate-limits
+---
+
+import McpTierLimits from '/snippets/mcp-tier-limits.mdx';
+
+API key MCP menggunakan awalan `nsk_mcp_` serta memiliki kuota dan batasan keamanan terpisah dari API key gateway standar.
+
+## Format API Key
+
+Setiap API key MCP Neosantara mengikuti struktur berikut:
+
+```text
+nsk_mcp_32karakteruuidheksadesimal
+```
+
+Contoh: `nsk_mcp_4f8b9e2a1c3d4e5f6a7b8c9d0e1f2a3b`
+
+## Header Autentikasi yang Didukung
+
+Endpoint MCP (`https://api.neosantara.xyz/v1/mcp`) menerima API key melalui salah satu header berikut:
+
+```http
+x-api-key: nsk_mcp_your_key_here
+```
+
+atau
+
+```http
+Authorization: Bearer nsk_mcp_your_key_here
+```
+
+## Membuat API Key melalui Dashboard
+
+1. Buka [Dashboard Neosantara](https://app.neosantara.xyz/api-keys).
+2. Klik tombol **Buat API Key MCP**.
+3. Beri nama API key (misal: `[MCP] Cursor IDE`).
+4. Salin API key dan simpan di tempat aman karena API key hanya ditampilkan satu kali.
+
+## Membuat API Key melalui API
+
+```bash
+curl -X POST "https://api.neosantara.xyz/v1/mcp/keys" \
+  -H "Authorization: Bearer $USER_SESSION_OR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "[MCP] Asisten Koding"}'
+```
+
+## Kuota dan Batas Tier
+
+Sistem MCP menerapkan pembatasan rate berbasis sliding counter Redis untuk melindungi performa server:
+
+1. **Batas RPM**: Batas jumlah permintaan per menit untuk setiap API key MCP.
+2. **Batas Permintaan Harian**: Batas akumulasi pemanggilan API key MCP dalam rentang 24 jam.
+3. **Maksimum Key Aktif**: Setiap akun dapat membuat maksimal **5 API key MCP aktif**.
+4. **Batas Token Ringkasan**: Output token maksimum saat menjalankan tool ringkasan audit (`mcp_summary_max_tokens`).
+
+<McpTierLimits />
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Arsitektur MCP | [Ringkasan MCP](/id/agents/overview) |
+| Hubungkan Cursor | [Integrasi Cursor](/id/agents/cursor) |
+| Hubungkan Claude Desktop | [Integrasi Claude Desktop](/id/agents/claude-desktop) |

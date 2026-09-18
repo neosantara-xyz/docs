@@ -1,0 +1,63 @@
+---
+title: "Batas Rate & Throughput"
+description: "Kebijakan pembatasan rate RPM, ITPM, dan OTPM di setiap tier langganan Neosantara."
+icon: "gauge"
+related:
+  - /id/guides/faq
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+---
+
+import BillingTierLimits from '/snippets/billing-tier-limits.mdx';
+import McpTierLimits from '/snippets/mcp-tier-limits.mdx';
+
+Untuk menjaga keandalan infrastruktur dan mencegah lonjakan lalu lintas yang tidak terduga, Neosantara menerapkan sistem pembatasan rate multi-layer berbasis Redis.
+
+## Tiga Metrik Batas Rate
+
+Gateway Neosantara memisahkan pembatasan lalu lintas ke dalam tiga metrik independen:
+
+1. **RPM (Requests Per Minute)**: Batas jumlah panggilan HTTP per menit menggunakan algoritma _sliding window_.
+2. **ITPM (Input Tokens Per Minute)**: Batas token input per menit menggunakan algoritma _token bucket_. Dihitung secara _pre-flight_ sebelum permintaan diteruskan ke model upstream.
+3. **OTPM (Output Tokens Per Minute)**: Batas token output per menit. Diselesaikan secara _post-flight_ setelah model selesai menghasilkan respons publik.
+
+## Batas Throughput per Tier
+
+<BillingTierLimits />
+
+## Batas Kuota MCP Gateway per Tier
+
+Untuk integrasi IDE dan agen menggunakan Model Context Protocol (MCP), Neosantara menerapkan batas panggilan dan token ringkasan terpisah dari kuota gateway AI:
+
+<McpTierLimits />
+
+Setiap akun dapat membuat hingga 5 API key MCP aktif. Pelajari selengkapnya di panduan [API Key MCP](/id/agents/mcp-keys).
+
+## Promo Rate Limit (Tier Free)
+
+Khusus model dengan diskon promosi 100% pada tier **Free**, berlaku batas **5 RPM**. Untuk membuka batas penuh Free tier (10 RPM), lakukan deposit perdana minimal Rp 50.000 melalui menu Top Up di dashboard.
+
+## Penanganan Batas Terlampaui (HTTP 429)
+
+Ketika aplikasi Anda melebihi salah satu batas di atas, gateway mengembalikan kode status HTTP `429 Too Many Requests` dengan format JSON standar:
+
+```json
+{
+  "error": {
+    "message": "You've reached your Input Tokens Per Minute (ITPM) limit for this tier. Please reduce your input length or wait a moment before retrying.",
+    "type": "rate_limit_error",
+    "code": "itpm_exceeded",
+    "details": {
+      "limit": 30000,
+      "remaining": 0,
+      "retry_after": 12
+    }
+  }
+}
+```
+
+### Rekomendasi Penanganan di Sisi Klien
+
+- Periksa header HTTP `retry-after` yang menunjukkan berapa detik klien harus menunggu sebelum mencoba kembali.
+- Terapkan algoritma _exponential backoff dengan jitter_ pada library klien Anda.
+- Untuk beban kerja data besar yang tidak membutuhkan respons interaktif, gunakan [Batch Processing](/id/gateway/operations/batches) yang berjalan di luar kuota RPM real-time.

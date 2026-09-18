@@ -1,0 +1,91 @@
+---
+title: "Anthropic Streaming"
+description: "Real-time Server-Sent Events (SSE) stream using Anthropic Messages API."
+icon: "zap"
+related:
+  - /en/gateway/anthropic-messages
+  - /en/gateway/chat-completions/streaming
+  - /en/gateway/anthropic-messages/thinking
+---
+
+The `/anthropic/v1/messages` endpoint supports native Anthropic event-based token streaming, fully compatible with official Anthropic Python and TypeScript SDKs.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with client.messages.stream(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Write a guide to microservices architecture."}]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+print()
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://api.neosantara.xyz/anthropic",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const stream = await client.messages.stream({
+  model: "claude-sonnet-4-6",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Explain event-driven architecture." }],
+});
+
+for await (const event of stream) {
+  if (
+    event.type === "content_block_delta" &&
+    event.delta.type === "text_delta"
+  ) {
+    process.stdout.write(event.delta.text);
+  }
+}
+console.log();
+```
+
+```bash cURL icon="terminal"
+curl -N -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello"}],
+    "stream": true
+  }'
+```
+
+</CodeGroup>
+
+## Anthropic Streaming Event Sequence
+
+Unlike OpenAI streams that transmit raw text deltas, Anthropic streams content block lifecycle events:
+
+1. `message_start`: Initial message metadata (id, model, role).
+2. `content_block_start`: Beginning of a new content block (text or thinking).
+3. `content_block_delta`: Content chunk updates (`text_delta` or `thinking_delta`).
+4. `content_block_stop`: Closes the current block.
+5. `message_delta`: Trailing metadata (`stop_reason` and final token counts).
+6. `message_stop`: Stream closing signal.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Extended Thinking | [Extended Thinking](/en/gateway/anthropic-messages/thinking) |
+| Anthropic Tool Use | [Anthropic Tool Use](/en/gateway/anthropic-messages/tool-use) |
+| Messages Specification | [Anthropic Messages](/en/gateway/anthropic-messages) |

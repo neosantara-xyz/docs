@@ -1,0 +1,101 @@
+---
+title: "FAQ & Tanya Jawab"
+description: "Jawaban pertanyaan umum seputar top-up saldo, metode pembayaran, mata uang billing, dan operasional gateway."
+icon: "circle-help"
+related:
+  - /id/quickstart
+  - /id/guides/rate-limits
+  - /id/gateway/models
+---
+
+Halaman ini merangkum jawaban atas pertanyaan yang paling sering ditanyakan mengenai penagihan, deposit saldo Rupiah, integrasi API, dan kebijakan operasional Neosantara.
+
+## Pembayaran & Top-Up Saldo
+
+<AccordionGroup>
+  <Accordion title="Berapa minimum nominal top-up saldo di Neosantara?">
+    Batas minimum top-up saldo deposit adalah **Rp 50.000** per transaksi invoice. Saldo yang berhasil dibayarkan langsung ditambahkan ke akun Anda dan dapat digunakan untuk inferensi seluruh model di gateway Neosantara.
+  </Accordion>
+
+  <Accordion title="Metode pembayaran apa saja yang didukung?">
+    Neosantara bekerja sama dengan payment gateway Mayar untuk mendukung metode pembayaran lokal Indonesia secara instan:
+    
+    - **QRIS**: Mendukung semua aplikasi perbankan dan e-wallet seperti GoPay, OVO, DANA, ShopeePay, LinkAja, BCA Mobile, Livin' Mandiri, dan lainnya.
+    - **Virtual Account (VA)**: BCA, Bank Mandiri, BNI, BRI, dan Permata Bank.
+
+    Semua faktur pembayaran dibuat langsung melalui [Dashboard Billing](https://app.neosantara.xyz/billing).
+  </Accordion>
+
+  <Accordion title="Apakah billing diproses dalam mata uang USD atau Rupiah (IDR)?">
+    Seluruh penagihan dan pemrosesan saldo di Neosantara diproses **100% dalam mata uang Rupiah Indonesia (IDR)** secara native.
+    
+    Anda tidak memerlukan kartu kredit internasional atau konversi kurs valuta asing. Semua harga model ditampilkan dalam Rupiah, dan transaksi internal dicatat dengan presisi tinggi menggunakan tipe data `NUMERIC(20,6)` untuk menjamin akurasi saldo tanpa floating-point drift.
+  </Accordion>
+
+  <Accordion title="Berapa lama waktu yang dibutuhkan hingga saldo aktif setelah pembayaran?">
+    Saldo aktif secara **instan**. Begitu pembayaran Anda berhasil diverifikasi oleh bank atau penyedia e-wallet melalui webhook Mayar, saldo akun Anda akan langsung bertambah dan siap digunakan untuk request API.
+  </Accordion>
+
+  <Accordion title="Bagaimana rincian biaya transaksi pembayaran?">
+    Pembayaran diproses secara aman melalui payment gateway Mayar. Rincian biaya layanan dan metode transfer ditampilkan secara transparan pada tagihan invoice sebelum pembayaran diselesaikan.
+  </Accordion>
+</AccordionGroup>
+
+## Model Saldo & Billing PAYG
+
+<AccordionGroup>
+  <Accordion title="Bagaimana model billing Pay-As-You-Go (PAYG) bekerja?">
+    Neosantara menggunakan model Pay-As-You-Go murni. Saldo akun Anda hanya dipotong berdasarkan jumlah token riil (input dan output) yang berhasil dihasilkan oleh model upstream pada setiap request. Tidak ada biaya tersembunyi, dan request yang gagal tidak akan memotong saldo Anda.
+  </Accordion>
+
+  <Accordion title="Apakah saldo deposit memiliki masa kedaluwarsa (expiry date)?">
+    **Tidak ada masa kedaluwarsa**. Saldo deposit Pay-As-You-Go (PAYG) yang Anda miliki tersimpan permanen di akun Anda dan dapat digunakan kapan saja tanpa batas waktu.
+  </Accordion>
+
+  <Accordion title="Apakah ada biaya langganan bulanan atau biaya pemeliharaan minimum?">
+    Tidak ada biaya langganan bulanan wajib untuk penggunaan gateway API. Model Neosantara adalah murni Pay-As-You-Go. Anda hanya membayar token yang benar-benar Anda gunakan.
+  </Accordion>
+
+  <Accordion title="Apa yang terjadi jika saldo habis di tengah request atau streaming?">
+    Jika saldo aktif di akun Anda tidak mencukupi untuk memproses request baru, gateway akan mengembalikan status error HTTP `402 Payment Required`. Anda dapat melakukan top-up kembali melalui dashboard untuk melanjutkan penggunaan API tanpa hambatan.
+  </Accordion>
+
+  <Accordion title="Jika gateway mengalihkan request ke model fallback, model mana yang ditagihkan?">
+    Anda **selalu ditagih berdasarkan tarif model yang Anda minta** (*requested model*). Jika terjadi gangguan teknis pada provider utama dan gateway secara otomatis mengalihkan request ke provider cadangan (fallback), tarif yang Anda bayar tidak akan pernah berubah atau menjadi lebih mahal.
+  </Accordion>
+</AccordionGroup>
+
+## Penggunaan Token & Endpoint
+
+<AccordionGroup>
+  <Accordion title="Bagaimana cara meningkatkan batas rate limit (RPM dan TPM)?">
+    Tier akun Anda ditentukan secara otomatis berdasarkan total akumulasi deposit yang pernah Anda lakukan (*cumulative deposit*). Setiap kenaikan tier akan menaikkan batas Requests Per Minute (RPM) serta token per menit (ITPM dan OTPM) secara otomatis tanpa perlu pengajuan manual.
+  </Accordion>
+</AccordionGroup>
+
+## Keamanan & Kepatuhan Data
+
+<AccordionGroup>
+  <Accordion title="Bagaimana Neosantara melindungi data pribadi (UU PDP No. 27/2022)?">
+    Neosantara menyediakan fitur automated Indonesian PII redaction. Anda dapat menyensor Nomor Induk Kependudukan (NIK), nomor telepon, nomor kartu kredit, dan data sensitif lainnya secara otomatis sebelum payload dikirim ke upstream model dengan menambahkan header berikut:
+
+    ```http HTTP icon="terminal"
+    X-Guard: on
+    ```
+  </Accordion>
+
+  <Accordion title="Apakah Neosantara menyimpan prompt dan data inferensi saya?">
+    Neosantara sendiri **tidak pernah menyimpan** konten prompt teks atau percakapan Anda untuk pelatihan model (*no model training* pada server Neosantara). Gateway hanya mencatat metadata operasional (jumlah token, model yang dipanggil, latensi, dan status respons) untuk keperluan billing dan analitik dashboard Anda.
+
+    Pada sisi upstream, perlakuan data bergantung pada kebijakan privasi masing-masing penyedia model (seperti OpenAI, Anthropic, atau Google). Beberapa penyedia upstream mungkin memiliki ketentuan retensi data tersendiri untuk model tertentu. Jika Anda ingin mencegah data sensitif dikirimkan ke penyedia model upstream, aktifkan fitur sensor otomatis dengan menambahkan header `X-Guard: on`.
+  </Accordion>
+</AccordionGroup>
+
+## Sumber Daya Terkait
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Pemantauan saldo & top-up | [Dashboard Billing](https://app.neosantara.xyz/billing) |
+| Batasan request dan token per menit | [Batas Rate & Throughput](/id/guides/rate-limits) |
+| Proteksi data pribadi otomatis | [Data Guardrails & UU PDP](/id/guides/guardrails) |
+| Daftar harga token per model | [Katalog Model](/id/gateway/models) |

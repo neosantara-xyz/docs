@@ -1,0 +1,91 @@
+---
+title: "Integrasi Pi Coding Agent"
+description: "Asisten koding terminal minimalis dan cepat dengan dukungan tree-session dan model Neosantara."
+icon: "terminal"
+related:
+  - /id/agents/hermes
+  - /id/agents/openclaw
+  - /id/agents/overview
+---
+
+[Pi](https://github.com/badlogic/pi-mono) (`@mariozechner/pi-coding-agent`) adalah asisten koding terminal yang dirancang sangat cepat, modular, dan efisien. Pi mendukung navigasi sesi interaktif bercabang (*tree sessions*), eksekusi bash terisolasi, manipulasi file langsung, dan ekstensi TypeScript tanpa dependensi runtime yang berat.
+
+## Instalasi Pi
+
+Pasang Pi secara global menggunakan Node.js dan npm:
+
+```bash
+npm install -g @mariozechner/pi-coding-agent
+```
+
+## Konfigurasi Gateway Neosantara
+
+### Opsi A: Variabel Lingkungan
+
+Cara tercepat menghubungkan Pi adalah dengan mengekspor konfigurasi OpenAI-compatible ke gateway Neosantara:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+```
+
+### Opsi B: File Konfigurasi Global
+
+Anda juga dapat menyimpan pengaturan default pada `~/.pi/config.json`:
+
+```json
+{
+  "provider": "openai",
+  "baseURL": "https://api.neosantara.xyz/v1",
+  "apiKey": "nsk_your_api_key_here",
+  "model": "deepseek-v4.1-flash"
+}
+```
+
+## Menjalankan Pi
+
+Buka repositori proyek Anda di terminal, lalu jalankan perintah `pi`:
+
+```bash
+pi
+```
+
+Atau tentukan model dan provider langsung melalui argumen CLI:
+
+```bash
+pi --provider openai --model deepseek-v4.1-flash
+```
+
+Contoh instruksi koding interaktif:
+
+```text
+> Temukan seluruh penggunaan console.log yang tidak terproteksi di src/ dan ganti dengan logger terstruktur.
+```
+
+Pi akan membaca file, menganalisis struktur kode, menampilkan diff perubahan, dan meminta konfirmasi sebelum menerapkan modifikasi ke disk.
+
+## Model yang Direkomendasikan
+
+| Kasus Penggunaan | Model Rujukan | Jendela Konteks | Karakteristik |
+| :--- | :--- | :--- | :--- |
+| **Penalaran & Refactoring Kompleks** | `deepseek-v4.1-flash` | 1.000.000 token | Akurasi sintaksis tinggi untuk kode TypeScript, Go, Python, dan Rust. |
+| **Iterasi Cepat & Scripting** | `gemini-3.8-flash` | 1.000.000 token | Waktu respons sangat cepat untuk eksplorasi fungsi dan bug fix cepat. |
+| **Tugas Rutin & Unit Test** | `gpt-5.4-mini` | 128.000 token | Konsumsi token efisien untuk pembuatan unit test repetitif. |
+
+## Perbandingan Coding Agent Terminal
+
+| Fitur | Pi (`pi`) | OpenCode | Claude Code |
+| :--- | :--- | :--- | :--- |
+| **Gaya Interaksi** | Tree sessions bercabang | Terminal interaktif | Terminal agen berbasis dialog |
+| **Protokol Gateway** | OpenAI-compatible (`/v1`) | OpenAI-compatible (`/v1`) | Anthropic (`/anthropic`) |
+| **Ekstensi** | TypeScript & JavaScript | Plugin config | Tools MCP |
+| **Ukuran Binary** | Minimalis & sangat ringan | Menengah | Menengah |
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Asisten koding OpenCode | [Panduan OpenCode](/id/agents/opencode) |
+| Asisten koding Claude Code | [Panduan Claude Code](/id/agents/claude-code) |
+| Ekstensi VS Code Cline | [Panduan Cline](/id/agents/cline) |
+| Hosted Agent di Dashboard | [Panduan Agen Cloud](/id/agents/cloud-agents) |

@@ -1,0 +1,75 @@
+---
+title: "Jelma CLI Overview"
+description: "Official Neosantara CLI runner to launch and configure AI coding agents locally or on cloud providers instantly."
+icon: "cpu"
+related:
+  - /en/guides/jelma/usage
+  - /en/coding-plan/overview
+  - /en/agents/claude-code
+---
+
+**Jelma** is the official CLI agent runner from Neosantara designed to launch AI coding agents onto your local machine or into cloud providers (AWS, GCP, Hetzner, DigitalOcean, Daytona, E2B, or Sprite) with a single command. Jelma handles credential injection, endpoint routing, and agent environment configurations automatically.
+
+## Why Use Jelma
+
+| Without Jelma | With Jelma |
+| :-- | :-- |
+| Manually edit per-agent settings and JSON files | Run your preferred agent directly in one command |
+| Remember distinct base URLs per protocol and plan | Automatically routed based on your API key format |
+| Repeatedly configure auth tokens across machines | Credentials are securely stored and injected |
+| Repetitive setup on each new machine or VPS | Simply run `jelma <agent> <cloud>` anywhere |
+
+## Supported Coding Agents
+
+| Agent | Description | Protocol |
+| :-- | :-- | :-- |
+| **Claude Code** | Advanced agentic CLI from Anthropic | Anthropic Messages |
+| **Codex CLI** | Terminal coding assistant from OpenAI | OpenAI-compatible |
+| **OpenClaw** | Interactive coding TUI with browser automation | OpenAI / MCP |
+| **OpenCode** | Open-source terminal coding assistant | OpenAI-compatible |
+| **Hermes** | Autonomous coding agent from Nous Research | OpenAI-compatible |
+| **Pi** | Lightweight and fast terminal coding agent | OpenAI-compatible |
+
+## Deployment Environments
+
+Jelma supports both local execution and automated cloud provisioning:
+
+- **Local Machine**: Runs directly on your workstation without requiring cloud infrastructure credentials.
+- **Cloud Providers**: AWS Lightsail, Google Cloud, Hetzner, DigitalOcean, Daytona, E2B, and Sprite.
+
+## Automated Billing Selection
+
+Jelma detects your active credential type automatically:
+
+- **Pay-As-You-Go (PAYG)**: Using a standard key (`nsk_...`) routes traffic to `/v1` or `/anthropic` with per-token deductions.
+- **Coding Plan**: Using a coding key (`nsk_code_...`) routes traffic to `/coding/v1` or `/coding/anthropic` drawing from your prompt quota.
+
+## Model Selection & Routing
+
+By default, Jelma executes against `garda-core` (1M context window). You can override this using the `--model` flag:
+
+```bash Terminal icon="terminal"
+# Using a specific catalog model
+jelma claude local --model deepseek-v4.1-flash
+
+# Using a custom Model Route (Coding Plan)
+jelma claude local --model my-coder
+```
+
+## Quick Start
+
+Install Jelma via your terminal:
+
+```bash Terminal icon="terminal"
+curl -fsSL https://cli.neosantara.xyz/install.sh | bash
+```
+
+Launch an interactive prompt or specify agent and target directly:
+
+```bash Terminal icon="terminal"
+# Interactive menu for agent, cloud target, and billing mode
+jelma
+
+# Launch Claude Code locally
+jelma claude local
+```

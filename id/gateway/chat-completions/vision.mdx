@@ -1,0 +1,125 @@
+---
+title: "Vision Multimodal"
+description: "Kirim gambar melalui URL atau Base64 ke model multimodal pada endpoint Chat Completions."
+icon: "eye"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/anthropic-messages/vision
+  - /id/gateway/capabilities/ocr
+  - /id/gateway/capabilities/image-generation
+---
+
+import ModelsVisionTable from '/snippets/models-vision-table.mdx';
+
+Endpoint `/v1/chat/completions` mendukung input gambar multimodal menggunakan format array `content` standar OpenAI.
+
+<CodeGroup>
+
+```python Python (URL Gambar) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Jelaskan isi grafik ini secara rinci."},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+                    }
+                }
+            ]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Base64 Lokal) icon="python"
+from openai import OpenAI
+import base64
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("struk_belanja.jpg", "rb") as image_file:
+    encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Ekstrak nama toko, tanggal, dan total nominal belanja dari struk ini."},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded_string}"
+                    }
+                }
+            ]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "Apa warna objek utama di foto ini?"},
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+            }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Format yang Didukung
+
+- **Tipe Berkas:** PNG, JPEG, WEBP, GIF (non-animasi).
+- **Metode Pengiriman:**
+  - URL publik HTTPS yang dapat diakses langsung.
+  - Data URI Base64 (`data:image/<format>;base64,<string>`).
+- **Ukuran Maksimum:** 20 MB per gambar.
+
+## Model Multimodal Terpilih
+
+<ModelsVisionTable />
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Vision di Anthropic | [Anthropic Vision](/id/gateway/anthropic-messages/vision) |
+| Ekstraksi Teks Lanjutan | [OCR Dokumen](/id/gateway/capabilities/ocr) |
+| Output JSON Tervalidasi | [Structured Outputs](/id/gateway/chat-completions/structured-outputs) |

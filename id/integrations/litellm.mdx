@@ -1,0 +1,87 @@
+---
+title: "LiteLLM"
+description: "Orkestrasi model AI, proxy load balancing, dan fallback routing dengan LiteLLM."
+icon: "/images/integrations/litellm.svg"
+related:
+  - /id/integrations/overview
+  - /id/integrations/any-llm
+  - /id/gateway/models
+  - /id/gateway/chat-completions
+---
+
+Neosantara didukung secara resmi di dalam ekosistem LiteLLM. Anda dapat memanggil model menggunakan prefix `neosantara/<model>` untuk routing, failover multi-model otomatis, dan pelacakan biaya terpusat.
+
+## Instalasi
+
+```bash
+pip install -U litellm
+```
+
+## Autentikasi
+
+Setel API key Neosantara di environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+## Contoh Penggunaan Native
+
+<CodeGroup>
+
+```python Python icon="python"
+import litellm
+import os
+
+response = litellm.completion(
+    model="neosantara/gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "Jelaskan cara kerja proxy AI dalam satu kalimat."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Streaming) icon="python"
+import litellm
+
+response = litellm.completion(
+    model="neosantara/deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Tuliskan 3 tips optimasi database."}],
+    stream=True
+)
+
+for chunk in response:
+    content = chunk.choices[0].delta.content or ""
+    print(content, end="", flush=True)
+print()
+```
+
+</CodeGroup>
+
+## Konfigurasi Proxy LiteLLM (`config.yaml`)
+
+Jika Anda menjalankan LiteLLM Proxy Server untuk organisasi:
+
+```yaml config.yaml
+model_list:
+  - model_name: my-fast-model
+    litellm_params:
+      model: neosantara/gemini-3.8-flash
+      api_key: os.environ/NEOSANTARA_API_KEY
+
+  - model_name: my-reasoning-model
+    litellm_params:
+      model: neosantara/deepseek-v4.1-flash
+      api_key: os.environ/NEOSANTARA_API_KEY
+```
+
+## Keunggulan Integrasi LiteLLM
+ 
+| Kapabilitas | Integrasi Standar | Provider Resmi Neosantara |
+| :-- | :-- | :-- |
+| **Sintaks Model** | `openai/<model>` | `neosantara/<model>` |
+| **Routing & Fallback** | Konfigurasi manual per endpoint | Failover multi-model otomatis |
+| **Pelacakan Biaya & Saldo** | Estimasi token statis | Selaras dengan rate Rupiah Neosantara |
+| **Dukungan Proxy & Gateway** | Perlu mapping adapter tambahan | Terdaftar langsung di server proxy LiteLLM |

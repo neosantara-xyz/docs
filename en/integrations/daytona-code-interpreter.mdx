@@ -1,0 +1,355 @@
+---
+title: "Daytona Code Interpreter"
+sidebarTitle: "Code Interpreter"
+description: "Execute stateful Python with isolated contexts in Daytona using Agno, OpenAI, or Anthropic SDK."
+icon: "/images/integrations/daytona.svg"
+related:
+  - /en/integrations/daytona
+  - /en/integrations/e2b
+  - /en/gateway/chat-completions/tool-calling
+  - /en/gateway/models
+---
+
+Daytona Code Interpreter runs Python in a stateful context inside a sandbox. Variables, imports, and functions persist across executions in the same context. Unlike general process execution (`process.code_run`), Code Interpreter supports isolated contexts, output streaming via callbacks, and explicit context management. Python only. For other languages, use `process.code_run`.
+
+## Access Credentials
+
+Set Neosantara and Daytona API keys in your environment variables:
+
+```bash icon="terminal"
+export NEOSANTARA_API_KEY="nsk_..."
+export DAYTONA_API_KEY="your_daytona_api_key"
+```
+
+Daytona API keys are available at [app.daytona.io](https://app.daytona.io).
+
+## Framework and SDK Integration
+
+Select your preferred framework or SDK:
+
+<Tabs>
+  <Tab title="Agno" icon="/images/integrations/agno.svg">
+    Agno provides built-in `DaytonaTools` to connect the Daytona Code Interpreter to Neosantara agents. The agent manages tool calling and code execution automatically.
+
+    ### Library Installation
+
+    ```bash icon="terminal"
+    pip install -U agno daytona
+    ```
+
+    ### Implementation Example
+
+    ```python icon="python"
+    from agno.agent import Agent
+    from agno.models.neosantara import Neosantara
+    from agno.tools.daytona import DaytonaTools
+
+    agent = Agent(
+        model=Neosantara(id="deepseek-v4.1-flash"),
+        tools=[DaytonaTools()],
+        markdown=True,
+        show_tool_calls=True,
+        instructions=[
+            "Use the Daytona Code Interpreter to run and verify Python code.",
+            "Present execution results with clear formatting."
+        ]
+    )
+
+    agent.print_response(
+        "Compute the first 10 Fibonacci numbers in Python and show the results."
+    )
+    ```
+  </Tab>
+
+  <Tab title="OpenAI SDK" icon="/images/integrations/openai.svg">
+    Use function calling to execute stateful Python via `code_interpreter.run_code`. Available for Python and Node.js.
+
+    ### Library Installation
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U openai daytona
+    ```
+
+    ```bash npm icon="js"
+    npm install openai @daytona/sdk
+    ```
+
+    </CodeGroup>
+
+    ### Implementation Example
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    import json
+    from openai import OpenAI
+    from daytona import Daytona, DaytonaConfig
+
+    client = OpenAI(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    config = DaytonaConfig(api_key=os.environ["DAYTONA_API_KEY"])
+    daytona = Daytona(config)
+    sandbox = daytona.create()
+
+    tools = [{
+        "type": "function",
+        "function": {
+            "name": "run_python_code",
+            "description": "Execute stateful Python in the Daytona Code Interpreter.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {"type": "string", "description": "Python code to execute."}
+                },
+                "required": ["code"]
+            }
+        }
+    }]
+
+    messages = [{"role": "user", "content": "Calculate the factorial of 12 using Python."}]
+    response = client.chat.completions.create(
+        model="deepseek-v4.1-flash",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        tool_call = message.tool_calls[0]
+        args = json.loads(tool_call.function.arguments)
+
+        result = sandbox.code_interpreter.run_code(args["code"])
+        output_text = result.stdout or str(result.result)
+
+        messages.append(message)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": output_text
+        })
+
+        final_response = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=messages
+        )
+        print(final_response.choices[0].message.content)
+
+    daytona.remove(sandbox)
+    ```
+
+    ```javascript Node.js icon="js"
+    import OpenAI from "openai";
+    import { Daytona } from "@daytona/sdk";
+
+    const client = new OpenAI({
+      baseURL: "https://api.neosantara.xyz/v1",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const daytona = new Daytona({ apiKey: process.env.DAYTONA_API_KEY });
+    const sandbox = await daytona.create();
+
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "run_python_code",
+          description: "Execute stateful Python in the Daytona Code Interpreter.",
+          parameters: {
+            type: "object",
+            properties: {
+              code: { type: "string", description: "Python code to execute." },
+            },
+            required: ["code"],
+          },
+        },
+      },
+    ];
+
+    const messages = [{ role: "user", content: "Calculate the factorial of 12 using Python." }];
+
+    const response = await client.chat.completions.create({
+      model: "deepseek-v4.1-flash",
+      messages,
+      tools,
+      tool_choice: "auto",
+    });
+
+    const message = response.choices[0].message;
+
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      const toolCall = message.tool_calls[0];
+      const args = JSON.parse(toolCall.function.arguments);
+
+      const result = await sandbox.codeInterpreter.runCode(args.code);
+      const outputText = result.stdout || String(result.result);
+
+      messages.push(message);
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: outputText,
+      });
+
+      const finalResponse = await client.chat.completions.create({
+        model: "deepseek-v4.1-flash",
+        messages,
+      });
+
+      console.log(finalResponse.choices[0].message.content);
+    }
+
+    await daytona.remove(sandbox);
+    ```
+
+    </CodeGroup>
+
+    ### Isolated Contexts
+
+    The default context is shared and persistent. Create an isolated context for independent sessions:
+
+    ```python icon="python"
+    ctx = sandbox.code_interpreter.create_context()
+    sandbox.code_interpreter.run_code("x = 100", context=ctx)
+    result = sandbox.code_interpreter.run_code("x + 23", context=ctx)
+    print(result.stdout)
+    sandbox.code_interpreter.delete_context(ctx)
+    ```
+  </Tab>
+
+  <Tab title="Anthropic SDK" icon="/images/integrations/claude.svg">
+    Use the Anthropic tool use interface with the Neosantara endpoint. Available for Python and Node.js.
+
+    ### Library Installation
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U anthropic daytona
+    ```
+
+    ```bash npm icon="js"
+    npm install @anthropic-ai/sdk @daytona/sdk
+    ```
+
+    </CodeGroup>
+
+    ### Implementation Example
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    from anthropic import Anthropic
+    from daytona import Daytona, DaytonaConfig
+
+    client = Anthropic(
+        base_url="https://api.neosantara.xyz/anthropic",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    config = DaytonaConfig(api_key=os.environ["DAYTONA_API_KEY"])
+    daytona = Daytona(config)
+    sandbox = daytona.create()
+
+    tools = [{
+        "name": "run_python_code",
+        "description": "Execute stateful Python in the Daytona Code Interpreter.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "code": {"type": "string", "description": "Python code to execute."}
+            },
+            "required": ["code"]
+        }
+    }]
+
+    response = client.messages.create(
+        model="claude-3-7-sonnet",
+        max_tokens=1024,
+        tools=tools,
+        messages=[{"role": "user", "content": "Calculate 2 to the power of 20 using Python."}]
+    )
+
+    for block in response.content:
+        if block.type == "tool_use":
+            result = sandbox.code_interpreter.run_code(block.input.get("code"))
+            print("Result:", result.stdout or result.result)
+
+    daytona.remove(sandbox)
+    ```
+
+    ```javascript Node.js icon="js"
+    import Anthropic from "@anthropic-ai/sdk";
+    import { Daytona } from "@daytona/sdk";
+
+    const client = new Anthropic({
+      baseURL: "https://api.neosantara.xyz/anthropic",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const daytona = new Daytona({ apiKey: process.env.DAYTONA_API_KEY });
+    const sandbox = await daytona.create();
+
+    const tools = [
+      {
+        name: "run_python_code",
+        description: "Execute stateful Python in the Daytona Code Interpreter.",
+        input_schema: {
+          type: "object",
+          properties: {
+            code: { type: "string", description: "Python code to execute." },
+          },
+          required: ["code"],
+        },
+      },
+    ];
+
+    const response = await client.messages.create({
+      model: "claude-3-7-sonnet",
+      max_tokens: 1024,
+      tools,
+      messages: [{ role: "user", content: "Calculate 2 to the power of 20 using Python." }],
+    });
+
+    for (const block of response.content) {
+      if (block.type === "tool_use") {
+        const result = await sandbox.codeInterpreter.runCode(block.input.code);
+        console.log("Result:", result.stdout || result.result);
+      }
+    }
+
+    await daytona.remove(sandbox);
+    ```
+
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Code Interpreter vs Sandbox Process
+
+| Feature | Code Interpreter | Sandbox Process |
+| :-- | :-- | :-- |
+| **API** | `code_interpreter.run_code()` | `process.code_run()` / `process.exec()` |
+| **Language** | Python only | Python, TypeScript, shell |
+| **State** | Stateful per context, variables persist | Stateless per call |
+| **Isolation** | `create_context()` / `delete_context()` | New sandbox per session |
+| **Streaming** | `on_stdout`, `on_stderr`, `on_error` callbacks | Direct `result` output |
+| **Best for** | Data analysis, chained calculations, Python coding agents | Shell, multi-language, file and git operations |
+
+## Next Steps
+
+| Need | Guide |
+| :-- | :-- |
+| Daytona file, shell, and git operations | [Daytona Sandbox](/en/integrations/daytona) |
+| E2B Python execution and visualization | [E2B Code Interpreter](/en/integrations/e2b) |
+| Tool calling on Gateway | [Tool Calling Chat Completions](/en/gateway/chat-completions/tool-calling) |
+| Supported model catalog | [Models & Pricing](/en/gateway/models) |

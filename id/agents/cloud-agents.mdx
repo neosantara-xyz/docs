@@ -1,0 +1,114 @@
+---
+title: "Agen Cloud (Hosted)"
+description: "Deploy dan jalankan agen AI otonom langsung dari dashboard Neosantara dengan sandbox E2B dan integrasi Telegram."
+icon: "cloud"
+related:
+  - /id/agents/openclaw
+  - /id/agents/hermes
+  - /id/agents/overview
+  - /id/guides/faq
+---
+
+Neosantara menyediakan runtime hosting agen AI cloud langsung di dalam dashboard ([app.neosantara.xyz/cloud](https://app.neosantara.xyz)). Anda dapat men-deploy agen otonom seperti **OpenClaw** dan **Hermes Agent** ke dalam sandbox terisolasi hanya dengan menghubungkan bot Telegram.
+
+## Arsitektur Runtime Cloud
+
+Agen cloud Neosantara berjalan di atas infrastruktur microVM E2B yang terisolasi penuh dengan siklus hidup otomatis:
+
+```
+[Pengguna di Telegram]
+          │
+          ▼
+[Telegram Bot API]
+          │ Webhook HTTPS (~700ms wake-up)
+          ▼
+[Neosantara Cloud Router]
+          │ Validasi HMAC & Routing Egress Aman
+          ▼
+┌─────────────────────────────────────────┐
+│ Sandbox MicroVM E2B (Terisolasi)        │
+│ ├─ Runtime Agen (OpenClaw / Hermes)    │
+│ ├─ Session Storage & SQLite             │
+│ └─ Tool Execution (Bash, Browser, Files)│
+└─────────────────────────────────────────┘
+          │
+          ▼ API Gateway HTTPS
+[Neosantara AI Gateway (api.neosantara.xyz)]
+```
+
+### Fitur Utama
+
+| Fitur | Spesifikasi | Keterangan |
+| :--- | :--- | :--- |
+| **Scale-to-Zero** | Pause otomatis setelah 30 menit idle | Menghemat biaya komputasi saat agen tidak menerima pesan. |
+| **Kecepatan Wake-Up** | ~700 ms dari status paused | Begitu pesan Telegram masuk, sandbox langsung aktif melayani. |
+| **Isolasi Penuh** | MicroVM E2B per user sandbox | Lingkungan eksekusi terpisah dengan proteksi SSRF terhadap private network. |
+| **Zero Secret Storage** | Enkripsi transit & env injection | Token bot Telegram dan API key gateway di-inject saat runtime tanpa tersimpan plain-text di DB. |
+| **Integrasi Telegram** | Webhook multi-user | Batasi akses agen secara eksklusif kepada Owner ID Telegram Anda. |
+
+## Agen Cloud yang Tersedia
+
+<CardGroup cols={2}>
+  <Card title="OpenClaw Cloud" icon="/images/integrations/openclaw.svg" href="/id/agents/openclaw">
+    Agen personal otonom dengan dukungan tool-calling, eksekusi kode, dan koneksi multi-channel.
+  </Card>
+
+  <Card title="Hermes Agent Cloud" icon="/images/integrations/hermes.svg" href="/id/agents/hermes">
+    Agen penalaran dari Nous Research dengan memori percakapan persisten dan transkripsi suara STT bawaan.
+  </Card>
+</CardGroup>
+
+## Perbandingan Agen Hosted
+
+| Kebutuhan | OpenClaw Cloud | Hermes Agent Cloud |
+| :--- | :--- | :--- |
+| **Pengembang Utama** | Komunitas OpenClaw | Nous Research |
+| **Model Default** | `deepseek-v4.1-flash`, `gemini-3.8-flash` | `deepseek-v4.1-flash`, `gpt-5.4-mini` |
+| **Dukungan Audio / Voice** | File audio umum | Transkripsi STT otomatis (`whisper-large-v3-turbo`) |
+| **Pesan Telegram** | Teks, file, dokumen | Teks, voice note, callback buttons |
+| **Eksekusi Tool** | Terminal, web scraping, custom skills | Bash, Python, web search, function calling |
+| **Jalur Konfigurasi** | [app.neosantara.xyz/cloud/openclaw](https://app.neosantara.xyz/cloud/openclaw) | [app.neosantara.xyz/cloud/hermes](https://app.neosantara.xyz/cloud/hermes) |
+
+## Cara Deploy dalam 3 Langkah
+
+### 1. Buat Bot Telegram & Dapatkan User ID
+
+1. Buka [@BotFather](https://t.me/BotFather) di Telegram.
+2. Kirim `/newbot`, ikuti petunjuk nama bot, lalu simpan **Bot Token** yang diberikan (format: `123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ`).
+3. Buka [@userinfobot](https://t.me/userinfobot) di Telegram untuk melihat **ID numerik** akun Telegram Anda (misalnya `987654321`). Ini adalah Owner ID Anda.
+
+### 2. Isi Wizard Deploy di Dashboard
+
+Buka menu **Cloud Agents** di dashboard Neosantara, lalu pilih agen yang ingin di-deploy:
+
+1. **Koneksi Telegram**: Masukkan Bot Token dan Telegram Owner ID. ID ini memastikan hanya Anda yang dapat memerintah bot.
+2. **Konfigurasi Model**: Pilih model penalaran utama (misalnya `deepseek-v4.1-flash`) dan fallback model opsional.
+3. **Instruksi Sistem & Zona Waktu**: Tentukan persona agen dan zona waktu (misalnya `Asia/Jakarta`).
+
+### 3. Deploy dan Jalankan
+
+Klik **Deploy Agent**. Dashboard akan menyiapkan sandbox E2B, mengonfigurasi webhook Telegram secara otomatis, dan mengaktifkan agen.
+
+Buka bot Anda di Telegram dan kirim pesan pertama:
+
+```text
+/start
+Halo, tolong rangkum repositori GitHub saya dan buat rencana kerja untuk minggu ini.
+```
+
+## Monitoring dan Pengelolaan
+
+Di halaman dashboard agen, Anda dapat memantau operasional agen secara real-time:
+
+- **Live Logs**: Tinjau log eksekusi, respons model, dan aktivitas tool secara streaming.
+- **State Control**: Tombol **Pause**, **Resume**, atau **Restart** untuk mengelola runtime sandbox.
+- **Terminate**: Hapus sandbox dan cabut webhook Telegram jika agen sudah tidak digunakan.
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Konfigurasi lengkap OpenClaw | [Panduan OpenClaw](/id/agents/openclaw) |
+| Konfigurasi lengkap Hermes Agent | [Panduan Hermes Agent](/id/agents/hermes) |
+| Setup asisten terminal Pi | [Panduan Pi Coding Agent](/id/agents/pi) |
+| Model Context Protocol | [Ringkasan MCP](/id/agents/overview) |

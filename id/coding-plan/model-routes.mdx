@@ -1,0 +1,77 @@
+---
+title: "Model Routes"
+description: "Pengaturan alias model virtual dengan rantai fallback otomatis untuk Coding Plan."
+icon: "route"
+related:
+  - /id/coding-plan/overview
+  - /id/coding-plan/quota-and-limits
+  - /id/guides/jelma/overview
+---
+
+**Model Routes** memungkinkan pengguna Coding Plan mendefinisikan nama alias model virtual yang memetakan ke rantai (*chain*) beberapa model riil. Jika model utama dalam rantai mengalami kendala kapasitas atau rate limit upstream, request otomatis dialihkan ke model cadangan secara transparan tanpa perlu logika retry manual di aplikasi Anda.
+
+<Note>
+  Fitur Model Routes hanya dapat diakses oleh akun dengan **Coding Plan aktif** (berbayar atau trial) dan menggunakan coding key (`nsk_code_*`) melalui endpoint coding.
+</Note>
+
+## Cara Kerja
+
+```
+Nama Virtual: my-coder
+       │
+       ▼
+1. Model Utama: claude-4.5-sonnet
+       │ (jika error kapasitas)
+       ▼
+2. Model Cadangan: gemini-3-flash
+```
+
+1. Anda membuat nama virtual (contoh: `my-coder`) dan menentukan urutan model (contoh: `["claude-4.5-sonnet", "gemini-3-flash"]`).
+2. Saat mengirimkan request dengan parameter `model: "my-coder"` ke endpoint coding, gateway akan mengeksekusi model pertama.
+3. Jika model pertama gagal karena masalah kapasitas upstream, gateway secara instan mengalihkan eksekusi ke model berikutnya.
+
+## Batasan Per Tier
+
+| Tier Paket | Maks Model Per Rantai | Maks Rantai Per Pengguna |
+| :-- | :-- | :-- |
+| **Coding Hemat** | 3 model | 10 rute |
+| **Coding Reguler** | 5 model | 10 rute |
+| **Coding Eksklusif** | 8 model | 10 rute |
+
+## Aturan Konfigurasi
+
+- Nama virtual tidak boleh bertabrakan dengan ID model riil yang sudah terdaftar di katalog (contoh: tidak boleh menamai rute `claude-4.5-sonnet`).
+- Nama virtual bersifat *case-insensitive* dan unik per akun pengguna.
+- Setiap model di dalam rantai harus merupakan model yang diizinkan untuk tier Coding Plan Anda.
+- Panjang maksimal nama rute adalah 100 karakter.
+
+## Cara Menggunakan di Coding Agent
+
+Setelah rute dibuat di dashboard, gunakan nama virtual tersebut sebagai nilai parameter model di coding tool Anda:
+
+### 1. Jelma CLI
+
+```bash Terminal icon="terminal"
+jelma claude local --model my-coder
+jelma opencode local --model my-coder
+```
+
+### 2. Claude Code
+
+Edit berkas `~/.claude/settings.json`:
+
+```json JSON icon="file-code"
+{
+  "env": {
+    "ANTHROPIC_MODEL": "my-coder"
+  }
+}
+```
+
+### 3. Cline / OpenCode
+
+Masukkan nama rute pada input model:
+
+```text Configuration icon="terminal"
+Model: my-coder
+```

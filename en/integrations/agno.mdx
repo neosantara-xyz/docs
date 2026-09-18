@@ -1,0 +1,91 @@
+---
+title: "Agno"
+description: "Build autonomous multimodal agents, multi-agent systems, and tool-driven workflows with Agno."
+icon: "/images/integrations/agno.svg"
+related:
+  - /en/integrations/overview
+  - /en/integrations/crewai
+  - /en/agents/overview
+  - /en/gateway/models
+---
+
+Agno is an open-source framework for building autonomous agents, multi-agent systems, and multimodal workflows. Neosantara is available as a native model provider via `agno.models.neosantara.Neosantara`, enabling tool calling, persistent memory, and multimodal reasoning powered natively by Indonesia's AI Gateway.
+
+## Installation
+
+Install Agno and required tools:
+
+```bash
+pip install -U agno ddgs
+```
+
+## Authentication
+
+Set your Neosantara API key in your environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+The native Agno provider automatically targets `https://api.neosantara.xyz/v1`.
+
+## First Native Agent
+
+<CodeGroup>
+
+```python Python (Basic Agent) icon="python"
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+
+agent = Agent(
+    model=Neosantara(id="claude-opus-4-6"),
+    markdown=True
+)
+
+agent.print_response("Explain the role of an AI gateway in 2 sentences.")
+```
+
+```python Python (Streaming Output) icon="python"
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+
+agent = Agent(
+    model=Neosantara(id="gemini-3.8-flash"),
+    markdown=True
+)
+
+agent.print_response(
+    "Create an incident response checklist for distributed systems.",
+    stream=True
+)
+```
+
+</CodeGroup>
+
+## Agent with Tool Calling (Search)
+
+Equip native Neosantara models with external web search tools:
+
+```python
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+from agno.tools.duckduckgo import DuckDuckGoTools
+
+agent = Agent(
+    model=Neosantara(id="gemini-3.8-flash"),
+    tools=[DuckDuckGoTools()],
+    instructions="Always provide verified source citations.",
+    markdown=True
+)
+
+agent.print_response("What is the Southeast Asian AI startup market valuation in 2026?")
+```
+
+## Agno Integration Advantages
+
+| Capability | Generic OpenAIChat Wrapper | Native Neosantara Provider |
+| :-- | :-- | :-- |
+| **Module Import** | `from agno.models.openai import OpenAIChat` | `from agno.models.neosantara import Neosantara` |
+| **Tool Calling & Agent Memory** | Dependent on generic wrapper translation | Natively bound to Agno agent execution loops |
+| **Model Support** | Requires manual parameter overrides | Supports the complete Neosantara model catalog |
+| **Streaming & Markdown** | Manual response extraction | Built-in markdown formatting and token streaming |

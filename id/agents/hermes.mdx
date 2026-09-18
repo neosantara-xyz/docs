@@ -1,0 +1,109 @@
+---
+title: "Integrasi Hermes Agent"
+description: "Jalankan Hermes Agent dari Nous Research secara hosted di dashboard atau lokal via CLI dan web UI."
+icon: "sparkles"
+related:
+  - /id/agents/cloud-agents
+  - /id/agents/openclaw
+  - /id/agents/overview
+---
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) adalah framework agen otonom open-source dari Nous Research. Agen ini dirancang untuk eksekusi multi-turn yang handal, pemanggilan tool (*function calling*), pemantauan alur kerja, dan percakapan berbasis suara. Anda dapat menjalankan Hermes Agent secara **Hosted Cloud** di dashboard Neosantara atau secara **Lokal via CLI dan Web UI**.
+
+## Perbandingan Opsi Deployment
+
+| Metode | Eksekusi | Kebutuhan Lingkungan | Fitur Utama |
+| :--- | :--- | :--- | :--- |
+| **Hosted Cloud Agent** | Sandbox E2B di Cloud | Hanya token bot Telegram | Deploy 1-klik, transkripsi suara STT via `whisper-large-v3-turbo`, dan scale-to-zero otomatis. |
+| **Local CLI & Web UI** | Mesin / Server Lokal | Python & installer Hermes | Terminal interaktif, antarmuka web lokal port 9119, dan eksekusi skrip internal. |
+
+---
+
+## Opsi 1: 1-Click Hosted Agent di Dashboard
+
+Neosantara menyediakan wizard deployment Hermes Agent berbasis template E2B terkelola.
+
+### 1. Dapatkan Kredensial Telegram
+
+1. Hubungi [@BotFather](https://t.me/BotFather) di Telegram untuk membuat bot baru dan menyalin **Bot Token**.
+2. Hubungi [@userinfobot](https://t.me/userinfobot) untuk mendapatkan **Owner ID numerik** Anda.
+
+### 2. Jalankan Deployment Wizard
+
+Buka [app.neosantara.xyz/cloud/hermes](https://app.neosantara.xyz/cloud/hermes) dan lengkapi 3 tahap konfigurasi:
+
+1. **Tahap 1 (Koneksi Bot)**: Masukkan Bot Token dan Telegram Owner ID. Sistem akan memverifikasi identitas bot langsung ke API Telegram.
+2. **Tahap 2 (Konfigurasi Model & Sistem)**:
+   - **Model Utama**: Pilih model yang mendukung function calling (misalnya `deepseek-v4.1-flash`).
+   - **Model Fallback**: Pilih model cadangan untuk mitigasi otomatis jika provider utama mengalami limit.
+   - **System Prompt**: Atur instruksi sistem dan kepribadian agen.
+   - **Batas Iterasi & Timeout**: Tentukan batas langkah reasoning per giliran.
+   - **Zona Waktu**: Sesuaikan zona waktu operasional (misalnya `Asia/Jakarta`).
+3. **Tahap 3 (Review & Deploy)**: Periksa ringkasan konfigurasi, lalu klik **Deploy Agent**.
+
+### 3. Dukungan Transkripsi Suara (STT) Otomatis
+
+Hermes Agent yang di-deploy via Neosantara secara default terhubung ke endpoint audio gateway menggunakan model `whisper-large-v3-turbo`. Anda dapat langsung mengirim *voice note* di Telegram, dan agen akan mentranskripsikannya secara otomatis sebelum memproses tugas.
+
+---
+
+## Opsi 2: Instalasi Lokal (CLI & Web UI)
+
+Jika Anda ingin menjalankan Hermes Agent di mesin lokal atau server sendiri:
+
+### 1. Instalasi Hermes Agent
+
+Unduh dan jalankan installer resmi Hermes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/install.sh | bash
+```
+
+### 2. Konfigurasi Variabel Lingkungan
+
+Arahkan client OpenAI-compatible Hermes ke gateway Neosantara:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+export HERMES_MODEL="deepseek-v4.1-flash"
+```
+
+### 3. Jalankan Terminal Interaktif
+
+Mulai sesi interaktif langsung di terminal:
+
+```bash
+hermes
+```
+
+### 4. Menjalankan Antarmuka Web Lokal
+
+Hermes Agent menyediakan web UI bawaan untuk visualisasi percakapan dan status tool:
+
+```bash
+hermes serve
+```
+
+Buka browser Anda di `http://localhost:9119` untuk mengakses antarmuka kontrol lokal.
+
+---
+
+## Model yang Direkomendasikan
+
+Hermes Agent membutuhkan model yang mendukung *function calling* untuk mengeksekusi tools:
+
+| Model | Dukungan Tools | Jendela Konteks | Rekomendasi Penggunaan |
+| :--- | :--- | :--- | :--- |
+| `deepseek-v4.1-flash` | Ya (Native) | 1.000.000 token | Model utama untuk analisis kode, pemecahan masalah rumit, dan eksekusi tool multi-langkah. |
+| `gemini-3.8-flash` | Ya (Native) | 1.000.000 token | Ideal untuk interaksi cepat, latensi ultra-rendah, dan ringkasan percakapan. |
+| `gpt-5.4-mini` | Ya (Native) | 128.000 token | Pilihan efisien untuk tugas pemantauan terjadwal dan notifikasi harian. |
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Arsitektur Agen Cloud | [Panduan Agen Cloud](/id/agents/cloud-agents) |
+| Integrasi OpenClaw | [Panduan OpenClaw](/id/agents/openclaw) |
+| Asisten Koding Pi | [Panduan Pi Coding Agent](/id/agents/pi) |
+| Integrasi Agno Agentic | [Panduan Agno](/id/integrations/agno) |

@@ -1,0 +1,90 @@
+---
+title: "Data Guardrails & UU PDP"
+description: "Automated PII redaction and compliance with Indonesian Personal Data Protection law (UU PDP No. 27/2022)."
+icon: "shield-check"
+related:
+  - /en/gateway/chat-completions
+  - /en/guides/faq
+  - /en/quickstart
+---
+
+Neosantara includes built-in automated data privacy guardrails designed for Indonesian regulatory compliance (UU PDP No. 27/2022). The gateway scans and redacts sensitive Personally Identifiable Information (PII) before forwarding prompts to upstream model providers.
+
+## Per-Request Header Activation
+
+Data guardrails are available exclusively to **paid users** (paid subscription tier or accounts with an active PAYG balance). The feature operates as an opt-in control per request using the `X-Guard` header:
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    default_headers={"X-Guard": "on"}
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "The customer KTP number is 3201234567890001 and bank account is 1234567890."}
+    ]
+)
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST "https://api.neosantara.xyz/v1/chat/completions" \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "X-Guard: on" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {"role": "user", "content": "My KTP number is 3201234567890001."}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Supported Header Values
+
+The `X-Guard` header accepts the following values:
+
+| Header Value | Status | Description |
+| :-- | :-- | :-- |
+| `X-Guard: on` | Active | Enables automated PII redaction for the specific request. |
+| `X-Guard: enabled` | Active | Synonym for `on` for integration convenience. |
+| `X-Guard: off` | Disabled | Bypasses inspection (default when the header is omitted). |
+
+<Warning>
+  **Security & Activation Policies**:
+  1. **Paid Users Only**: Requests on the Free tier do not activate payload redaction even if the `X-Guard` header is passed.
+  2. **Explicit Header Required**: Account database preferences do not auto-enable provider payload redaction. Every request requiring inspection must explicitly pass `X-Guard: on` or `X-Guard: enabled`.
+</Warning>
+
+## Redacted Data Categories
+
+Inspection uses contextual patterns tuned to Indonesian legal documents and data formats:
+
+| Category | Targeted Entity | Typical Pattern | Redacted Output |
+| :-- | :-- | :-- | :-- |
+| **Official Identity** | NIK / KTP Number | 16-digit structured national identifier | `[REDACTED_NIK]` |
+| **Tax & Legal** | NPWP | 15 or 16-digit tax registry format | `[REDACTED_NPWP]` |
+| **Travel Documents** | Indonesian Passport | Official Indonesian passport format | `[REDACTED_PASSPORT]` |
+| **Driver Licenses** | SIM | National driver license format | `[REDACTED_DRIVING_LICENSE]` |
+| **Telecommunications** | Indonesian Phone | Prefixes `+62`, `62`, `08` (10-13 digits) | `[REDACTED_PHONE]` |
+| **Correspondence** | Email Address | Standard RFC 5322 email patterns | `[REDACTED_EMAIL]` |
+| **Banking** | National Bank Account | Indonesian bank account numbers | `[REDACTED_BANK_ACCOUNT]` |
+| **Transactions** | Credit / Debit Card | 16-digit Luhn algorithm patterns | `[REDACTED_CREDIT_CARD]` |
+
+## Next Steps
+
+| Goal | Guide |
+| :-- | :-- |
+| Billing & balance top-up | [FAQ & Questions](/en/guides/faq) |
+| Review throughput and RPM caps | [Rate Limits & Throughput](/en/guides/rate-limits) |
+| Send completions requests | [Chat Completions](/en/gateway/chat-completions) |

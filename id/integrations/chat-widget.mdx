@@ -1,0 +1,96 @@
+---
+title: "Widget Chat Pelanggan"
+description: "Pasang widget chat AI interaktif pada website Anda dengan dukungan kustomisasi visual dan knowledge base RAG."
+icon: "bot-message-square"
+related:
+  - /id/gateway/overview
+  - /id/integrations/overview
+  - /id/guides/faq
+---
+
+Widget Chat Neosantara memungkinkan Anda menambahkan asisten AI interaktif untuk layanan pelanggan, bantuan penjualan, atau pusat informasi produk langsung ke dalam website Anda hanya dengan satu baris script.
+
+## Integrasi Cepat
+
+Sisipkan tag script berikut ke dalam kode HTML website Anda sebelum tag penutup `</body>`:
+
+```html icon="code"
+<!-- Neosantara Customer Chat Support Widget -->
+<script
+  src="https://api.neosantara.xyz/widget.js"
+  data-widget-id="WIDGET_ID_ANDA"
+  async
+></script>
+```
+
+Ganti `WIDGET_ID_ANDA` dengan identifier unik widget yang diperoleh dari [Dashboard Chat Widget](https://app.neosantara.xyz/integration/widget).
+
+## Pembuatan Widget di Dashboard
+
+Konfigurasi widget dikelola secara visual melalui dashboard:
+
+<Steps>
+  <Step title="Buka Menu Chat Widget">
+    Masuk ke [Dashboard Chat Widget](https://app.neosantara.xyz/integration/widget) dan klik tombol **Buat Widget Baru**.
+  </Step>
+
+  <Step title="Konfigurasi Parameter Utama">
+    - **Nama Widget**: Berikan label internal seperti CS Layanan Web.
+    - **Model AI**: Pilih model inferensi seperti `deepseek-v4.1-flash` atau `garda-core`.
+    - **Allowed Domains**: Daftarkan domain website yang diizinkan memuat widget.
+    - **System Prompt**: Atur instruksi kepribadian dan panduan respons asisten.
+  </Step>
+
+  <Step title="Sesuaikan Tampilan">
+    - **Warna Tema**: Atur warna HEX tombol dan balon chat agar serasi dengan brand.
+    - **Logo URL**: Sematkan tautan logo bisnis pada header chat.
+    - **Gaya Layout**: Pilih antara layout modern, klasik, atau kompak.
+    - **Posisi**: Tempatkan launcher di sudut kanan bawah atau kiri bawah.
+  </Step>
+
+  <Step title="Simpan dan Pasang">
+    Klik simpan dan salin tag script embed ke website Anda.
+  </Step>
+</Steps>
+
+## Integrasi Knowledge Base
+
+Hubungkan dokumen internal agar asisten dapat menjawab pertanyaan spesifik produk:
+
+<Steps>
+  <Step title="Buka Tab Knowledge Base">
+    Masuk ke pengaturan widget yang telah dibuat dan pilih tab **Knowledge Base**.
+  </Step>
+
+  <Step title="Unggah Dokumen">
+    Unggah file referensi dalam format PDF, TXT, atau Markdown.
+  </Step>
+
+  <Step title="Indeksasi Vektor Otomatis">
+    Sistem membagi dokumen menjadi potongan teks dan mengindeks vektor secara otomatis untuk pencarian relevansi konteks saat pengguna bertanya.
+  </Step>
+</Steps>
+
+## Parameter Konfigurasi Widget
+
+| Opsi | Pilihan Nilai | Keterangan |
+| :-- | :-- | :-- |
+| `theme_color` | Kode HEX seperti `#8A4300` | Warna utama tombol pembuka, header, dan elemen aktif. |
+| `layout_style` | `modern-round`, `classic-square`, `compact` | Gaya sudut dan padding jendela percakapan chat. |
+| `placement` | `bottom-right`, `bottom-left` | Posisi penempatan tombol widget pada layar monitor. |
+| `launcher_style` | `icon`, `text`, `pill` | Bentuk tombol launcher sebelum jendela chat dibuka. |
+| `proactive_delay` | Detik seperti `10` | Waktu jeda sebelum widget menampilkan pesan pembuka secara otomatis. |
+| `allow_uploads` | `true`, `false` | Izinkan pengguna mengunggah dokumen atau lampiran gambar dalam chat. |
+
+<Note>
+  Widget secara otomatis memvalidasi header Origin atau Referer pada browser pengguna untuk memastikan script hanya berjalan pada domain yang tercantum di Allowed Domains.
+</Note>
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Model katalog dan biaya inferensi | [Daftar Model & Harga](/id/gateway/models) |
+| Framework agen orkestrasi | [Integrasi Framework](/id/integrations/overview) |
+| Batas permintaan dan kuota | [Rate Limits & Kuota](/id/guides/rate-limits) |
+| FAQ dan sistem deposit | [FAQ & Tanya Jawab](/id/guides/faq) |

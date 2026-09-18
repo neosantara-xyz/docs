@@ -1,0 +1,75 @@
+---
+title: "Anthropic Extended Thinking"
+description: "Configure reasoning token budgets and capture thinking blocks on Claude models."
+icon: "brain"
+related:
+  - /en/gateway/anthropic-messages
+  - /en/gateway/chat-completions/reasoning
+  - /en/gateway/responses-api/reasoning
+---
+
+Extended Thinking on the `/anthropic/v1/messages` endpoint allows Claude models to deeply reason through complex tasks before producing answers. You control reasoning token expenditure via the `thinking` parameter object.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=4096,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 2048
+    },
+    messages=[
+        {"role": "user", "content": "How many 'r' letters are in the word 'strawberry'?"}
+    ]
+)
+
+for block in response.content:
+    if block.type == "thinking":
+        print(f"[Thinking Process]:\n{block.thinking}\n")
+    elif block.type == "text":
+        print(f"[Final Answer]:\n{block.text}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 4096,
+    "thinking": {
+      "type": "enabled",
+      "budget_tokens": 2048
+    },
+    "messages": [
+      {"role": "user", "content": "How many r in strawberry?"}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## The `thinking` Parameter Rules
+
+- **`max_tokens` Must Exceed Budget:** `max_tokens` must always be strictly greater than `budget_tokens` to ensure sufficient room for text completion.
+- **Minimum Budget Limit:** The minimum value for `budget_tokens` is 1024 tokens.
+- **Response Block Structure:** Responses emit an ordered block list where `type: "thinking"` precedes `type: "text"`.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Anthropic Tool Use | [Anthropic Tool Use](/en/gateway/anthropic-messages/tool-use) |
+| Anthropic Streaming | [Anthropic Streaming](/en/gateway/anthropic-messages/streaming) |
+| OpenAI Chat Reasoning | [Model Reasoning](/en/gateway/chat-completions/reasoning) |

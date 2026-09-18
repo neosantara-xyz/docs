@@ -1,0 +1,94 @@
+---
+title: "Ringkasan Integrasi"
+description: "Pilihan integrasi Neosantara: framework native, library orkestrasi, asisten koding AI, dan agen cloud."
+icon: "layout-grid"
+related:
+  - /id/quickstart
+  - /id/gateway/models
+  - /id/agents/overview
+---
+
+import SupportedFrameworks from '/snippets/supported-frameworks.mdx';
+
+Neosantara dirancang untuk terhubung secara fleksibel ke seluruh ekosistem AI modern. Integrasi terbagi ke dalam empat kategori utama: **Framework Native** dengan provider resmi bawaan, **Framework Orkestrasi** standar OpenAI/Anthropic, **Coding Agents & IDE** untuk produktivitas pengembangan perangkat lunak, dan **Agen Cloud & Otonom** yang dapat di-deploy 1-klik di dashboard.
+
+## Perbandingan Kategori Integrasi
+
+| Kategori | Contoh Tool & Library | Fokus Kapabilitas | Karakteristik Utama |
+| :-- | :-- | :-- | :-- |
+| **Framework Native** | Any-LLM, LiteLLM, Agno | Provider Resmi Bawaan | Routing otomatis, multi-model failover, dan eksekusi multi-agent melalui AI Gateway Indonesia. |
+| **Framework Orkestrasi** | LangChain, LlamaIndex, CrewAI | Adapter Terpadu | Kompatibilitas drop-in menggunakan adapter OpenAI atau Anthropic standar. |
+| **Coding Agents & IDE** | Cursor, Claude Code, OpenCode, Cline, Pi | Agentic Dev Loop | Inferensi model koding kustom via gateway atau integrasi tools kontekstual via server MCP. |
+| **Agen Cloud & Otonom** | OpenClaw Cloud, Hermes Agent Cloud | Managed MicroVM | MicroVM E2B terisolasi dengan webhook Telegram, transkripsi suara STT, dan scale-to-zero. |
+
+## Contoh Pola Integrasi
+
+<CodeGroup>
+
+```python Python (Native: LiteLLM) icon="python"
+import litellm
+import os
+
+os.environ["NEOSANTARA_API_KEY"] = "nsk_..."
+
+# Panggil model via provider resmi neosantara/
+response = litellm.completion(
+    model="neosantara/deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Jelaskan arsitektur agentic loop."}]
+)
+print(response.choices[0].message.content)
+```
+
+```python Python (Framework: LangChain) icon="python"
+from langchain_openai import ChatOpenAI
+import os
+
+llm = ChatOpenAI(
+    model="gemini-3.8-flash",
+    openai_api_base="https://api.neosantara.xyz/v1",
+    openai_api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = llm.invoke("Jelaskan arsitektur agentic loop.")
+print(response.content)
+```
+
+```bash Terminal (Coding Agent: Claude Code) icon="terminal"
+# Arahkan base URL Anthropic ke gateway Neosantara
+export ANTHROPIC_BASE_URL="https://api.neosantara.xyz/anthropic"
+export ANTHROPIC_API_KEY="nsk_your_api_key_here"
+
+# Jalankan coding agent
+claude
+```
+
+</CodeGroup>
+
+## Katalog Integrasi yang Didukung
+
+<SupportedFrameworks />
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Integrasi LiteLLM native | [Panduan LiteLLM](/id/integrations/litellm) |
+| Integrasi Any-LLM SDK | [Panduan Any-LLM](/id/integrations/any-llm) |
+| Agen AI multimodal Agno | [Panduan Agno](/id/integrations/agno) |
+| Pipeline LangChain | [Panduan LangChain](/id/integrations/langchain) |
+| Pemrograman modular DSPy | [Panduan DSPy](/id/integrations/dspy) |
+| Multi-agent CrewAI | [Panduan CrewAI](/id/integrations/crewai) |
+| Data & RAG LlamaIndex | [Panduan LlamaIndex](/id/integrations/llama-index) |
+| Agent type-safe Pydantic AI | [Panduan Pydantic AI](/id/integrations/pydantic-ai) |
+| Multi-agent AutoGen (AG2) | [Panduan AutoGen](/id/integrations/autogen) |
+| Aplikasi Next.js Vercel AI SDK | [Panduan Vercel AI SDK](/id/integrations/vercel-ai-sdk) |
+| Sandbox eksekusi kode E2B | [Panduan E2B](/id/integrations/e2b) |
+| Konfigurasi Cursor IDE | [Integrasi Cursor](/id/agents/cursor) |
+| Asisten terminal Claude Code | [Integrasi Claude Code](/id/agents/claude-code) |
+| Agen CLI OpenCode | [Integrasi OpenCode](/id/agents/opencode) |
+| Ekstensi VS Code Cline | [Integrasi Cline](/id/agents/cline) |
+| Asisten koding Pi | [Integrasi Pi](/id/agents/pi) |
+| Runtime Agen Cloud | [Agen Cloud (Hosted)](/id/agents/cloud-agents) |
+| Integrasi OpenClaw | [Integrasi OpenClaw](/id/agents/openclaw) |
+| Integrasi Hermes Agent | [Integrasi Hermes Agent](/id/agents/hermes) |
+| Model Context Protocol | [Ringkasan MCP](/id/agents/overview) |

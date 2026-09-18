@@ -1,0 +1,157 @@
+---
+title: "Prompt Templates"
+description: "Manage and execute centralized prompt templates with dynamic variables in Responses API."
+icon: "layout-template"
+related:
+  - /en/gateway/responses-api
+  - /en/gateway/responses-api/conversations
+  - /en/gateway/responses-api/background-jobs
+---
+
+Prompt templates allow you to save and manage complex system prompts centrally in the Neosantara dashboard and invoke them via the Responses API on `/v1/responses` using a template ID and dynamic variable injection instead of retransmitting large prompts with every request.
+
+## Executing Prompt Templates
+
+Invoke a saved prompt template by passing the `prompt` parameter containing the template `id` and a `variables` key-value object.
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    prompt={
+        "id": "contract-analyzer",
+        "version": "1",
+        "variables": {
+            "client_name": "Acme Corp",
+            "document": "Clause 5 mandates arbitration under BANI rules.",
+            "focus": "arbitration clauses and governing law jurisdiction"
+        }
+    }
+)
+
+print(response.output_text)
+```
+
+```javascript Node.js icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  prompt: {
+    id: "contract-analyzer",
+    version: "1",
+    variables: {
+      client_name: "Acme Corp",
+      document: "Clause 5 mandates arbitration under BANI rules.",
+      focus: "arbitration clauses and governing law jurisdiction",
+    },
+  },
+});
+
+console.log(response.output_text);
+```
+
+```bash cURL icon="terminal"
+curl https://api.neosantara.xyz/v1/responses \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "prompt": {
+      "id": "contract-analyzer",
+      "version": "1",
+      "variables": {
+        "client_name": "Acme Corp",
+        "document": "Clause 5 mandates arbitration under BANI rules.",
+        "focus": "arbitration clauses and governing law jurisdiction"
+      }
+    }
+  }'
+```
+
+</CodeGroup>
+
+<Note>
+  Prompt templates are a dedicated capability of the `/v1/responses` endpoint and are not supported on `/v1/chat/completions`.
+</Note>
+
+## Template Authoring in Dashboard
+
+Templates are managed through the [Dashboard Templates](https://app.neosantara.xyz/templates) configurator. Templates support placeholder interpolation and multi-turn role markers.
+
+### Variable Placeholders
+
+Use double curly brackets `{{variable_name}}` to define variables injected at runtime:
+
+```text
+You are a legal advisor for {{client_name}}.
+Review the following document:
+{{document}}
+
+Focus specifically on {{focus}}. Highlight primary risk points.
+```
+
+### Multi-Turn Role Markers
+
+Use `# Role: <role>` markers at the start of any line to segment instructions across system, user, assistant, or developer roles:
+
+```text
+# Role: system
+You are an Indonesian corporate legal specialist. Cite relevant statutory regulations.
+
+# Role: user
+Analyze the following clause for {{client_name}}:
+{{document}}
+```
+
+If no role markers are present in the template, the gateway processes the entire content under the `user` role by default.
+
+## Prompt Object Parameters
+
+| Field | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `id` | `string` | Yes | Unique template identifier registered in the dashboard. |
+| `version` | `string` | No | Template version to invoke. Defaults to `"1"`. |
+| `variables` | `object` | No | Key-value mapping for replacing placeholders in template content. |
+
+## Combining Templates with Extra Instructions
+
+Supply the `instructions` parameter to augment a template without modifying the underlying template text:
+
+```python icon="python"
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    prompt={
+        "id": "contract-analyzer",
+        "variables": {
+            "client_name": "Acme Corp",
+            "document": "Non-compete covenant valid for 3 years.",
+            "focus": "labor law compliance"
+        }
+    },
+    instructions="Provide statutory citations for Indonesian Labor Law in the final summary."
+)
+```
+
+## Next Steps
+
+| Goal | Guide |
+| :-- | :-- |
+| Stateful multi-turn conversation | [Stateful Conversations](/en/gateway/responses-api/conversations) |
+| Asynchronous execution at scale | [Background Jobs & Webhooks](/en/gateway/responses-api/background-jobs) |
+| Stateful tool execution | [Stateful Tools](/en/gateway/responses-api/tools) |
+| Policies and common questions | [FAQ & Questions](/en/guides/faq) |

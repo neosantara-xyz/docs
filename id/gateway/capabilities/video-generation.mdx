@@ -1,0 +1,94 @@
+---
+title: "Generasi Video"
+description: "Buat video generatif berbasis AI secara asinkron melalui endpoint /v1/videos."
+icon: "video"
+related:
+  - /id/gateway/capabilities/image-generation
+  - /id/gateway/responses-api/background-jobs
+  - /id/guides/faq
+---
+
+Gateway Neosantara mendukung pembuatan video generatif melalui protokol OpenAI Sora (`/v1/videos`). Proses pembuatan video berjalan secara asinkron dengan pelacakan progres berkala.
+
+<CodeGroup>
+
+```python Python icon="python"
+import requests
+import time
+import os
+
+headers = {
+    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
+    "Content-Type": "application/json"
+}
+
+# 1. Kirim permintaan pembuatan video
+init_res = requests.post(
+    "https://api.neosantara.xyz/v1/videos",
+    headers=headers,
+    json={
+        "model": "luma-ray2-720p",
+        "prompt": "Drone meluncur di atas ombak pantai Uluwatu saat senja, gerak lambat.",
+        "seconds": 5,
+        "size": "1280x720"
+    }
+).json()
+
+job_id = init_res["id"]
+print(f"Tugas video dibuat: {job_id}")
+
+# 2. Pantau status dan progres hingga selesai
+while True:
+    job = requests.get(
+        f"https://api.neosantara.xyz/v1/videos/{job_id}",
+        headers=headers
+    ).json()
+    status = job.get("status")
+    progress = job.get("progress", 0)
+    print(f"Status: {status} ({progress}%)")
+    
+    if status == "completed":
+        print("URL Video:", job.get("url"))
+        break
+    elif status == "failed":
+        print("Gagal:", job.get("error"))
+        break
+    time.sleep(5)
+```
+
+```bash cURL icon="terminal"
+# Membuat tugas video
+curl -X POST https://api.neosantara.xyz/v1/videos \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "luma-ray2-720p",
+    "prompt": "Drone meluncur di atas ombak pantai Uluwatu.",
+    "seconds": 5,
+    "size": "1280x720"
+  }'
+
+# Mengecek status tugas
+curl https://api.neosantara.xyz/v1/videos/vid_123456 \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Parameter Permintaan
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `prompt` | `string` | Ya | Deskripsi adegan, gerakan kamera, dan pencahayaan video. |
+| `model` | `string` | Ya | `luma-ray2-720p` atau `luma-ray2-540p`. |
+| `seconds` | `integer` | Opsional | Durasi video dalam detik (contoh: 5 atau 9). Default `5`. |
+| `size` | `string` | Opsional | Resolusi keluaran: `"1280x720"` atau `"960x540"`. |
+
+## Status Siklus Tugas Video
+
+| Status | Deskripsi |
+| :-- | :-- |
+| `queued` | Permintaan masuk antrean generator video upstream. |
+| `in_progress` | Rendering video sedang berlangsung dengan progres `0-99%`. |
+| `completed` | Rendering selesai. URL video berdurasi tertentu tersedia untuk diunduh. |
+| `failed` | Pembuatan video gagal. Saldo tidak terpotong atau otomatis dikembalikan ke akun Anda. |

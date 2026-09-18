@@ -1,0 +1,51 @@
+---
+title: "Dokumentasi Neosantara"
+description: "AI Gateway Indonesia dan infrastruktur agen terpadu untuk developer."
+icon: "house"
+related:
+  - /id/quickstart
+  - /id/gateway/overview
+  - /id/agents/overview
+  - /id/integrations/overview
+---
+
+import BaseUrlConfig from '/snippets/base-url-config.mdx';
+import SupportedFrameworks from '/snippets/supported-frameworks.mdx';
+
+Neosantara adalah AI Gateway Indonesia yang kompatibel dengan standar OpenAI dan Anthropic, dilengkapi penagihan Rupiah (IDR) langsung, routing berlatensi rendah, serta hub Model Context Protocol (MCP).
+
+## Contoh Cepat
+
+Kirim request menggunakan SDK resmi OpenAI:
+
+<BaseUrlConfig />
+
+```python
+response = client.chat.completions.create(
+    model="gemini-3.8-flash",
+    messages=[{"role": "user", "content": "Apa itu Neosantara?"}]
+)
+print(response.choices[0].message.content)
+```
+
+## Framework & Integrasi yang Didukung
+
+<SupportedFrameworks />
+
+## Gunakan Dokumen Ini dengan Coding Agent
+
+Tambahkan dokumentasi Neosantara langsung ke coding agent atau asisten AI Anda (seperti Claude Code, Cursor, Windsurf, atau OpenCode) dengan satu perintah:
+
+```bash Terminal icon="terminal"
+npx skills add https://docs.neosantara.xyz
+```
+
+Perintah ini akan memasang skill dokumentasi resmi Neosantara secara otomatis agar agen AI Anda dapat menelusuri spesifikasi API, katalog model, dan panduan integrasi secara langsung.
+
+Tersedia juga akses endpoint dan file referensi terprogram:
+
+| Sumber Daya | URL | Keterangan |
+| :--- | :--- | :--- |
+| **LLMs.txt** | [`https://docs.neosantara.xyz/llms.txt`](https://docs.neosantara.xyz/llms.txt) | Ringkasan konten dokumentasi lengkap teroptimasi untuk LLM. |
+| **Skill Definition** | [`https://docs.neosantara.xyz/skill.md`](https://docs.neosantara.xyz/skill.md) | Definisi instruksi skill untuk agentic CLI. |
+| **Docs MCP Server** | [`https://docs.neosantara.xyz/mcp`](https://docs.neosantara.xyz/mcp) | Server MCP remote untuk pencarian dokumentasi real-time. |

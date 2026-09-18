@@ -1,0 +1,115 @@
+---
+title: "OpenClaw Integration"
+description: "Deploy OpenClaw as a hosted cloud agent on the Neosantara dashboard or run locally via the official provider plugin."
+icon: "bot"
+related:
+  - /en/agents/cloud-agents
+  - /en/agents/hermes
+  - /en/agents/overview
+---
+
+[OpenClaw](https://openclaw.ai) is an autonomous multi-channel personal AI agent designed to execute commands, automate tasks, and coordinate workflows across Telegram, Discord, Slack, and terminal environments. You can run OpenClaw using two primary modes: **Hosted Cloud Agent** (zero-maintenance deployment in the Neosantara dashboard) or **Self-Hosted CLI** using the `@neosantara/openclaw-provider` plugin.
+
+## Deployment Options
+
+| Option | Execution Environment | Setup Requirements | Primary Use Case |
+| :--- | :--- | :--- | :--- |
+| **Hosted Cloud Agent** | Cloud E2B microVM | Telegram bot token only | 24/7 personal assistant on Telegram with automated scale-to-zero. |
+| **Self-Hosted CLI** | Local machine or server | Node.js & OpenClaw CLI | Local terminal coding, file system modifications, and custom tools. |
+
+---
+
+## Option 1: 1-Click Hosted Cloud Agent (Dashboard)
+
+The fastest way to deploy OpenClaw without maintaining server infrastructure is through Neosantara's managed cloud runtime.
+
+### 1. Get a Bot Token and Owner ID
+
+1. Open [@BotFather](https://t.me/BotFather) on Telegram, send `/newbot`, and copy the generated **Bot Token**.
+2. Open [@userinfobot](https://t.me/userinfobot) on Telegram to find your numerical **User ID**.
+
+### 2. Deploy from the Dashboard
+
+1. Navigate to [app.neosantara.xyz/cloud/openclaw](https://app.neosantara.xyz/cloud/openclaw).
+2. Enter your **Bot Token** and **Telegram Owner ID**.
+3. Select a primary model (such as `deepseek-v4.1-flash`) and an optional fallback model.
+4. Click **Deploy Agent**.
+
+The isolated E2B microVM boots in ~700ms whenever an incoming Telegram message arrives, and automatically pauses after 30 minutes of inactivity with zero compute cost.
+
+---
+
+## Option 2: Self-Hosted CLI & Terminal
+
+To run OpenClaw directly on your local workstation or VPS, install the official Neosantara plugin.
+
+### 1. Install Neosantara Provider Plugin
+
+Run the following command in your terminal:
+
+```bash
+openclaw plugins install clawhub:@neosantara/openclaw-provider
+```
+
+### 2. Configure Credentials
+
+Set your Neosantara API key via environment variables:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_your_api_key_here"
+```
+
+Alternatively, supply the key during interactive onboarding:
+
+```bash
+openclaw onboard --neosantara-api-key "nsk_your_api_key_here"
+```
+
+### 3. Select a Model
+
+Set OpenClaw to route through the gateway using the `neosantara/` namespace:
+
+```bash
+openclaw model set neosantara/deepseek-v4.1-flash
+```
+
+### 4. Run OpenClaw
+
+Launch the daemon gateway or enter interactive terminal mode:
+
+```bash
+# Start the background daemon
+openclaw gateway
+
+# Launch the interactive terminal interface
+openclaw tui
+```
+
+---
+
+## Recommended Models
+
+| Use Case | Model Identifier | Context Window | Characteristics |
+| :--- | :--- | :--- | :--- |
+| **Reasoning & Autonomous Coding** | `deepseek-v4.1-flash` | 1M tokens | High tool calling accuracy for complex shell commands and file changes. |
+| **Low Latency & Fast Turnaround** | `gemini-3.8-flash` | 1M tokens | Minimal response latency suited for interactive Telegram messaging. |
+| **Cost-Sensitive Tasks** | `gpt-5.4-mini` | 128k tokens | Budget-friendly option for routine summaries and daily alerts. |
+
+## Example Command Execution
+
+Once connected via Telegram or TUI, assign autonomous tasks to OpenClaw:
+
+```text
+> Check open issues in our GitHub repository, summarize top priorities, and draft an update.
+```
+
+OpenClaw queries the Neosantara gateway, executes relevant command tools or web lookups, and returns structured findings.
+
+## Next Steps
+
+| Goal | Guide |
+| :--- | :--- |
+| Hosted cloud agent architecture | [Cloud Agents Guide](/en/agents/cloud-agents) |
+| Hermes Agent deployment | [Hermes Agent Guide](/en/agents/hermes) |
+| Terminal coding with Pi | [Pi Coding Agent Guide](/en/agents/pi) |
+| MCP tool connector setup | [MCP Connector](/en/agents/mcp-connector) |

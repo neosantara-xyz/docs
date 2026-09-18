@@ -1,0 +1,118 @@
+---
+title: "LlamaIndex"
+description: "Bangun pipeline RAG dan indeks dokumen dengan Neosantara dan LlamaIndex."
+icon: "/images/integrations/llamaindex.svg"
+related:
+  - /id/gateway/capabilities/embeddings
+  - /id/guides/guardrails
+  - /id/integrations/litellm
+  - /id/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+LlamaIndex adalah framework data untuk menghubungkan data kustom ke model bahasa melalui Retrieval-Augmented Generation (RAG). Neosantara menyediakan endpoint chat dan embedding yang kompatibel dengan LlamaIndex.
+
+## Pengaturan
+
+Instal library LlamaIndex dan adapter OpenAI-compatible:
+
+```bash
+pip install -U llama-index llama-index-llms-openai-like llama-index-embeddings-openai-like
+```
+
+<SetApiKey />
+
+## Konfigurasi Global Settings
+
+Gunakan modul `Settings` LlamaIndex untuk menetapkan model chat dan embedding Neosantara secara serentak.
+
+```python
+import os
+from llama_index.core import Settings
+from llama_index.llms.openai_like import OpenAILike
+from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+Settings.llm = OpenAILike(
+    model="deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1",
+    temperature=0.2,
+    max_tokens=1024,
+    is_chat_model=True
+)
+
+Settings.embed_model = OpenAILikeEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+```
+
+## Contoh Pipeline RAG Lengkap
+
+Contoh berikut membuat indeks vektor dari dokumen teks dan melakukan kueri pencarian informasi:
+
+```python
+import os
+from llama_index.core import Document, VectorStoreIndex, Settings
+from llama_index.llms.openai_like import OpenAILike
+from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+# 1. Konfigurasi provider LLM dan Embedding
+Settings.llm = OpenAILike(
+    model="deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1",
+    is_chat_model=True
+)
+
+Settings.embed_model = OpenAILikeEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+
+# 2. Siapkan dokumen contoh
+documents = [
+    Document(text="Neosantara adalah AI Gateway Indonesia dengan dukungan pembayaran Rupiah dan saldo berbasis PAYG."),
+    Document(text="Limit rate tier Free adalah 10 RPM, 30.000 ITPM, dan 8.000 OTPM dengan deposit awal minimum Rp 50.000 via Mayar QRIS."),
+    Document(text="Fitur Guardrail UU PDP No. 27/2022 Neosantara dapat diaktifkan per-request melalui header X-Guard: on.")
+]
+
+# 3. Buat indeks vektor
+index = VectorStoreIndex.from_documents(documents)
+
+# 4. Inisialisasi query engine dan jalankan pertanyaan
+query_engine = index.as_query_engine(similarity_top_k=2)
+response = query_engine.query("Bagaimana cara mengaktifkan guardrail perlindungan data pribadi di Neosantara?")
+
+print("Jawaban:", response)
+```
+
+## Streaming Response pada LlamaIndex
+
+Untuk aplikasi chat atau UI interaktif, aktifkan streaming pada query engine:
+
+```python
+query_engine = index.as_query_engine(streaming=True)
+streaming_response = query_engine.query("Berapa limit rate untuk pengguna tier Free?")
+
+for text in streaming_response.response_gen:
+    print(text, end="", flush=True)
+print()
+```
+
+## Rekomendasi Pasangan Model RAG
+
+| Kebutuhan RAG | Model Embedding | Model Generasi (LLM) |
+| :-- | :-- | :-- |
+| **Produksi Standar & Efisien** | `text-embedding-3-small` | `gemini-3.8-flash` |
+| **Sintesis Dokumen Panjang** | `text-embedding-3-small` | `deepseek-v4.1-flash` |
+| **Analisis Regulasi & Kontrak** | `text-embedding-3-large` | `claude-4.5-sonnet` |
+
+## Langkah Berikutnya
+
+- [Dokumentasi Kemampuan Embeddings](/id/gateway/capabilities/embeddings)
+- [Header Guardrail UU PDP](/id/guides/guardrails)
+- [Panduan LiteLLM](/id/integrations/litellm)

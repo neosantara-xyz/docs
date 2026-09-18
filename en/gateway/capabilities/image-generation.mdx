@@ -1,0 +1,106 @@
+---
+title: "Image Generation"
+description: "Synthesize high-resolution imagery from text prompts via /v1/images/generations."
+icon: "image"
+related:
+  - /en/gateway/capabilities/video-generation
+  - /en/gateway/chat-completions/vision
+  - /en/gateway/models
+---
+
+import ModelsImageTable from '/snippets/models-image-table.mdx';
+
+The `/v1/images/generations` endpoint provides OpenAI Images API compatibility to generate images from natural language descriptions.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.images.generate(
+    model="imagen-4.0-fast",
+    prompt="Terraced rice fields in Ubud Bali at sunrise, photorealistic, cinematic lighting.",
+    size="1024x1024",
+    n=1
+)
+
+image_url = response.data[0].url
+print(f"Image URL: {image_url}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/images/generations \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "imagen-4.0-fast",
+    "prompt": "Terraced rice fields in Ubud Bali at sunrise.",
+    "size": "1024x1024",
+    "n": 1
+  }'
+```
+
+</CodeGroup>
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `prompt` | `string` | Yes | Visual description of the desired image. |
+| `model` | `string` | Yes | Model identifier (e.g., `imagen-4.0-fast`, `titan-image-g1`). |
+| `size` | `string` | Optional | Output resolution (`1024x1024`, `512x512`). Default `1024x1024`. |
+| `n` | `integer` | Optional | Number of image variations to generate (1 to 4). Default `1`. |
+| `response_format` | `string` | Optional | Output format: `"url"` or `"b64_json"`. Default `"url"`. |
+
+## Billing Details
+
+Image generation is settled on a per-image unit basis rather than token volume. Settled costs are deducted from your Rupiah deposit balance.
+
+## Visual Showcase
+
+Output examples generated directly through the Neosantara API:
+
+### Fast Inference
+**Model**: `imagen-4.0-fast`
+
+<Frame caption="Prompt: 'A vibrant digital painting of a high-tech laboratory in Jakarta, neon highlights, futuristic design, extremely detailed.'">
+  <img src="/images/showcase-imagen.png" alt="Imagen 4.0 Fast output showcase" />
+</Frame>
+
+### Artistic & Fantasy
+**Model**: `sdxl-lightning`
+
+<Frame caption="Prompt: 'A majestic Indonesian temple in the clouds, ethereal lighting, high fantasy art style, 8k.'">
+  <img src="/images/showcase-artistic.png" alt="Artistic fantasy output showcase" />
+</Frame>
+
+### Realistic Photography
+**Model**: `titan-image-g1`
+
+<Frame caption="Prompt: 'A realistic high-detail photograph of a Balinese traditional dancer performing at night, focused lighting.'">
+  <img src="/images/showcase-titan-base.png" alt="Realistic photography output showcase" />
+</Frame>
+
+### Image-to-Image Transformation
+**Model**: `stable-diffusion-v1-5-img2img`
+
+Transform existing images into new visual styles while preserving original structural composition.
+
+<CardGroup cols={2}>
+  <Card title="Original Image" icon="image" img="/images/showcase-titan-base.png">
+    Input reference photograph of a Balinese dancer.
+  </Card>
+  <Card title="Sketch Transformation" icon="sparkles" img="/images/showcase-img2img-result.png">
+    Stylized output transformed into a minimalist charcoal sketch.
+  </Card>
+</CardGroup>
+
+## Available Image Generation Models
+
+<ModelsImageTable />

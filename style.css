@@ -1,0 +1,36 @@
+/* Reduce gap between page header and content */
+#content {
+  margin-top: 0.75rem !important;
+}
+
+/* Tighten first paragraph spacing */
+#content > span:first-of-type,
+#content > p:first-of-type {
+  margin-top: 1.5rem !important;
+}
+
+/* Tighten H2 after intro paragraph */
+#content > span + h2,
+#content > p + h2 {
+  margin-top: 1.5rem !important;
+}
+
+/* Replace the 3-line hamburger menu icon with panel-left */
+button.lg\:hidden > div:first-child > svg.size-4,
+button > div > span.sr-only + svg {
+  display: none !important;
+}
+
+button.lg\:hidden > div:first-child:has(> span.sr-only)::after,
+button > div:has(> span.sr-only)::after {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1.15rem;
+  height: 1.15rem;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M9 3v18'/%3E%3C/svg%3E") no-repeat center;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M9 3v18'/%3E%3C/svg%3E") no-repeat center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}

@@ -1,0 +1,81 @@
+---
+title: "Referensi API"
+description: "Spesifikasi endpoint OpenAPI interaktif untuk Neosantara AI Gateway dan ekosistem MCP."
+icon: "book-open"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/responses-api
+  - /id/gateway/anthropic-messages
+  - /id/guides/faq
+---
+
+import BaseUrlConfig from '/snippets/base-url-config.mdx';
+import CurlAuthHeader from '/snippets/curl-auth-header.mdx';
+
+Neosantara menyediakan antarmuka API terpadu yang kompatibel dengan protokol standar OpenAI dan Anthropic Messages. Anda dapat menguji endpoint secara langsung melalui konsol OpenAPI interaktif di panel kanan halaman ini.
+
+## Base URL Gateway
+
+Gunakan endpoint resmi Neosantara sebagai base URL klien SDK Anda:
+
+<BaseUrlConfig />
+
+## Autentikasi & Format API Key
+
+Semua request ke gateway diamankan menggunakan token API key Neosantara. Terdapat dua jenis format key berdasarkan cakupan layanan:
+
+| Jenis Key | Format Awalan | Lingkup Penggunaan | Header Autentikasi |
+| :-- | :-- | :-- | :-- |
+| **Standard API Key** | `nsk_` + 32 karakter hex | Model inferensi (`/v1/*`, `/anthropic/*`) | `Authorization: Bearer nsk_...` atau `x-api-key: nsk_...` |
+| **MCP API Key** | `nsk_mcp_` + 32 karakter hex | Server Model Context Protocol (`/v1/mcp/*`) | `Authorization: Bearer nsk_mcp_...` |
+
+Kelola dan buat API key baru melalui menu [API Keys Dashboard](https://app.neosantara.xyz/api-keys).
+
+## Header Permintaan Utama
+
+Sesuaikan header request berdasarkan protokol yang Anda panggil:
+
+### 1. Endpoint OpenAI-Compatible (`/v1/*`)
+
+```bash
+-H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+-H "Content-Type: application/json"
+```
+
+Header opsional:
+- `X-Guard: on` (Mengaktifkan sensor PII otomatis UU PDP untuk pengguna berbayar).
+- `x-request-id: <uuid>` (ID kustom untuk pelacakan log permintaan end-to-end).
+
+### 2. Endpoint Anthropic Messages (`/anthropic/*`)
+
+```bash
+-H "x-api-key: $NEOSANTARA_API_KEY" \
+-H "anthropic-version: 2023-06-01" \
+-H "Content-Type: application/json"
+```
+
+## Format Respons Error
+
+Ketika request mengalami kegagalan, gateway mengembalikan respons error dengan format JSON standar OpenAI:
+
+```json
+{
+  "error": {
+    "message": "Model 'claude-sonnet-4-6' context length exceeded.",
+    "type": "invalid_request_error",
+    "code": "context_length_exceeded",
+    "param": null
+  }
+}
+```
+
+Daftar kode status HTTP umum:
+
+| Kode Status | Keterangan |
+| :-- | :-- |
+| `200 OK` | Permintaan berhasil diproses. |
+| `400 Bad Request` | Parameter request tidak valid atau skema JSON tidak sesuai. |
+| `401 Unauthorized` | API key salah, tidak aktif, atau tidak dikirimkan. |
+| `402 Payment Required` | Saldo kredit PAYG tidak mencukupi untuk memproses permintaan. |
+| `429 Too Many Requests` | Melebihi kuota RPM, ITPM, atau OTPM tier akun Anda. |
+| `503 Service Unavailable` | Upstream provider sedang mengalami kendala atau circuit breaker aktif. |

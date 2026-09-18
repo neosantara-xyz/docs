@@ -1,0 +1,129 @@
+---
+title: "Responses API Reasoning"
+description: "Control AI thinking depth using the official OpenAI SDK and reasoning effort parameters."
+icon: "brain"
+related:
+  - /en/gateway/responses-api
+  - /en/gateway/chat-completions/reasoning
+  - /en/gateway/anthropic-messages/thinking
+---
+
+On the `/v1/responses` endpoint, you can calibrate model reasoning depth using the `reasoning` parameter through the official OpenAI SDK.
+
+## Configuring Reasoning Effort
+
+Use the `reasoning` parameter (or `extra_body={"reasoning": ...}` in Python) to specify the model thinking budget.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Use reasoning parameter directly (or extra_body on older SDK versions)
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Prove mathematically why the square root of 2 is irrational.",
+    reasoning={
+        "effort": "high"
+    }
+)
+
+print("Analysis Output:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Prove mathematically why the square root of 2 is irrational.",
+  // @ts-expect-error - responses schema extension
+  reasoning: {
+    effort: "high",
+  },
+});
+
+console.log("Analysis Output:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## Accessing Reasoning Trace and Token Accounting
+
+When routing to dedicated reasoning models such as `deepseek-r1`, inspect internal reasoning token usage via `usage.completion_tokens_details`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-r1",
+    input="How many trailing zeros are in 100 factorial (100!)?",
+    reasoning={"effort": "high"}
+)
+
+# Inspect reasoning token accounting
+print(f"Completion Tokens: {response.usage.completion_tokens}")
+if hasattr(response.usage, "completion_tokens_details"):
+    details = response.usage.completion_tokens_details
+    print(f"Reasoning Tokens: {getattr(details, 'reasoning_tokens', 'N/A')}")
+
+print("\nFinal Answer:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-r1",
+  input: "How many trailing zeroes are in 100 factorial (100!)?",
+  // @ts-expect-error - responses schema extension
+  reasoning: { effort: "high" },
+});
+
+console.log(`Completion Tokens: ${response.usage?.completion_tokens}`);
+// @ts-expect-error - reasoning_tokens property
+console.log(`Reasoning Tokens: ${response.usage?.completion_tokens_details?.reasoning_tokens}`);
+console.log("\nFinal Answer:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## The `effort` Levels
+
+| Value | Description |
+| :--- | :--- |
+| `"low"` | Minimal reasoning token budget. Recommended for structured tasks needing fast turnaround. |
+| `"medium"` | Balanced trade-off between latency and thinking depth (default). |
+| `"high"` | Maximum reasoning budget for mathematical proofs, complex code analysis, and multi-step logic. |
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Anthropic Extended Thinking | [Extended Thinking](/en/gateway/anthropic-messages/thinking) |
+| OpenAI Chat Reasoning | [Model Reasoning](/en/gateway/chat-completions/reasoning) |
+| Background Execution | [Background Tasks](/en/gateway/responses-api/background-jobs) |

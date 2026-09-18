@@ -1,0 +1,157 @@
+---
+title: "Template Prompt"
+description: "Kelola template prompt terpusat dengan variabel dinamis pada Responses API."
+icon: "layout-template"
+related:
+  - /id/gateway/responses-api
+  - /id/gateway/responses-api/conversations
+  - /id/gateway/responses-api/background-jobs
+---
+
+Template prompt memungkinkan Anda menyimpan instruksi sistem yang kompleks di dashboard Neosantara dan memanggilnya melalui Responses API pada rute `/v1/responses` menggunakan ID template dan variabel dinamis tanpa perlu mengirimkan teks prompt panjang berulang kali.
+
+## Eksekusi Template Prompt
+
+Panggil template prompt yang tersimpan dengan menyertakan parameter `prompt` berisi `id` template dan objek `variables`.
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    prompt={
+        "id": "analisis-kontrak",
+        "version": "1",
+        "variables": {
+            "nama_klien": "PT Maju Bersama",
+            "dokumen": "Klausul 5 mengatur penyelesaian perselisihan via arbitrase.",
+            "fokus": "klausul arbitrase dan yurisdiksi hukum"
+        }
+    }
+)
+
+print(response.output_text)
+```
+
+```javascript Node.js icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  prompt: {
+    id: "analisis-kontrak",
+    version: "1",
+    variables: {
+      nama_klien: "PT Maju Bersama",
+      dokumen: "Klausul 5 mengatur penyelesaian perselisihan via arbitrase.",
+      fokus: "klausul arbitrase dan yurisdiksi hukum",
+    },
+  },
+});
+
+console.log(response.output_text);
+```
+
+```bash cURL icon="terminal"
+curl https://api.neosantara.xyz/v1/responses \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "prompt": {
+      "id": "analisis-kontrak",
+      "version": "1",
+      "variables": {
+        "nama_klien": "PT Maju Bersama",
+        "dokumen": "Klausul 5 mengatur penyelesaian perselisihan via arbitrase.",
+        "fokus": "klausul arbitrase dan yurisdiksi hukum"
+      }
+    }
+  }'
+```
+
+</CodeGroup>
+
+<Note>
+  Fitur template prompt adalah kemampuan khusus endpoint `/v1/responses` dan tidak didukung oleh `/v1/chat/completions`.
+</Note>
+
+## Format Penulisan Template di Dashboard
+
+Template dikonfigurasi melalui menu [Dashboard Templates](https://app.neosantara.xyz/templates). Template mendukung variabel interpolasi dan penanda role multi-turn.
+
+### Interpolasi Variabel
+
+Gunakan format kurung kurawal ganda `{{nama_variabel}}` untuk mendeklarasikan placeholder yang akan diinjeksi saat runtime:
+
+```text
+Anda adalah konsultan hukum untuk {{nama_klien}}.
+Tinjau dokumen berikut:
+{{dokumen}}
+
+Fokuskan evaluasi pada {{fokus}}. Berikan poin risiko utama.
+```
+
+### Penanda Role Multi-Turn
+
+Gunakan penanda `# Role: <role>` pada awal baris untuk memisahkan instruksi multi-turn untuk peran system, user, assistant, atau developer:
+
+```text
+# Role: system
+Anda adalah pakar hukum korporasi Indonesia. Jawab hanya dengan dasar regulasi yang berlaku.
+
+# Role: user
+Analisis klausul berikut untuk klien {{nama_klien}}:
+{{dokumen}}
+```
+
+Jika tidak ada penanda role eksplisit di dalam template, seluruh teks diperlakukan sebagai pesan dengan role `user`.
+
+## Parameter Objek Prompt
+
+| Field | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `id` | `string` | Ya | Identifier unik template yang telah didaftarkan di dashboard. |
+| `version` | `string` | Tidak | Versi template yang ingin digunakan. Nilai default adalah `"1"`. |
+| `variables` | `object` | Tidak | Key-value dictionary berisi nilai pengganti placeholder template. |
+
+## Menambahkan Instruksi Tambahan
+
+Anda dapat menambahkan parameter `instructions` tambahan untuk melengkapi prompt template tanpa mengubah konten template dasar:
+
+```python icon="python"
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    prompt={
+        "id": "analisis-kontrak",
+        "variables": {
+            "nama_klien": "PT Maju Bersama",
+            "dokumen": "Klausul non-kompetisi berlaku selama 3 tahun.",
+            "fokus": "kepatuhan hukum ketenagakerjaan"
+        }
+    },
+    instructions="Sertakan referensi pasal UU Ketenagakerjaan yang relevan pada kesimpulan."
+)
+```
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Riwayat percakapan otomatis | [Manajemen Percakapan Stateful](/id/gateway/responses-api/conversations) |
+| Pemrosesan asinkron skala besar | [Tugas Latar Belakang & Webhook](/id/gateway/responses-api/background-jobs) |
+| Integrasi pemanggilan tool | [Pemanggilan Tool Stateful](/id/gateway/responses-api/tools) |
+| Tanya jawab dan kebijakan | [FAQ & Tanya Jawab](/id/guides/faq) |

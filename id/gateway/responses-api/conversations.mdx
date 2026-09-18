@@ -1,0 +1,153 @@
+---
+title: "Percakapan & State"
+description: "Simpan riwayat percakapan otomatis di sisi server menggunakan parameter previous_response_id."
+icon: "messages-square"
+related:
+  - /id/gateway/responses-api
+  - /id/gateway/responses-api/background-jobs
+  - /id/gateway/chat-completions
+---
+
+Responses API (`/v1/responses`) mengeliminasi kebutuhan mengirim ulang seluruh riwayat pesan percakapan di setiap putaran interaksi. Dengan mengaktifkan `store=True` pada OpenAI SDK, Neosantara menyimpan state percakapan di gateway dan memungkinkan kelanjutan instan melalui `previous_response_id`.
+
+## Alur Percakapan Multi-Turn
+
+Kirimkan pesan pertama dengan parameter `store=True`. Pada putaran berikutnya, sertakan `previous_response_id` yang merujuk ke ID respons sebelumnya. Gateway akan menggabungkan konteks secara otomatis.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Putaran 1: Simpan konteks awal di gateway
+turn1 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Halo, nama saya Budi dan saya adalah teknisi jaringan di Jakarta.",
+    instructions="Jawab dengan ramah dan profesional.",
+    store=True
+)
+
+print(f"Putaran 1 ID: {turn1.id}")
+print(f"Jawaban 1:\n{turn1.output_text}\n")
+
+# Putaran 2: Lanjutkan percakapan dengan mereferensikan ID putaran 1
+turn2 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Berdasarkan peran dan lokasi saya, sertifikasi apa yang paling tepat saya ambil?",
+    previous_response_id=turn1.id,
+    store=True
+)
+
+print(f"Putaran 2 ID: {turn2.id}")
+print(f"Jawaban 2 (Mengingat konteks Budi):\n{turn2.output_text}\n")
+
+# Putaran 3: Melanjutkan rantai percakapan dari putaran 2
+turn3 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Berapa perkiraan biaya ujian untuk sertifikasi tersebut di Indonesia?",
+    previous_response_id=turn2.id,
+    store=True
+)
+
+print(f"Jawaban 3:\n{turn3.output_text}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+// Putaran 1: Simpan konteks awal
+const turn1 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Halo, nama saya Budi dan saya adalah teknisi jaringan di Jakarta.",
+  store: true,
+});
+
+console.log("Jawaban 1:", turn1.output_text);
+
+// Putaran 2: Meneruskan previous_response_id
+const turn2 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Berdasarkan peran saya, apa rekomendasi sertifikasi pertama?",
+  previous_response_id: turn1.id,
+  store: true,
+});
+
+console.log("Jawaban 2:", turn2.output_text);
+
+// Putaran 3: Lanjutan rantai
+const turn3 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Berapa perkiraan biaya ujian untuk sertifikasi tersebut di Indonesia?",
+  previous_response_id: turn2.id,
+  store: true,
+});
+
+console.log("Jawaban 3:", turn3.output_text);
+```
+
+</CodeGroup>
+
+## Inspeksi State Percakapan
+
+Anda dapat memverifikasi atau mengambil kembali metadata dan rincian penggunaan token dari respons yang tersimpan kapan saja menggunakan `client.responses.retrieve`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Ambil rincian token dan metadata dari respons yang tersimpan
+saved_response = client.responses.retrieve("resp_01j7x8abc...")
+
+print(f"Model yang Digunakan: {saved_response.model}")
+print(f"Status: {saved_response.status}")
+print(f"Token Total: {saved_response.usage.total_tokens}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const savedResponse = await client.responses.retrieve("resp_01j7x8abc...");
+
+console.log(`Model yang Digunakan: ${savedResponse.model}`);
+console.log(`Status: ${savedResponse.status}`);
+console.log(`Token Total: ${savedResponse.usage.total_tokens}`);
+```
+
+</CodeGroup>
+
+## Keuntungan State Server-Side
+
+- **Hemat Bandwidth Jaringan:** Klien tidak perlu mengirim balik ribuan token riwayat pesan chat yang terus bertambah.
+- **Konsistensi Konteks:** Gateway mengelola rantai percakapan secara aman pada lapisan cache berkecepatan tinggi.
+- **Ringan untuk Klien:** Sangat ideal untuk aplikasi mobile, bot Telegram/WhatsApp, dan asisten suara yang sensitif terhadap ukuran payload request.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Tugas Latar Belakang | [Background Tasks](/id/gateway/responses-api/background-jobs) |
+| Integrasi Server Tools | [Tools & MCP](/id/gateway/responses-api/tools) |
+| Spesifikasi Responses API | [Responses API](/id/gateway/responses-api) |

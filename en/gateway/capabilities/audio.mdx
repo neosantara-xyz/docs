@@ -1,0 +1,59 @@
+---
+title: "Audio & Transcription"
+description: "Transcribe spoken audio to text using Whisper-1 and Whisper Large models."
+icon: "mic"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/gateway/operations/files
+---
+
+The `/v1/audio/transcriptions` endpoint provides full OpenAI Audio API parity for multilingual speech-to-text processing.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("recording.mp3", "rb") as audio_file:
+    transcription = client.audio.transcriptions.create(
+        model="whisper-large-v3-turbo",
+        file=audio_file,
+        language="en",
+        response_format="json"
+    )
+
+print(transcription.text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/audio/transcriptions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -F file="@recording.mp3" \
+  -F model="whisper-large-v3-turbo" \
+  -F language="en"
+```
+
+</CodeGroup>
+
+## Transcription Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `file` | `binary` | Yes | Audio file payload sent as multipart/form-data. |
+| `model` | `string` | Yes | `whisper-large-v3-turbo` or `whisper-1`. |
+| `language` | `string` | Optional | ISO-639-1 language code (e.g., `id`, `en`). |
+| `prompt` | `string` | Optional | Contextual vocabulary or domain glossary hint. |
+| `response_format` | `string` | Optional | Output representation: `json`, `text`, or `verbose_json`. |
+| `temperature` | `number` | Optional | Sampling temperature between `0` and `1`. Default `0`. |
+
+## Supported Formats
+
+- Audio containers: `mp3`, `mp4`, `m4a`, `wav`, `webm`, `ogg`, `flac`.
+- Standard upload ceiling: 25 MB per request.

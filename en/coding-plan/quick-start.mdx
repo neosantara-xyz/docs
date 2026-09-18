@@ -1,0 +1,109 @@
+---
+title: "Coding Plan Quickstart"
+description: "Quick setup guide for Neosantara Coding Plan, creating coding keys, and connecting agents."
+icon: "rocket"
+related:
+  - /en/coding-plan/overview
+  - /en/coding-plan/quota-and-limits
+  - /en/coding-plan/tool-integration
+---
+
+This guide walks you through setting up the Neosantara Coding Plan, issuing your first coding key, and configuring your coding agents.
+
+## Configuration Steps
+
+<Steps>
+  <Step title="Sign In to Dashboard">
+    Visit the [Neosantara Dashboard](https://app.neosantara.xyz) and log in to your account.
+  </Step>
+
+  <Step title="Activate Coding Plan">
+    Navigate to [Coding Plan](https://app.neosantara.xyz/coding-plan) and choose your plan tier:
+
+    | Tier | 5-Hour Limit | Weekly Limit | Monthly Price |
+    | :-- | :-- | :-- | :-- |
+    | **Coding Hemat** | ~80 prompts | ~400 prompts | IDR 149,000 |
+    | **Coding Reguler** | ~400 prompts | ~2,000 prompts | IDR 499,000 |
+    | **Coding Eksklusif** | ~1,600 prompts | ~8,000 prompts | IDR 1,290,000 |
+
+    Complete payment via Mayar invoice. The plan activates within 2 minutes of payment confirmation.
+  </Step>
+
+  <Step title="Generate a Coding Key">
+    After activation, generate a dedicated coding key from [Coding Plan](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys). The generated key starts with `nsk_code_...`.
+
+    <Warning>
+      Store your token securely. The raw key is displayed only once upon creation.
+    </Warning>
+  </Step>
+
+  <Step title="Connect Your IDE or Agent Tool">
+    Neosantara Coding Plan integrates into any environment supporting OpenAI or Anthropic API formats:
+
+    <CardGroup cols={2}>
+      <Card title="Claude Code" icon="terminal">
+        Official CLI agent from Anthropic using the Anthropic Messages protocol.
+      </Card>
+      <Card title="Cline" icon="laptop">
+        Autonomous VS Code extension using OpenAI Chat Completions compatibility.
+      </Card>
+      <Card title="OpenCode & Continue" icon="code">
+        Open-source coding agents for the terminal and IDEs like VS Code and JetBrains.
+      </Card>
+      <Card title="Jelma Runner" icon="cpu">
+        Built-in CLI runner that automatically handles environments and model flags.
+      </Card>
+    </CardGroup>
+  </Step>
+
+  <Step title="Select Dedicated Base URLs">
+    Ensure your client points to the correct coding endpoint:
+
+    | Protocol | Base URL |
+    | :-- | :-- |
+    | Anthropic Messages | `https://api.neosantara.xyz/coding/anthropic` |
+    | OpenAI Chat Completions | `https://api.neosantara.xyz/coding/v1` |
+
+    <Warning>
+      Connecting with standard endpoints (`/v1` or `/anthropic`) results in a `403 coding_key_requires_coding_endpoint` error.
+    </Warning>
+  </Step>
+</Steps>
+
+## Quick Setup Examples
+
+### Claude Code
+
+Edit configuration in `~/.claude/settings.json`:
+
+```json JSON icon="file-code"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "nsk_code_YOUR_KEY",
+    "ANTHROPIC_MODEL": "claude-4.5-sonnet",
+    "ANTHROPIC_SMALL_FAST_MODEL": "gemini-3-flash",
+    "API_TIMEOUT_MS": "3600000"
+  }
+}
+```
+
+### Cline (VS Code)
+
+1. Open Cline extension settings in VS Code.
+2. Set **API Provider** to `OpenAI Compatible`.
+3. Provide the following values:
+   - **Base URL**: `https://api.neosantara.xyz/coding/v1`
+   - **API Key**: `nsk_code_YOUR_KEY`
+   - **Model**: `claude-4.5-sonnet` (or another supported model)
+4. Disable **Support Images** if not required.
+
+## Verify Connection
+
+Run a simple prompt test from your terminal or extension:
+
+```text Terminal icon="terminal"
+Write a TypeScript function to validate Indonesian phone numbers (+62 or 08 prefix).
+```
+
+When the agent responds, your Coding Plan integration is verified and ready for production work.

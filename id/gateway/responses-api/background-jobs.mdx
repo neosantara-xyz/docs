@@ -1,0 +1,232 @@
+---
+title: "Tugas Latar Belakang & Webhook"
+description: "Jalankan inferensi AI asinkron dengan polling status dan webhook menggunakan OpenAI SDK."
+icon: "clock"
+related:
+  - /id/gateway/responses-api
+  - /id/gateway/operations/batches
+  - /id/gateway/responses-api/conversations
+---
+
+Responses API (`/v1/responses`) menyediakan eksekusi asinkron bawaan untuk komputasi berat, analisis dokumen tebal, atau tugas agentic yang memakan waktu lama menggunakan antarmuka resmi OpenAI SDK.
+
+## Inisialisasi Tugas Latar Belakang
+
+Jalankan inferensi asinkron dengan menyetel `background=True` pada `client.responses.create`. Gateway akan langsung mengembalikan objek respons dengan status `queued` beserta `id` tugas tanpa memblokir koneksi HTTP.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Analisis laporan keuangan tahunan dan lakukan proyeksi risiko kredit.",
+    background=True
+)
+
+print(f"ID Tugas: {job.id}")
+print(f"Status Awal: {job.status}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const job = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Analisis laporan keuangan tahunan dan lakukan proyeksi risiko kredit.",
+  background: true,
+});
+
+console.log(`ID Tugas: ${job.id}`);
+console.log(`Status Awal: ${job.status}`);
+```
+
+</CodeGroup>
+
+## Polling Status dan Pengambilan Hasil
+
+Gunakan `client.responses.retrieve` untuk memantau status eksekusi hingga mencapai kondisi terminal (`completed`, `failed`, atau `cancelled`).
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import time
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job_id = "resp_01j7x8abc..."
+
+while True:
+    task = client.responses.retrieve(job_id)
+    print(f"Status saat ini: {task.status}")
+
+    if task.status == "completed":
+        print("\nHasil Pengerjaan:\n", task.output_text)
+        break
+    elif task.status in ("failed", "cancelled"):
+        print("Tugas tidak berhasil diselesaikan.")
+        break
+    time.sleep(2)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const jobId = "resp_01j7x8abc...";
+
+while (true) {
+  const task = await client.responses.retrieve(jobId);
+  console.log(`Status saat ini: ${task.status}`);
+
+  if (task.status === "completed") {
+    console.log("\nHasil Pengerjaan:\n", task.output_text);
+    break;
+  } else if (task.status === "failed" || task.status === "cancelled") {
+    console.log("Tugas tidak berhasil diselesaikan.");
+    break;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+}
+```
+
+</CodeGroup>
+
+## Membatalkan Tugas yang Sedang Berjalan
+
+Tugas yang masih berstatus `queued` atau `in_progress` dapat dibatalkan sewaktu-waktu menggunakan `client.responses.cancel`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+cancelled_job = client.responses.cancel("resp_01j7x8abc...")
+print(f"Status pembatalan: {cancelled_job.status}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const cancelledJob = await client.responses.cancel("resp_01j7x8abc...");
+console.log(`Status pembatalan: ${cancelledJob.status}`);
+```
+
+</CodeGroup>
+
+## Mendaftarkan Callback Webhook
+
+Agar tidak perlu melakukan polling manual, daftarkan URL webhook melalui parameter `webhook` di dalam `extra_body`. Neosantara akan mengirimkan HTTP POST otomatis saat tugas selesai.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Lakukan audit keamanan komprehensif pada arsitektur sistem.",
+    background=True,
+    extra_body={
+        "webhook": "https://api.perusahaan-anda.com/webhooks/ai-response"
+    }
+)
+
+print(f"Tugas didaftarkan dengan webhook: {job.id}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const job = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Lakukan audit keamanan komprehensif pada arsitektur sistem.",
+  background: true,
+  // @ts-expect-error - webhook parameter extension
+  webhook: "https://api.perusahaan-anda.com/webhooks/ai-response",
+});
+
+console.log(`Tugas didaftarkan dengan webhook: ${job.id}`);
+```
+
+</CodeGroup>
+
+## Siklus Status Tugas Background
+
+| Status | Arti |
+| :--- | :--- |
+| `queued` | Tugas telah diterima gateway dan menunggu alokasi slot pengerjaan. |
+| `in_progress` | Model AI sedang memproses inferensi atau mengeksekusi tools. |
+| `completed` | Pengerjaan berhasil selesai. Hasil tersedia pada properti `output_text`. |
+| `failed` | Terjadi kesalahan selama proses inferensi atau eksekusi tool. |
+| `cancelled` | Tugas dibatalkan oleh pengguna melalui pemanggilan `client.responses.cancel`. |
+
+## Payload Notifikasi Webhook
+
+Ketika tugas mencapai kondisi terminal (`completed` atau `failed`), Neosantara mengirimkan request `POST` HTTP ke URL webhook:
+
+```json
+{
+  "event": "response.completed",
+  "id": "resp_01j7x8...",
+  "status": "completed",
+  "model": "deepseek-v4.1-flash",
+  "output_text": "Hasil analisis lengkap...",
+  "usage": {
+    "prompt_tokens": 120,
+    "completion_tokens": 850,
+    "total_tokens": 970
+  }
+}
+```
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Simpan State Percakapan | [Percakapan & State](/id/gateway/responses-api/conversations) |
+| Integrasi Server Tools | [Tools & MCP](/id/gateway/responses-api/tools) |
+| Spesifikasi Responses API | [Responses API](/id/gateway/responses-api) |

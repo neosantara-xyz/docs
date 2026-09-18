@@ -1,0 +1,61 @@
+---
+title: "Integrasi Claude Desktop"
+description: "Hubungkan aplikasi Claude Desktop ke server Model Context Protocol Neosantara."
+icon: "monitor"
+related:
+  - /id/agents/claude-code
+  - /id/agents/mcp-connector
+  - /id/agents/mcp-keys
+---
+
+Hubungkan aplikasi Claude Desktop langsung ke Gateway MCP Neosantara menggunakan transport Server-Sent Events (SSE).
+
+## Jalur File Konfigurasi
+
+Buka file konfigurasi Claude Desktop sesuai sistem operasi Anda:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+## Konfigurasi Server MCP
+
+Tambahkan objek `neosantara` di dalam properti `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+
+<Note>
+Koneksi MCP membutuhkan API key khusus berawalan `nsk_mcp_`. Lihat [API Key MCP](/id/agents/mcp-keys).
+</Note>
+
+## Memverifikasi Koneksi
+
+1. Tutup dan buka kembali aplikasi Claude Desktop.
+2. Di pojok kanan bawah jendela input percakapan, ikon palu akan muncul menandakan tools aktif.
+3. Klik ikon palu untuk melihat tools yang tersedia: `chat`, `list-models`, `generate-image`, dan `list-image-models`.
+
+## Contoh Perintah Pengujian
+
+Kirim prompt berikut ke Claude Desktop untuk memverifikasi eksekusi tools:
+
+```text
+Tampilkan daftar model Neosantara yang tersedia beserta harganya menggunakan tool MCP.
+```
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Konfigurasi Claude Code | [Integrasi Claude Code](/id/agents/claude-code) |
+| Konfigurasi Cursor | [Integrasi Cursor](/id/agents/cursor) |
+| Rincian API Key MCP | [API Key MCP](/id/agents/mcp-keys) |

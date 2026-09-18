@@ -1,0 +1,118 @@
+---
+title: "Panduan Penggunaan Jelma"
+description: "Panduan lengkap perintah Jelma CLI: instalasi, konfigurasi kredensial, flag non-interaktif, dan manajemen cloud instance."
+icon: "terminal"
+related:
+  - /id/guides/jelma/overview
+  - /id/coding-plan/overview
+  - /id/agents/claude-code
+---
+
+Panduan ini membahas instalasi, manajemen kredensial, dan opsi baris perintah Jelma CLI untuk menjalankan agent koding.
+
+## Instalasi
+
+<Tabs>
+  <Tab title="macOS / Linux / WSL">
+    ```bash Terminal icon="terminal"
+    curl -fsSL https://cli.neosantara.xyz/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell PowerShell icon="terminal"
+    irm https://cli.neosantara.xyz/install.ps1 | iex
+    ```
+  </Tab>
+</Tabs>
+
+Jelma membutuhkan runtime **Bun >= 1.2.0**. Skrip instalasi akan mengunduh dan memasang Bun secara otomatis jika belum tersedia.
+
+## Perintah Dasar
+
+```bash Terminal icon="terminal"
+# Menu pemilih interaktif (agent -> cloud -> billing)
+jelma
+
+# Menjalankan agent secara langsung di target tertentu
+jelma <agent> <cloud>
+
+# Contoh eksekusi langsung
+jelma claude local
+jelma codex hetzner
+jelma openclaw sprite --prompt "Perbaiki test yang gagal"
+```
+
+## Pengaturan Kredensial
+
+Jelma akan meminta API key saat pertama kali dijalankan dan menyimpannya secara terenkripsi di direktori `~/.config/jelma/`. Anda juga dapat mengaturnya melalui variabel environment:
+
+```bash Terminal icon="terminal"
+# API key Neosantara (wajib)
+export NEOSANTARA_API_KEY="nsk_code_KEY_ANDA"
+
+# Kredensial cloud (hanya diperlukan saat deploy ke server cloud)
+export HCLOUD_TOKEN="token_hetzner_anda"
+export DIGITALOCEAN_ACCESS_TOKEN="token_digitalocean_anda"
+export AWS_ACCESS_KEY_ID="access_key_aws"
+export AWS_SECRET_ACCESS_KEY="secret_key_aws"
+```
+
+## Pemilihan Model
+
+Gunakan flag `--model` atau `-m` untuk mengganti model yang digunakan oleh agent:
+
+```bash Terminal icon="terminal"
+# Menggunakan model spesifik dari katalog
+jelma claude local --model deepseek-v4.1-flash
+
+# Menggunakan alias Model Route kustom (Coding Plan)
+jelma claude local --model my-coder
+```
+
+Anda juga dapat mengatur model default permanen pada berkas `~/.config/spawn/preferences.json`:
+
+```json JSON icon="file-code"
+{
+  "models": {
+    "claude": "my-coder",
+    "codex": "garda-core"
+  }
+}
+```
+
+## Mode Otomasi Non-Interaktif
+
+Untuk alur kerja CI/CD atau script batch, jalankan Jelma tanpa interaksi antarmuka terminal:
+
+```bash Terminal icon="terminal"
+jelma claude local \
+  --prompt "Periksa semua error typescript pada folder src/" \
+  --headless \
+  --output json
+```
+
+### Daftar Flag Perintah
+
+| Flag | Singkatan | Deskripsi |
+| :-- | :-- | :-- |
+| `--prompt "teks"` | `-p "teks"` | Mengirim prompt instruksi awal ke agent secara non-interaktif. |
+| `--prompt-file <path>` | `-f <path>` | Membaca instruksi prompt dari berkas teks. |
+| `--headless` | | Menjalankan proses di latar belakang lalu keluar tanpa membuka sesi terminal interaktif. |
+| `--output json` | | Menampilkan output dalam format JSON terstruktur (memerlukan `--headless`). |
+| `--model <id>` | `-m <id>` | Menentukan model atau nama Model Route virtual. |
+| `--dry-run` | | Menampilkan pratinjau perintah dan konfigurasi tanpa mengeksekusi agent. |
+
+## Manajemen Cloud Instance
+
+Jika Anda mendeploy agent ke cloud, gunakan perintah berikut untuk memantau dan membersihkan instance:
+
+```bash Terminal icon="terminal"
+# Menampilkan daftar instance cloud yang aktif
+jelma list
+
+# Menghentikan instance cloud
+jelma stop <instance-id>
+
+# Menghapus instance cloud secara permanen
+jelma destroy <instance-id>
+```

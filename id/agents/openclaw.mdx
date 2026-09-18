@@ -1,0 +1,115 @@
+---
+title: "Integrasi OpenClaw"
+description: "Deploy OpenClaw sebagai agen cloud di dashboard Neosantara atau jalankan di terminal lokal via plugin resmi."
+icon: "bot"
+related:
+  - /id/agents/cloud-agents
+  - /id/agents/hermes
+  - /id/agents/overview
+---
+
+[OpenClaw](https://openclaw.ai) adalah agen AI otonom multi-channel untuk otomasi tugas, eksekusi command, dan manajemen alur kerja personal melalui Telegram, Discord, Slack, atau terminal. Anda dapat menjalankan OpenClaw melalui dua metode: **Hosted Cloud Agent** (tanpa instalasi lokal di dashboard Neosantara) atau **Self-Hosted CLI** menggunakan plugin `@neosantara/openclaw-provider`.
+
+## Pilihan Metode Deployment
+
+| Metode | Tempat Eksekusi | Kebutuhan Setup | Skenario Penggunaan |
+| :--- | :--- | :--- | :--- |
+| **Hosted Cloud Agent** | Sandbox E2B di Cloud | Hanya token bot Telegram | Asisten personal 24/7 di Telegram dengan scale-to-zero otomatis. |
+| **Self-Hosted CLI** | Komputer / Server Lokal | Node.js & CLI OpenClaw | Otomasi koding, akses file lokal, dan kustomisasi tool internal. |
+
+---
+
+## Opsi 1: 1-Click Hosted Cloud Agent (Dashboard)
+
+Cara paling praktis menjalankan OpenClaw tanpa mengelola server sendiri adalah menggunakan fitur cloud agent di dashboard Neosantara.
+
+### 1. Dapatkan Bot Token dan Owner ID
+
+1. Buka [@BotFather](https://t.me/BotFather) di Telegram, ketik `/newbot`, lalu salin **Bot Token** yang diberikan.
+2. Buka [@userinfobot](https://t.me/userinfobot) di Telegram untuk melihat **ID numerik** akun Anda.
+
+### 2. Deploy Melalui Dashboard
+
+1. Kunjungi [app.neosantara.xyz/cloud/openclaw](https://app.neosantara.xyz/cloud/openclaw).
+2. Masukkan **Bot Token** dan **Telegram Owner ID**.
+3. Pilih model utama (misalnya `deepseek-v4.1-flash`) dan fallback model opsional.
+4. Klik **Deploy Agent**.
+
+Sandbox microVM E2B akan otomatis aktif dalam ~700ms setiap kali menerima pesan dari Telegram, dan melakukan pause otomatis setelah 30 menit idle tanpa biaya komputasi tambahan.
+
+---
+
+## Opsi 2: Self-Hosted CLI & Terminal
+
+Jika Anda ingin menjalankan OpenClaw di komputer lokal atau VPS, gunakan plugin resmi `@neosantara/openclaw-provider`.
+
+### 1. Instalasi Plugin Neosantara
+
+Jalankan perintah berikut di terminal:
+
+```bash
+openclaw plugins install clawhub:@neosantara/openclaw-provider
+```
+
+### 2. Konfigurasi API Key
+
+Atur API key gateway Neosantara melalui environment variable:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_your_api_key_here"
+```
+
+Atau lakukan konfigurasi interaktif saat onboarding:
+
+```bash
+openclaw onboard --neosantara-api-key "nsk_your_api_key_here"
+```
+
+### 3. Pilih Model
+
+Tentukan model yang akan digunakan OpenClaw dengan prefix `neosantara/`:
+
+```bash
+openclaw model set neosantara/deepseek-v4.1-flash
+```
+
+### 4. Jalankan OpenClaw
+
+Mulai gateway agen atau antarmuka terminal TUI:
+
+```bash
+# Menjalankan gateway background
+openclaw gateway
+
+# Atau berinteraksi via terminal interaktif TUI
+openclaw tui
+```
+
+---
+
+## Model yang Direkomendasikan
+
+| Kasus Penggunaan | Model Rujukan | Jendela Konteks | Karakteristik |
+| :--- | :--- | :--- | :--- |
+| **Penalaran & Koding Otonom** | `deepseek-v4.1-flash` | 1.000.000 token | Kemampuan tool calling akurat untuk manipulasi file dan bash. |
+| **Kecepatan & Respons Cepat** | `gemini-3.8-flash` | 1.000.000 token | Latensi ultra-rendah untuk balasan chat real-time di Telegram. |
+| **Operasional Hemat Biaya** | `gpt-5.4-mini` | 128.000 token | Efisiensi biaya tinggi untuk rangkuman notifikasi dan percakapan harian. |
+
+## Contoh Perintah di Telegram / TUI
+
+Setelah terhubung, kirim tugas otonom ke OpenClaw:
+
+```text
+> Periksa issue terbuka di repositori GitHub tim, rangkum prioritasnya, lalu kirim laporannya.
+```
+
+OpenClaw akan memanggil model via Neosantara, menjalankan tool scraping atau command yang relevan, dan menyajikan hasilnya secara terstruktur.
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Arsitektur Cloud Agents | [Panduan Agen Cloud](/id/agents/cloud-agents) |
+| Integrasi Hermes Agent | [Panduan Hermes Agent](/id/agents/hermes) |
+| Asisten koding Pi | [Panduan Pi Coding Agent](/id/agents/pi) |
+| Konfigurasi MCP Tools | [Konektor MCP](/id/agents/mcp-connector) |

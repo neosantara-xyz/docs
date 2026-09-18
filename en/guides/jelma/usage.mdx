@@ -1,0 +1,118 @@
+---
+title: "Jelma CLI Usage Guide"
+description: "Comprehensive CLI reference for Jelma: installation, credential management, non-interactive flags, and cloud instances."
+icon: "terminal"
+related:
+  - /en/guides/jelma/overview
+  - /en/coding-plan/overview
+  - /en/agents/claude-code
+---
+
+This guide covers installation, credential workflows, and command-line options for the Jelma CLI coding agent runner.
+
+## Installation
+
+<Tabs>
+  <Tab title="macOS / Linux / WSL">
+    ```bash Terminal icon="terminal"
+    curl -fsSL https://cli.neosantara.xyz/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell PowerShell icon="terminal"
+    irm https://cli.neosantara.xyz/install.ps1 | iex
+    ```
+  </Tab>
+</Tabs>
+
+Jelma requires **Bun >= 1.2.0**. The installation script installs Bun automatically if it is not already present.
+
+## Basic Commands
+
+```bash Terminal icon="terminal"
+# Interactive menu (agent -> cloud -> billing)
+jelma
+
+# Launch agent directly against a specific target
+jelma <agent> <cloud>
+
+# Direct execution examples
+jelma claude local
+jelma codex hetzner
+jelma openclaw sprite --prompt "Fix all failing tests"
+```
+
+## Credential Management
+
+Jelma prompts for credentials on first launch and stores them encrypted in `~/.config/jelma/`. You can also configure them via environment variables:
+
+```bash Terminal icon="terminal"
+# Neosantara API key (required)
+export NEOSANTARA_API_KEY="nsk_code_YOUR_KEY"
+
+# Cloud provider credentials (required only when provisioning remote cloud instances)
+export HCLOUD_TOKEN="your_hetzner_token"
+export DIGITALOCEAN_ACCESS_TOKEN="your_digitalocean_token"
+export AWS_ACCESS_KEY_ID="your_aws_key_id"
+export AWS_SECRET_ACCESS_KEY="your_aws_secret"
+```
+
+## Selecting Models
+
+Override the default model (`garda-core`) using the `--model` flag:
+
+```bash Terminal icon="terminal"
+# Specify a catalog model
+jelma claude local --model deepseek-v4.1-flash
+
+# Specify a custom virtual Model Route (Coding Plan)
+jelma claude local --model my-coder
+```
+
+Persist per-agent model preferences in `~/.config/spawn/preferences.json`:
+
+```json JSON icon="file-code"
+{
+  "models": {
+    "claude": "my-coder",
+    "codex": "garda-core"
+  }
+}
+```
+
+## Non-Interactive Automation
+
+For CI/CD pipelines or batch processing, run Jelma headlessly:
+
+```bash Terminal icon="terminal"
+jelma claude local \
+  --prompt "Check and fix TypeScript errors under src/" \
+  --headless \
+  --output json
+```
+
+### Command Flags Reference
+
+| Flag | Short | Description |
+| :-- | :-- | :-- |
+| `--prompt "text"` | `-p "text"` | Provide an initial instruction prompt non-interactively. |
+| `--prompt-file <path>` | `-f <path>` | Read instruction prompt from a text file. |
+| `--headless` | | Execute tasks and exit without launching an interactive terminal session. |
+| `--output json` | | Format output as structured JSON (requires `--headless`). |
+| `--model <id>` | `-m <id>` | Specify model ID or virtual Model Route name. |
+| `--dry-run` | | Preview configuration and commands without provisioning or executing. |
+
+## Cloud Instance Management
+
+When launching agents on remote cloud servers, manage running instances using:
+
+```bash Terminal icon="terminal"
+# List active cloud instances
+jelma list
+
+# Stop an active cloud instance
+jelma stop <instance-id>
+
+# Permanently terminate and delete a cloud instance
+jelma destroy <instance-id>
+```

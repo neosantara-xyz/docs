@@ -1,0 +1,127 @@
+---
+title: "MCP Connector"
+description: "Hubungkan model AI Neosantara ke server MCP eksternal Anda secara otomatis."
+icon: "puzzle"
+related:
+  - /id/agents/mcp-keys
+  - /id/agents/cursor
+  - /id/gateway/chat-completions/tool-calling
+---
+
+Neosantara MCP Connector memungkinkan gateway bertindak sebagai **MCP Client**. Anda dapat melampirkan server MCP remote ke request chat, dan gateway akan menemukan tools, mengeksekusinya, serta mengembalikan hasil akhir dalam satu putaran inferensi.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Periksa status server staging kami."}
+    ],
+    tools=[
+        {
+            "type": "mcp",
+            "server_label": "infra",
+            "server_url": "https://mcp.internal-tools.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer internal_mcp_token"
+            },
+            "allowed_tools": ["check_health", "list_instances"]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Anthropic Format) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Periksa tiket bug terbaru di repo."}
+    ],
+    extra_body={
+        "mcp_servers": [
+            {
+                "type": "url",
+                "name": "github",
+                "url": "https://mcp.github-service.example.com/sse",
+                "authorization_token": "gh_secret_token"
+            }
+        ]
+    }
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {"role": "user", "content": "Cek inventaris stok gudang utama."}
+    ],
+    "tools": [
+      {
+        "type": "mcp",
+        "server_label": "inventory",
+        "server_url": "https://mcp.warehouse.example.com/mcp",
+        "headers": {
+          "Authorization": "Bearer wh_token_123"
+        }
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Alur Kerja Eksekusi
+
+1. **Koneksi Outbound:** Gateway menghubungkan koneksi ke server MCP yang Anda daftarkan (Streamable HTTP dengan fallback SSE).
+2. **Penemuan Tools:** Gateway memanggil `listTools` pada server remote dan memfilter daftar berdasarkan `allowed_tools` jika disediakan.
+3. **Namespacing Tools:** Setiap tool remote diinjeksikan ke schema model dengan format penamaan `server__tool_name`.
+4. **Agentic Loop:** Ketika model memutuskan memanggil tool tersebut, gateway mengeksekusinya ke server MCP remote, memformat hasil, dan melanjutkan percakapan hingga respons lengkap dihasilkan.
+
+## Format Spesifikasi Payload
+
+Neosantara mendukung dua format spesifikasi server MCP:
+
+| Format | Letak Parameter | Field Wajib | Keterangan |
+| :--- | :--- | :--- | :--- |
+| **OpenAI Responses** | Array `tools` dengan `type: "mcp"` | `server_label`, `server_url` | Mendukung kustom header otorisasi dan `allowed_tools`. |
+| **Anthropic Native** | Array `mcp_servers` pada root body | `name`, `url`, `type: "url"` | Format standar Anthropic MCP dengan `authorization_token`. |
+
+## Batasan dan Keamanan
+
+- **Protokol HTTPS Wajib:** Server MCP remote harus menggunakan protokol `https://`. Request `http://` akan ditolak dengan error `invalid_mcp_url`.
+- **Proteksi SSRF:** Gateway memblokir alamat `localhost`, metadata cloud (`169.254.169.254`), serta subnet privat RFC 1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+- **Batas Server:** Maksimal 8 server MCP remote dalam satu request.
+- **Batas Waktu Koneksi:** Timeout koneksi ditetapkan 15 detik per server remote.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Kelola API Key MCP Gateway | [API Key MCP](/id/agents/mcp-keys) |
+| Hubungkan IDE Koding | [Integrasi Cursor](/id/agents/cursor) |
+| Jalankan Claude Code | [Panduan Claude Code](/id/agents/claude-code) |

@@ -1,0 +1,128 @@
+---
+title: "Structured Outputs"
+description: "Paksa model AI menghasilkan respons JSON yang 100% patuh terhadap JSON Schema."
+icon: "braces"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/chat-completions/tool-calling
+  - /id/integrations/pydantic-ai
+  - /id/gateway/models
+---
+
+Structured Outputs pada `/v1/chat/completions` menjamin bahwa respons model selalu mengikuti JSON Schema yang Anda tentukan, menghilangkan kegagalan parsing JSON pada aplikasi produksi.
+
+<CodeGroup>
+
+```python Python (Pydantic / OpenAI SDK) icon="python"
+from openai import OpenAI
+from pydantic import BaseModel, Field
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+class ResearchPaper(BaseModel):
+    title: str = Field(description="Judul makalah")
+    authors: list[str] = Field(description="Daftar nama penulis")
+    published_year: int = Field(description="Tahun publikasi")
+    summary: str = Field(description="Ringkasan 2 kalimat")
+
+completion = client.beta.chat.completions.parse(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Ekstrak informasi dari: 'Attention Is All You Need' oleh Vaswani dkk., dipublikasikan tahun 2017."}
+    ],
+    response_format=ResearchPaper
+)
+
+paper = completion.choices[0].message.parsed
+print(f"Judul: {paper.title}")
+print(f"Tahun: {paper.published_year}")
+```
+
+```python Python (Raw JSON Schema) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Tampilkan data pengguna fiktif."}],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "user_profile",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "username": {"type": "string"},
+                    "email": {"type": "string"},
+                    "age": {"type": "integer"}
+                },
+                "required": ["username", "email", "age"],
+                "additionalProperties": False
+            }
+        }
+    }
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "Data pengguna"}],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "user",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "role": {"type": "string"}
+          },
+          "required": ["name", "role"],
+          "additionalProperties": false
+        }
+      }
+    }
+  }'
+```
+
+</CodeGroup>
+
+## Perbedaan Mode JSON vs JSON Schema
+
+| Kriteria | JSON Mode (`type: "json_object"`) | Structured Outputs (`type: "json_schema"`) |
+| :--- | :--- | :--- |
+| **Jaminan Validitas** | Sintaks JSON valid, namun kunci dan tipe data bisa meleset. | Mematuhi 100% kunci, tipe data, dan hierarki schema. |
+| **Parameter Wajib** | Memerlukan kata "JSON" pada prompt pengguna. | Tidak memerlukan instruksi khusus pada prompt. |
+| **Strict Enforcement** | Tidak didukung. | Didukung penuh (`strict: true`). |
+
+## Model yang Mendukung Structured Outputs
+
+| Model | Dukungan Mode Strict | Jendela Konteks |
+| :--- | :--- | :--- |
+| `deepseek-v4.1-flash` | Ya | 1.000.000 token |
+| `gemini-3.8-flash` | Ya | 1.000.000 token |
+| `gpt-5.4-mini` | Ya | 128.000 token |
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Panggil Fungsi Eksternal | [Function Calling](/id/gateway/chat-completions/tool-calling) |
+| Streaming Respons | [Streaming Respons](/id/gateway/chat-completions/streaming) |

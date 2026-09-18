@@ -1,0 +1,135 @@
+---
+title: "Pydantic AI"
+description: "Build type-safe, production-ready AI agents with structured outputs using Neosantara and Pydantic AI."
+icon: "/images/integrations/pydantic.svg"
+related:
+  - /en/gateway/chat-completions/structured-outputs
+  - /en/integrations/agno
+  - /en/gateway/models
+  - /en/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Pydantic AI brings the design philosophy of FastAPI and Pydantic into agentic AI development. It offers first-class type safety, automatic validation, and structured output parsing.
+
+## Setup
+
+Install the `pydantic-ai` library:
+
+```bash
+pip install -U pydantic-ai
+```
+
+<SetApiKey />
+
+## Model Configuration
+
+Use `OpenAIChatModel` paired with `OpenAIProvider` configured with the Neosantara gateway base URL and your API key.
+
+```python
+import os
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+model = OpenAIChatModel(
+    "deepseek-v4.1-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(
+    model,
+    system_prompt="You are a concise technical assistant."
+)
+
+result = agent.run_sync("What is the primary role of an API gateway rate limiter?")
+print(result.data)
+```
+
+## Structured Outputs with Pydantic Models
+
+Enforce strict output formats by passing a Pydantic `BaseModel` to the `result_type` parameter:
+
+```python
+import os
+from pydantic import BaseModel, Field
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+class ServerMetricReport(BaseModel):
+    server_id: str = Field(description="Unique node identifier")
+    healthy: bool = Field(description="Operational health flag")
+    cpu_usage_pct: float = Field(description="CPU load percentage")
+    summary: str = Field(description="1-sentence diagnosis")
+
+model = OpenAIChatModel(
+    "gemini-3.8-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(
+    model,
+    result_type=ServerMetricReport,
+    system_prompt="Extract telemetry metrics from raw server logs into the structured format."
+)
+
+log_text = "Node jkt-prod-02 is operating normally at 42C with recorded CPU utilization of 28.4%."
+result = agent.run_sync(log_text)
+
+print(f"Server: {result.data.server_id}")
+print(f"Healthy: {result.data.healthy}")
+print(f"CPU Load: {result.data.cpu_usage_pct}%")
+print(f"Summary: {result.data.summary}")
+```
+
+## Agents with Tool Calling
+
+Attach tools to your agent with the `@agent.tool` decorator:
+
+```python
+import os
+from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+model = OpenAIChatModel(
+    "deepseek-v4.1-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(model, system_prompt="Assist developers with token cost estimations.")
+
+@agent.tool
+def calculate_cost_idr(ctx: RunContext[None], token_count: int, rate_per_million: float) -> str:
+    """Calculate the total Rupiah cost for a given token volume."""
+    total = (token_count / 1_000_000) * rate_per_million
+    return f"Rp {total:,.2f}"
+
+result = agent.run_sync("What is the cost for 2,500,000 output tokens if the rate is Rp 4,500 per million tokens?")
+print(result.data)
+```
+
+## Recommended Models for Pydantic AI
+
+| Use Case | Recommended Model | Highlights |
+| :-- | :-- | :-- |
+| **JSON Extraction & Schema Adherence** | `gemini-3.8-flash` | High speed, reliable schema adherence |
+| **Multi-Step Tool Calling** | `deepseek-v4.1-flash` | High parameter matching precision |
+| **Complex Business Logic Validation** | `claude-4.5-sonnet` | Deep analytical reasoning across edge cases |
+
+## Next Steps
+
+- [Structured Outputs Guide](/en/gateway/chat-completions/structured-outputs)
+- [Catalog Models & Pricing](/en/gateway/models)
+- [Agno Native Integration](/en/integrations/agno)

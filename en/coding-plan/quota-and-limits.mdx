@@ -1,0 +1,63 @@
+---
+title: "Quotas & Limits"
+description: "Prompt-based quota calculations, rolling 5-hour and weekly windows, concurrency limits, and load multipliers."
+icon: "gauge"
+related:
+  - /en/coding-plan/overview
+  - /en/coding-plan/quick-start
+  - /en/coding-plan/model-routes
+---
+
+This page provides technical reference details on how quotas are calculated, enforced, and tracked in the Neosantara Coding Plan.
+
+## Defining 1 Prompt
+
+Coding Plan quotas operate on a **prompt basis rather than token volume**. One prompt corresponds to **one user interaction turn** in your coding tool, regardless of the underlying model queries initiated by the agent.
+
+<Note>
+  A single user instruction such as *"refactor this database repository and update the test suite"* may trigger 15 to 20 background model calls (file reads, tool calls, and test executions). That entire interaction turn is counted as **1 prompt**.
+</Note>
+
+## Quota Windows
+
+The gateway enforces two separate time windows:
+
+| Window | Behavior |
+| :-- | :-- |
+| **Rolling 5-Hour** | Resets progressively 5 hours after the initial request in the window is logged. |
+| **Weekly** | Resets every 7 calendar days calculated from the subscription start timestamp. |
+
+- **Zero Overage Charges**: When quota in either window is depleted, requests hard-stop until the next window reset.
+- **Deposit Isolation**: Coding Plan usage never draws from or impacts your PAYG deposit credit balance.
+
+## Plan Tier Limits
+
+| Tier | 5-Hour Limit | Weekly Limit | Max Concurrent Requests | Monthly Price |
+| :-- | :-- | :-- | :-- | :-- |
+| **Coding Hemat** | ~80 prompts | ~400 prompts | 4 requests | IDR 149,000 |
+| **Coding Reguler** | ~400 prompts | ~2,000 prompts | 10 requests | IDR 499,000 |
+| **Coding Eksklusif** | ~1,600 prompts | ~8,000 prompts | 20 requests | IDR 1,290,000 |
+
+### In-Flight Concurrency
+
+Concurrent request limits control how many active agent requests can run simultaneously. Extra requests sent while at the concurrency ceiling are temporarily rejected until running queries finish.
+
+## Load-Based Multipliers
+
+Each prompt consumes quota scaled by the model multiplier coefficient. Flagship models dynamically adjust their multiplier when upstream capacity experiences high load:
+
+| Category | Example Models | Normal State | Under Load State |
+| :-- | :-- | :-- | :-- |
+| **Flagship Reasoning** | `claude-4.5-sonnet`, `claude-4.5-opus` | 2× | 3× |
+| **Mid-Tier Standard** | `gpt-4.1-mini`, `qwen-2.5-coder` | 2× | 2× |
+| **Lightweight / Fast** | `gemini-3-flash`, `glm-4.7-flash` | 1× | 1× |
+
+<Note>
+  "Under load" status is evaluated in real-time based on live upstream provider error rates rather than rigid hourly schedules.
+</Note>
+
+## Best Practices for Quota Efficiency
+
+1. **Use Lightweight Models for Routine Work**: Route file searches, lint fixes, and boilerplate generation through fast models like `gemini-3-flash` (1× multiplier).
+2. **Reserve Flagship Models for Complex Tasks**: Reserve flagship models for multi-file refactoring, systemic debugging, and architecture design.
+3. **Batch Small Edits Together**: Group related requests into a single prompt turn to minimize prompt quota burn.

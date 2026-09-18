@@ -1,0 +1,137 @@
+---
+title: "DSPy"
+description: "Program dan optimalkan prompt model bahasa secara algoritmik menggunakan Neosantara dan DSPy."
+icon: "/images/integrations/dspy.svg"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+  - /id/integrations/crewai
+  - /id/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+DSPy memisahkan logika program dari prompt teks. Anda mendefinisikan signature tugas dan modul seperti `Predict` atau `ChainOfThought`, lalu DSPy mengoptimalkan prompt dan parameter secara otomatis.
+
+## Pengaturan
+
+Instal library DSPy:
+
+```bash
+pip install -U dspy
+```
+
+<SetApiKey />
+
+## Konfigurasi Client
+
+Neosantara kompatibel dengan endpoint OpenAI. Gunakan kelas `dspy.LM` dengan prefix `openai/` dan arahkan `api_base` ke endpoint gateway Neosantara.
+
+```python
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+
+dspy.configure(lm=lm)
+```
+
+## Modul Dasar: Predict dan ChainOfThought
+
+<CodeGroup>
+
+```python Simple QA (Predict) icon="python"
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+class BasicQA(dspy.Signature):
+    """Jawab pertanyaan teknis secara ringkas."""
+    question = dspy.InputField(desc="Pertanyaan pengguna")
+    answer = dspy.OutputField(desc="Jawaban ringkas dalam 1-2 kalimat")
+
+qa = dspy.Predict(BasicQA)
+response = qa(question="Apa perbedaan utama antara token input dan token output pada LLM gateway?")
+
+print(response.answer)
+```
+
+```python Penalaran (ChainOfThought) icon="python"
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+class MathProblem(dspy.Signature):
+    """Pecahkan soal matematika dengan langkah terstruktur."""
+    problem = dspy.InputField()
+    solution = dspy.OutputField()
+
+cot = dspy.ChainOfThought(MathProblem)
+result = cot(problem="Sebuah server memproses 120 request per detik. Tiap request membutuhkan 400 token input. Berapa token input per menit yang diterima server?")
+
+print(result.solution)
+```
+
+</CodeGroup>
+
+## ReAct Agent dengan Tools
+
+Gunakan `dspy.ReAct` untuk membuat agent yang dapat memanggil tool Python eksternal sebelum memberikan jawaban akhir.
+
+```python
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+def kalkulator_pajak(penghasilan_tahunan: float) -> str:
+    """Hitung perkiraan PPh 21 sederhana untuk penghasilan tahunan."""
+    if penghasilan_tahunan <= 60_000_000:
+        pajak = penghasilan_tahunan * 0.05
+    else:
+        pajak = 3_000_000 + (penghasilan_tahunan - 60_000_000) * 0.15
+    return f"Rp {pajak:,.0f}"
+
+react = dspy.ReAct(
+    "pertanyaan: str -> jawaban: str",
+    tools=[kalkulator_pajak]
+)
+
+pred = react(pertanyaan="Berapa perkiraan pajak tahunan untuk penghasilan Rp 100.000.000?")
+print(pred.jawaban)
+```
+
+## Rekomendasi Model untuk DSPy
+
+| Kebutuhan Pipeline | Model Rekomendasi | Keunggulan |
+| :-- | :-- | :-- |
+| **Iterasi Cepat & Kompilasi** | `gemini-3.8-flash` | Latensi rendah dan hemat biaya untuk evaluasi berulang |
+| **Penalaran Kompleks & Math** | `deepseek-v4.1-flash` | Penalaran kuat dengan context window 1M token |
+| **Agentic & Tool Calling** | `claude-4.5-sonnet` | Kepatuhan tool calling tinggi untuk multi-step ReAct |
+
+## Langkah Berikutnya
+
+- [Panduan Chat Completions](/id/gateway/chat-completions)
+- [Katalog Model dan Harga](/id/gateway/models)
+- [Integrasi Framework Any-LLM](/id/integrations/any-llm)

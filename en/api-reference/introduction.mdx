@@ -1,0 +1,81 @@
+---
+title: "API Reference"
+description: "Interactive OpenAPI specification for Neosantara AI Gateway endpoints and MCP services."
+icon: "book-open"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/responses-api
+  - /en/gateway/anthropic-messages
+  - /en/guides/faq
+---
+
+import BaseUrlConfig from '/snippets/base-url-config.mdx';
+import CurlAuthHeader from '/snippets/curl-auth-header.mdx';
+
+Neosantara provides a unified API interface compatible with both OpenAI and Anthropic Messages protocols. You can test endpoints directly using the interactive OpenAPI playground in the right-hand panel.
+
+## Gateway Base URL
+
+Configure the official gateway URL as the base URL for your client SDK:
+
+<BaseUrlConfig />
+
+## Authentication & API Key Formats
+
+All requests to the gateway are authenticated using Neosantara API key tokens. Keys are scoped into two distinct prefixes:
+
+| Key Type | Prefix Format | Scope | Header Specification |
+| :-- | :-- | :-- | :-- |
+| **Standard API Key** | `nsk_` + 32-char hex | Inference endpoints (`/v1/*`, `/anthropic/*`) | `Authorization: Bearer nsk_...` or `x-api-key: nsk_...` |
+| **MCP API Key** | `nsk_mcp_` + 32-char hex | Model Context Protocol servers (`/v1/mcp/*`) | `Authorization: Bearer nsk_mcp_...` |
+
+Manage and provision API keys in the [API Keys Dashboard](https://app.neosantara.xyz/api-keys).
+
+## Core Request Headers
+
+Include the required headers based on the endpoint protocol:
+
+### 1. OpenAI-Compatible Endpoints (`/v1/*`)
+
+```bash
+-H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+-H "Content-Type: application/json"
+```
+
+Optional headers:
+- `X-Guard: on` (Enables automated UU PDP PII redaction for paid users).
+- `x-request-id: <uuid>` (Custom identifier for end-to-end request tracing).
+
+### 2. Anthropic Messages Endpoints (`/anthropic/*`)
+
+```bash
+-H "x-api-key: $NEOSANTARA_API_KEY" \
+-H "anthropic-version: 2023-06-01" \
+-H "Content-Type: application/json"
+```
+
+## Error Response Structure
+
+When a request encounters an error, the gateway returns a standard OpenAI error JSON payload:
+
+```json
+{
+  "error": {
+    "message": "Model 'claude-sonnet-4-6' context length exceeded.",
+    "type": "invalid_request_error",
+    "code": "context_length_exceeded",
+    "param": null
+  }
+}
+```
+
+Standard HTTP status codes:
+
+| HTTP Status | Meaning |
+| :-- | :-- |
+| `200 OK` | The request executed successfully. |
+| `400 Bad Request` | Missing or invalid parameters in the request payload. |
+| `401 Unauthorized` | Invalid, expired, or missing API key. |
+| `402 Payment Required` | Insufficient PAYG balance to process the request. |
+| `429 Too Many Requests` | Exceeded RPM, ITPM, or OTPM limits for your account tier. |
+| `503 Service Unavailable` | Upstream provider error or active circuit breaker. |

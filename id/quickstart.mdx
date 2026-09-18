@@ -1,0 +1,57 @@
+---
+title: "Panduan Cepat"
+description: "Kirim panggilan API pertama Anda ke Neosantara dalam dua menit."
+icon: "rocket"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+  - /id/guides/rate-limits
+  - /id/agents/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+import BaseUrlConfig from '/snippets/base-url-config.mdx';
+
+<Steps>
+  <Step title="Atur API Key">
+    Dapatkan API key dari [Dashboard Neosantara](https://app.neosantara.xyz/api-keys) dan simpan ke variabel lingkungan:
+
+    <SetApiKey />
+  </Step>
+
+  <Step title="Inisialisasi Klien">
+    Konfigurasikan SDK OpenAI atau Anthropic untuk mengarah ke base URL Neosantara:
+
+    <BaseUrlConfig />
+  </Step>
+
+  <Step title="Jalankan Permintaan">
+    Kirim panggilan API pertama Anda ke model unggulan berkecepatan tinggi:
+
+```python
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": "Anda adalah asisten yang membantu."},
+        {"role": "user", "content": "Jelaskan AI Gateway Indonesia dalam satu kalimat."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+  </Step>
+</Steps>
+
+## Langkah Berikutnya
+
+<CardGroup cols={3}>
+  <Card title="Katalog Model" icon="list" href="/id/gateway/models">
+    Jelajahi 100+ model aktif dan perbandingan harga Rupiah
+  </Card>
+  <Card title="Konektor MCP" icon="puzzle" href="/id/agents/mcp-connector">
+    Hubungkan tools sandboxed dan pencarian web via MCP
+  </Card>
+  <Card title="Integrasi LiteLLM" icon="sparkle" href="/id/integrations/litellm">
+    Gunakan provider native Neosantara tanpa konfigurasi base URL
+  </Card>
+</CardGroup>

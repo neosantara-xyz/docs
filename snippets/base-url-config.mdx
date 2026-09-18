@@ -1,0 +1,22 @@
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ.get("NEOSANTARA_API_KEY")
+)
+```
+
+```typescript TypeScript icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY
+});
+```
+
+</CodeGroup>

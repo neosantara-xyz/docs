@@ -1,0 +1,232 @@
+---
+title: "Background Tasks & Webhooks"
+description: "Run asynchronous AI inference with status polling and automatic webhooks using OpenAI SDK."
+icon: "clock"
+related:
+  - /en/gateway/responses-api
+  - /en/gateway/operations/batches
+  - /en/gateway/responses-api/conversations
+---
+
+The Responses API (`/v1/responses`) features native asynchronous execution for heavy computations, extensive document analysis, and long-running agent workflows using the official OpenAI SDK.
+
+## Initializing Background Tasks
+
+Dispatch asynchronous requests by setting `background=True` in `client.responses.create`. The gateway returns an initial response object with a `queued` status and task `id` immediately without holding open an HTTP connection.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Analyze annual financial statements and calculate credit risk exposure.",
+    background=True
+)
+
+print(f"Task ID: {job.id}")
+print(f"Initial Status: {job.status}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const job = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Analyze annual financial statements and calculate credit risk exposure.",
+  background: true,
+});
+
+console.log(`Task ID: ${job.id}`);
+console.log(`Initial Status: ${job.status}`);
+```
+
+</CodeGroup>
+
+## Polling Status and Output Retrieval
+
+Use `client.responses.retrieve` to monitor task execution until reaching a terminal state (`completed`, `failed`, or `cancelled`).
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import time
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job_id = "resp_01j7x8abc..."
+
+while True:
+    task = client.responses.retrieve(job_id)
+    print(f"Current status: {task.status}")
+
+    if task.status == "completed":
+        print("\nExecution Output:\n", task.output_text)
+        break
+    elif task.status in ("failed", "cancelled"):
+        print("Task failed to complete.")
+        break
+    time.sleep(2)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const jobId = "resp_01j7x8abc...";
+
+while (true) {
+  const task = await client.responses.retrieve(jobId);
+  console.log(`Current status: ${task.status}`);
+
+  if (task.status === "completed") {
+    console.log("\nExecution Output:\n", task.output_text);
+    break;
+  } else if (task.status === "failed" || task.status === "cancelled") {
+    console.log("Task failed to complete.");
+    break;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+}
+```
+
+</CodeGroup>
+
+## Cancelling Running Tasks
+
+Tasks currently queued or in progress can be aborted at any time via `client.responses.cancel`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+cancelled_job = client.responses.cancel("resp_01j7x8abc...")
+print(f"Cancellation status: {cancelled_job.status}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const cancelledJob = await client.responses.cancel("resp_01j7x8abc...");
+console.log(`Cancellation status: ${cancelledJob.status}`);
+```
+
+</CodeGroup>
+
+## Registering Webhook Callbacks
+
+To avoid continuous polling, specify a callback URL in the `webhook` property under `extra_body`. Neosantara delivers an automated HTTP `POST` once execution concludes.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+job = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Perform comprehensive security audit on architecture specifications.",
+    background=True,
+    extra_body={
+        "webhook": "https://api.your-company.com/webhooks/ai-response"
+    }
+)
+
+print(f"Task registered with webhook: {job.id}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const job = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Perform comprehensive security audit on architecture specifications.",
+  background: true,
+  // @ts-expect-error - webhook parameter extension
+  webhook: "https://api.your-company.com/webhooks/ai-response",
+});
+
+console.log(`Task registered with webhook: ${job.id}`);
+```
+
+</CodeGroup>
+
+## Task Lifecycle States
+
+| Status | Definition |
+| :--- | :--- |
+| `queued` | Task acknowledged by the gateway and queued for worker execution. |
+| `in_progress` | Model is running inference or executing attached tools. |
+| `completed` | Task executed successfully. Result is available under `output_text`. |
+| `failed` | Processing encountered an error during inference or tool execution. |
+| `cancelled` | Task was explicitly terminated via `client.responses.cancel`. |
+
+## Webhook Delivery Payload
+
+Upon reaching a terminal state (`completed` or `failed`), Neosantara dispatches an HTTP `POST` request to your registered webhook URL:
+
+```json
+{
+  "event": "response.completed",
+  "id": "resp_01j7x8...",
+  "status": "completed",
+  "model": "deepseek-v4.1-flash",
+  "output_text": "Complete analysis report...",
+  "usage": {
+    "prompt_tokens": 120,
+    "completion_tokens": 850,
+    "total_tokens": 970
+  }
+}
+```
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Conversation State | [Conversations & State](/en/gateway/responses-api/conversations) |
+| Server Tools & MCP | [Tools & MCP](/en/gateway/responses-api/tools) |
+| Responses API Reference | [Responses API](/en/gateway/responses-api) |

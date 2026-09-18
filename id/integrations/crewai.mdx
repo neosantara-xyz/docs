@@ -1,0 +1,109 @@
+---
+title: "CrewAI"
+description: "Bangun dan koordinasikan multi-agent otonom menggunakan Neosantara dan CrewAI."
+icon: "/images/integrations/crewai.svg"
+related:
+  - /id/integrations/agno
+  - /id/integrations/autogen
+  - /id/agents/overview
+  - /id/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+CrewAI adalah framework orkestrasi multi-agent yang memungkinkan beberapa AI berkolaborasi menjalankan peran, tugas berurutan, dan pengambilan keputusan berbasis tool.
+
+## Pengaturan
+
+Instal paket CrewAI:
+
+```bash
+pip install -U crewai
+```
+
+<SetApiKey />
+
+## Inisialisasi LLM
+
+Gunakan kelas `crewai.LLM` dengan prefix `openai/` untuk menghubungkan model Neosantara ke agent CrewAI.
+
+```python
+import os
+from crewai import LLM
+
+llm = LLM(
+    model="openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    base_url="https://api.neosantara.xyz/v1"
+)
+```
+
+## Contoh Multi-Agent Workflow
+
+Kode berikut menjalankan dua agent: **Researcher** yang menganalisis tren, dan **Writer** yang menyusun artikel teknis berdasarkan hasil riset.
+
+```python
+import os
+from crewai import Agent, Task, Crew, Process, LLM
+
+llm = LLM(
+    model="openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    base_url="https://api.neosantara.xyz/v1"
+)
+
+# Definisikan Agent
+researcher = Agent(
+    role="Peneliti Teknologi AI",
+    goal="Identifikasi perkembangan ekosistem AI dan gateway model di Indonesia",
+    backstory="Anda analis teknologi berpengalaman dengan fokus pada efisiensi komputasi dan routing model di Indonesia.",
+    llm=llm,
+    verbose=True
+)
+
+writer = Agent(
+    role="Technical Content Strategist",
+    goal="Tulis ringkasan teknis 2 paragraf berdasarkan laporan peneliti",
+    backstory="Anda penulis teknis yang mampu menjelaskan keunggulan AI Gateway Indonesia dan billing PAYG dengan jernih.",
+    llm=llm,
+    verbose=True
+)
+
+# Definisikan Tugas
+task_research = Task(
+    description="Analisis keunggulan AI Gateway Indonesia untuk developer lokal dibandingkan endpoint global.",
+    expected_output="Daftar 3 faktor utama meliputi latensi, mata uang pembayaran lokal, dan guardrail data.",
+    agent=researcher
+)
+
+task_write = Task(
+    description="Susun artikel ringkas 2 paragraf berdasarkan temuan riset.",
+    expected_output="Artikel teknis 2 paragraf siap publikasi.",
+    agent=writer
+)
+
+# Jalankan Crew
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[task_research, task_write],
+    process=Process.sequential,
+    verbose=True
+)
+
+result = crew.kickoff()
+print(result)
+```
+
+## Pemilihan Model Berdasarkan Peran Agent
+
+| Peran Agent | Rekomendasi Model | Alasan Pemilihan |
+| :-- | :-- | :-- |
+| **Orchestrator / Manager** | `claude-4.5-sonnet` | Kepatuhan perencanaan multi-langkah dan pendelegasian tugas |
+| **Researcher & Deep Reasoning** | `deepseek-v4.1-flash` | Analisis mendalam dengan jendela konteks 1M token |
+| **Fast Task Worker & Formatter** | `gemini-3.8-flash` | Kecepatan eksekusi tinggi dan efisiensi biaya untuk tugas parsing |
+
+## Langkah Berikutnya
+
+- [Panduan Model Context Protocol (MCP)](/id/agents/overview)
+- [Pilihan Model dan Harga](/id/gateway/models)
+- [Integrasi Agno Native](/id/integrations/agno)

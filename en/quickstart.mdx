@@ -1,0 +1,57 @@
+---
+title: "Quickstart"
+description: "Send your first API call to Neosantara in under two minutes."
+icon: "rocket"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/guides/rate-limits
+  - /en/agents/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+import BaseUrlConfig from '/snippets/base-url-config.mdx';
+
+<Steps>
+  <Step title="Set Your API Key">
+    Retrieve your API key from the [Neosantara Dashboard](https://app.neosantara.xyz/api-keys) and set it in your environment:
+
+    <SetApiKey />
+  </Step>
+
+  <Step title="Initialize the Client">
+    Configure the OpenAI or Anthropic SDK to target the Neosantara base URL:
+
+    <BaseUrlConfig />
+  </Step>
+
+  <Step title="Make a Request">
+    Dispatch your first inference request to our high-speed flagship reasoning model:
+
+```python
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain Indonesia's AI Gateway in one sentence."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Model Catalog" icon="list" href="/en/gateway/models">
+    Explore 100+ active models and Rupiah token pricing
+  </Card>
+  <Card title="MCP Connector" icon="puzzle" href="/en/agents/mcp-connector">
+    Connect sandboxed execution tools and web search via MCP
+  </Card>
+  <Card title="LiteLLM Integration" icon="sparkle" href="/en/integrations/litellm">
+    Deploy native Neosantara routing without custom base URL setup
+  </Card>
+</CardGroup>

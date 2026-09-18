@@ -1,0 +1,109 @@
+---
+title: "Mulai Cepat Coding Plan"
+description: "Panduan setup cepat Neosantara Coding Plan, pembuatan coding key, dan integrasi dengan agent."
+icon: "rocket"
+related:
+  - /id/coding-plan/overview
+  - /id/coding-plan/quota-and-limits
+  - /id/coding-plan/tool-integration
+---
+
+Panduan ini membantu Anda mulai menggunakan Neosantara Coding Plan dalam hitungan menit, mulai dari aktivasi paket hingga menghubungkan coding tool favorit Anda.
+
+## Langkah Konfigurasi
+
+<Steps>
+  <Step title="Login ke Dashboard">
+    Buka [Dashboard Neosantara](https://app.neosantara.xyz) dan masuk ke akun Anda.
+  </Step>
+
+  <Step title="Aktivasi Langganan Coding Plan">
+    Buka menu [Coding Plan](https://app.neosantara.xyz/coding-plan) dan pilih tier paket yang sesuai:
+
+    | Tier | Limit 5 Jam | Limit Mingguan | Harga Bulanan |
+    | :-- | :-- | :-- | :-- |
+    | **Coding Hemat** | ~80 prompt | ~400 prompt | Rp 149.000 |
+    | **Coding Reguler** | ~400 prompt | ~2.000 prompt | Rp 499.000 |
+    | **Coding Eksklusif** | ~1.600 prompt | ~8.000 prompt | Rp 1.290.000 |
+
+    Selesaikan pembayaran invoice melalui Mayar. Paket Anda akan aktif dalam waktu kurang dari 2 menit setelah pembayaran terverifikasi.
+  </Step>
+
+  <Step title="Buat Coding Key">
+    Setelah paket aktif, buat API key baru bertipe coding di halaman [Coding Plan](https://app.neosantara.xyz/coding-plan) atau [API Keys](https://app.neosantara.xyz/api-keys). Key ini memiliki format awalan `nsk_code_...`.
+
+    <Warning>
+      Simpan token rahasia ini dengan aman. Kunci API hanya ditampilkan satu kali pada saat pembuatan.
+    </Warning>
+  </Step>
+
+  <Step title="Konfigurasikan Tool atau IDE Anda">
+    Neosantara Coding Plan dapat dihubungkan ke tool mana pun yang mendukung protokol API OpenAI atau Anthropic:
+
+    <CardGroup cols={2}>
+      <Card title="Claude Code" icon="terminal">
+        CLI agent resmi dari Anthropic menggunakan protokol Anthropic Messages.
+      </Card>
+      <Card title="Cline" icon="laptop">
+        Ekstensi VS Code mandiri berbasis protokol OpenAI Chat Completions.
+      </Card>
+      <Card title="OpenCode & Continue" icon="code">
+        Coding agent open-source untuk terminal dan IDE JetBrains atau VS Code.
+      </Card>
+      <Card title="Jelma Runner" icon="cpu">
+        CLI runner bawaan Neosantara yang otomatis mengatur env dan model.
+      </Card>
+    </CardGroup>
+  </Step>
+
+  <Step title="Pilih Base URL yang Tepat">
+    Pastikan konfigurasi tool Anda mengarah ke endpoint coding khusus:
+
+    | Protokol | Base URL |
+    | :-- | :-- |
+    | Anthropic Messages | `https://api.neosantara.xyz/coding/anthropic` |
+    | OpenAI Chat Completions | `https://api.neosantara.xyz/coding/v1` |
+
+    <Warning>
+      Menggunakan endpoint biasa (`/v1` atau `/anthropic`) akan menghasilkan error `403 coding_key_requires_coding_endpoint`.
+    </Warning>
+  </Step>
+</Steps>
+
+## Contoh Konfigurasi Cepat
+
+### Claude Code
+
+Edit berkas konfigurasi di `~/.claude/settings.json`:
+
+```json JSON icon="file-code"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "nsk_code_KEY_ANDA",
+    "ANTHROPIC_MODEL": "claude-4.5-sonnet",
+    "ANTHROPIC_SMALL_FAST_MODEL": "gemini-3-flash",
+    "API_TIMEOUT_MS": "3600000"
+  }
+}
+```
+
+### Cline (VS Code)
+
+1. Buka pengaturan Cline di VS Code.
+2. Atur **API Provider** ke `OpenAI Compatible`.
+3. Masukkan konfigurasi berikut:
+   - **Base URL**: `https://api.neosantara.xyz/coding/v1`
+   - **API Key**: `nsk_code_KEY_ANDA`
+   - **Model**: `claude-4.5-sonnet` (atau model lain yang didukung)
+4. Nonaktifkan opsi **Support Images** jika tidak diperlukan.
+
+## Verifikasi Sambungan
+
+Jalankan pengujian sederhana dari terminal atau ekstensi IDE Anda:
+
+```text Terminal icon="terminal"
+Buatkan fungsi TypeScript untuk memvalidasi nomor telepon Indonesia (format +62 atau 08).
+```
+
+Jika agent memberikan respons, konfigurasi Coding Plan Anda telah berhasil dan siap digunakan.

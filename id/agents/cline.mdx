@@ -1,0 +1,79 @@
+---
+title: "Integrasi Cline & Roo Code"
+description: "Konfigurasikan ekstensi agen koding Cline dan Roo Code di VS Code menggunakan Neosantara."
+icon: "play"
+related:
+  - /id/agents/cursor
+  - /id/agents/opencode
+  - /id/gateway/chat-completions
+---
+
+Cline dan Roo Code adalah ekstensi agen koding otonom untuk Visual Studio Code yang mampu membaca repositori, menulis file, menjalankan perintah terminal, dan menggunakan tools MCP.
+
+## Metode 1: Penyedia Model (OpenAI-Compatible)
+
+Konfigurasikan Cline untuk menggunakan model Neosantara sebagai mesin inferensi utama:
+
+<Steps>
+  <Step title="Buka Pengaturan Ekstensi">
+    Buka panel Cline atau Roo Code di sidebar VS Code, lalu klik ikon **Settings** (roda gigi).
+  </Step>
+
+  <Step title="Pilih Penyedia API">
+    Pada dropdown **API Provider**, pilih **OpenAI Compatible**.
+  </Step>
+
+  <Step title="Masukkan Detail Kredensial">
+    - **Base URL**: `https://api.neosantara.xyz/v1`
+    - **API Key**: API key Neosantara Anda (`nsk_...`)
+    - **Model ID**: `deepseek-v4.1-flash`
+  </Step>
+
+  <Step title="Simpan Konfigurasi">
+    Klik **Done** untuk menyimpan. Mulai sesi chat baru untuk menguji respons agen.
+  </Step>
+</Steps>
+
+## Metode 2: Menambahkan Server MCP Neosantara
+
+Ekstensi Cline mendukung Model Context Protocol untuk memperluas kapabilitas agen dengan tools tambahan.
+
+<Steps>
+  <Step title="Buka Tab MCP Servers">
+    Di panel pengaturan Cline, klik tab **MCP Servers** lalu pilih **Configure MCP Servers**.
+  </Step>
+
+  <Step title="Perbarui Konfigurasi JSON">
+    Buka file `cline_mcp_settings.json` dan tambahkan server `neosantara`:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+  </Step>
+
+  <Step title="Simpan dan Verifikasi">
+    Simpan file konfigurasi. Status server di tab MCP akan berubah menjadi hijau dan tools Neosantara (`chat`, `list-models`, `generate-image`) akan langsung terdaftar.
+  </Step>
+</Steps>
+
+<Note>
+Koneksi MCP membutuhkan API key khusus dengan awalan `nsk_mcp_`.
+</Note>
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Konfigurasi Claude Code | [Integrasi Claude Code](/id/agents/claude-code) |
+| Konfigurasi OpenCode | [Integrasi OpenCode](/id/agents/opencode) |
+| Konfigurasi Cursor | [Integrasi Cursor](/id/agents/cursor) |
+| Rincian API Key MCP | [API Key MCP](/id/agents/mcp-keys) |

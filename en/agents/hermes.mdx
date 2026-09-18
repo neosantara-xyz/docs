@@ -1,0 +1,109 @@
+---
+title: "Hermes Agent Integration"
+description: "Run Nous Research's Hermes Agent hosted on the Neosantara dashboard or locally via CLI and web UI."
+icon: "sparkles"
+related:
+  - /en/agents/cloud-agents
+  - /en/agents/openclaw
+  - /en/agents/overview
+---
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) is an open-source autonomous agent framework by Nous Research. Designed for resilient multi-turn task execution, function calling, tool use, and voice messaging, Hermes can be operated through two primary methods: **Hosted Cloud Agent** on the Neosantara dashboard or **Local CLI and Web UI**.
+
+## Deployment Comparison
+
+| Method | Execution Environment | Prerequisites | Defining Feature |
+| :--- | :--- | :--- | :--- |
+| **Hosted Cloud Agent** | Cloud E2B microVM | Telegram bot token only | 1-click launch, automatic STT via `whisper-large-v3-turbo`, and scale-to-zero lifecycle. |
+| **Local CLI & Web UI** | Local machine or server | Python & Hermes installer | Terminal interactive loop, local web UI on port 9119, and local filesystem access. |
+
+---
+
+## Option 1: 1-Click Hosted Agent on Dashboard
+
+Neosantara provides a managed Hermes deployment wizard running on isolated E2B microVM sandboxes.
+
+### 1. Retrieve Telegram Credentials
+
+1. Chat with [@BotFather](https://t.me/BotFather) on Telegram to create a new bot and copy your **Bot Token**.
+2. Chat with [@userinfobot](https://t.me/userinfobot) to get your numerical **User ID**.
+
+### 2. Run the Deployment Wizard
+
+Open [app.neosantara.xyz/cloud/hermes](https://app.neosantara.xyz/cloud/hermes) and complete the 3-step configuration:
+
+1. **Step 1 (Connect)**: Enter your Bot Token and Telegram Owner ID. The system validates the token against the live Telegram API.
+2. **Step 2 (Configure)**:
+   - **Primary Model**: Select a function-calling model (such as `deepseek-v4.1-flash`).
+   - **Fallback Model**: Choose an optional secondary model to handle transient upstream limits.
+   - **System Prompt**: Define your agent persona and mission boundaries.
+   - **Iteration Limits & Timeout**: Configure maximum reasoning steps per turn.
+   - **Timezone**: Set the operational timezone (e.g., `Asia/Jakarta`).
+3. **Step 3 (Review & Deploy)**: Review your settings and click **Deploy Agent**.
+
+### 3. Automatic Speech Transcription (STT)
+
+Hosted Hermes agents automatically connect to Neosantara's audio transcription endpoint using `whisper-large-v3-turbo`. You can send voice notes directly to your Telegram bot, and Hermes transcribes incoming speech before executing required actions.
+
+---
+
+## Option 2: Local Setup (CLI & Web UI)
+
+To run Hermes locally on your development machine or dedicated server:
+
+### 1. Install Hermes Agent
+
+Download and execute the official installation script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/install.sh | bash
+```
+
+### 2. Configure Environment Variables
+
+Point the OpenAI-compatible client to the Neosantara gateway:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+export HERMES_MODEL="deepseek-v4.1-flash"
+```
+
+### 3. Launch the Interactive CLI
+
+Start a terminal session in your current directory:
+
+```bash
+hermes
+```
+
+### 4. Launch the Local Web UI
+
+Hermes includes a local web interface for tracking conversations and tool inspection:
+
+```bash
+hermes serve
+```
+
+Navigate to `http://localhost:9119` in your browser to interact with the local agent console.
+
+---
+
+## Recommended Models
+
+Hermes Agent requires models with native function calling support:
+
+| Model Identifier | Function Calling | Context Window | Recommended Use Case |
+| :--- | :--- | :--- | :--- |
+| `deepseek-v4.1-flash` | Yes (Native) | 1M tokens | Primary choice for deep code analysis, debugging, and multi-step tool execution. |
+| `gemini-3.8-flash` | Yes (Native) | 1M tokens | Best for low-latency interactive conversations and rapid text parsing. |
+| `gpt-5.4-mini` | Yes (Native) | 128k tokens | Cost-effective option for background scheduled checks and notifications. |
+
+## Next Steps
+
+| Goal | Guide |
+| :--- | :--- |
+| Cloud agent architecture | [Cloud Agents Guide](/en/agents/cloud-agents) |
+| OpenClaw integration | [OpenClaw Guide](/en/agents/openclaw) |
+| Pi terminal coding agent | [Pi Coding Agent Guide](/en/agents/pi) |
+| Agno agent orchestration | [Agno Guide](/en/integrations/agno) |

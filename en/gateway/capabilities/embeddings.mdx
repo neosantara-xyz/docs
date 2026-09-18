@@ -1,0 +1,61 @@
+---
+title: "Embeddings"
+description: "Generate vector embeddings for semantic search and Retrieval-Augmented Generation."
+icon: "binary"
+related:
+  - /en/gateway/chat-completions
+  - /en/integrations/llama-index
+  - /en/integrations/langchain
+---
+
+import ModelsEmbeddingsTable from '/snippets/models-embeddings-table.mdx';
+
+The `/v1/embeddings` endpoint converts text inputs into high-dimensional vector representations for clustering, semantic search, and RAG pipelines.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.embeddings.create(
+    model="gemini-embedding-001",
+    input=[
+        "Neosantara is Indonesia's AI Gateway for developers.",
+        "Low latency architectures optimize inference speed."
+    ]
+)
+
+for item in response.data:
+    print(f"Index: {item.index}, Vector Length: {len(item.embedding)}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/embeddings \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-embedding-001",
+    "input": "Semantic search for financial records."
+  }'
+```
+
+</CodeGroup>
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Yes | Embedding model identifier (e.g., `gemini-embedding-001`, `text-embedding-3-small`). |
+| `input` | `string \| array` | Yes | Single string or array of strings to embed. |
+| `dimensions` | `integer` | Optional | Output vector dimensionality (supported on select models). |
+| `encoding_format` | `string` | Optional | Return format: `"float"` or `"base64"`. Default `"float"`. |
+
+## Available Embedding Models
+
+<ModelsEmbeddingsTable />

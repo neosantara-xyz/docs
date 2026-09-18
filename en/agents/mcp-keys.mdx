@@ -1,0 +1,72 @@
+---
+title: "MCP API Keys"
+description: "Generate and manage dedicated keys for Model Context Protocol integrations."
+icon: "key"
+related:
+  - /en/agents/mcp-connector
+  - /en/agents/cursor
+  - /en/guides/rate-limits
+---
+
+import McpTierLimits from '/snippets/mcp-tier-limits-en.mdx';
+
+MCP keys use the `nsk_mcp_` prefix and enforce dedicated rate limits and security boundaries separate from standard gateway API keys.
+
+## Key Format
+
+Every Neosantara MCP key adheres to the following structure:
+
+```text
+nsk_mcp_32characterhexadecimaluuid
+```
+
+Example: `nsk_mcp_4f8b9e2a1c3d4e5f6a7b8c9d0e1f2a3b`
+
+## Supported Authentication Headers
+
+The MCP endpoint (`https://api.neosantara.xyz/v1/mcp`) accepts keys via either of the following headers:
+
+```http
+x-api-key: nsk_mcp_your_key_here
+```
+
+or
+
+```http
+Authorization: Bearer nsk_mcp_your_key_here
+```
+
+## Creating Keys via Dashboard
+
+1. Navigate to the [Neosantara Dashboard](https://app.neosantara.xyz/api-keys).
+2. Click **Create MCP Key**.
+3. Provide a descriptive label (for example: `[MCP] Cursor IDE`).
+4. Copy and store the key securely; it is displayed only once.
+
+## Creating Keys via API
+
+```bash
+curl -X POST "https://api.neosantara.xyz/v1/mcp/keys" \
+  -H "Authorization: Bearer $USER_SESSION_OR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "[MCP] Coding Assistant"}'
+```
+
+## Tier Quotas & Rate Limits
+
+The MCP gateway applies rate limiting backed by sliding Redis counters to maintain server stability:
+
+1. **RPM Limit**: Request volume per minute per MCP API key.
+2. **Daily Requests**: Daily request volume quota per MCP API key across a 24-hour window.
+3. **Active Key Limit**: Each user account may provision up to **5 active MCP keys**.
+4. **Summary Token Guard**: Maximum output tokens allowed when running audit summary tools (`mcp_summary_max_tokens`).
+
+<McpTierLimits />
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| MCP Architecture | [MCP Overview](/en/agents/overview) |
+| Connect Cursor | [Cursor Integration](/en/agents/cursor) |
+| Connect Claude Code | [Claude Code Integration](/en/agents/claude-code) |

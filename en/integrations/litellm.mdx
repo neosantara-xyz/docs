@@ -1,0 +1,87 @@
+---
+title: "LiteLLM"
+description: "Orchestrate 100+ AI models, proxy load balancing, and fallback routing with LiteLLM."
+icon: "/images/integrations/litellm.svg"
+related:
+  - /en/integrations/overview
+  - /en/integrations/any-llm
+  - /en/gateway/models
+  - /en/gateway/chat-completions
+---
+
+Neosantara is officially supported as a native model provider in LiteLLM. You can reference models using the `neosantara/<model>` prefix for intelligent routing, automatic multi-model failover, and centralized cost tracking.
+
+## Installation
+
+```bash
+pip install -U litellm
+```
+
+## Authentication
+
+Set your Neosantara API key in your environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+## Native Usage Example
+
+<CodeGroup>
+
+```python Python icon="python"
+import litellm
+import os
+
+response = litellm.completion(
+    model="neosantara/gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "Explain how an AI proxy works in one sentence."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Streaming) icon="python"
+import litellm
+
+response = litellm.completion(
+    model="neosantara/deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Write 3 database optimization tips."}],
+    stream=True
+)
+
+for chunk in response:
+    content = chunk.choices[0].delta.content or ""
+    print(content, end="", flush=True)
+print()
+```
+
+</CodeGroup>
+
+## LiteLLM Proxy Configuration (`config.yaml`)
+
+If running a centralized LiteLLM Proxy Server:
+
+```yaml config.yaml
+model_list:
+  - model_name: my-fast-model
+    litellm_params:
+      model: neosantara/gemini-3.8-flash
+      api_key: os.environ/NEOSANTARA_API_KEY
+
+  - model_name: my-reasoning-model
+    litellm_params:
+      model: neosantara/deepseek-v4.1-flash
+      api_key: os.environ/NEOSANTARA_API_KEY
+```
+
+## LiteLLM Integration Advantages
+
+| Capability | Standard Integration | Native Neosantara Provider |
+| :-- | :-- | :-- |
+| **Model Syntax** | `openai/<model>` | `neosantara/<model>` |
+| **Routing & Fallback** | Manual endpoint configuration | Dynamic multi-model failover |
+| **Cost & Token Tracking** | Static token estimations | Aligned with official Neosantara IDR rates |
+| **Proxy & Gateway Support** | Custom adapter mapping required | Registered directly in LiteLLM proxy server |

@@ -1,0 +1,152 @@
+---
+title: "Integrasi Webhook"
+description: "Konfigurasi notifikasi event real-time untuk background responses, batch processing, dan video generation melalui dashboard."
+icon: "webhook"
+related:
+  - /id/gateway/responses-api/background-jobs
+  - /id/gateway/operations/batches
+  - /id/gateway/capabilities/video-generation
+  - /id/guides/faq
+---
+
+Webhook memungkinkan aplikasi Anda menerima notifikasi instan saat tugas komputasi asinkron (seperti background responses, batch processing, atau pembuatan video) selesai atau berubah status tanpa perlu melakukan polling berkala.
+
+## Alur Kerja Webhook
+
+```
+[Job Asinkron Selesai / Gagal] -> [Gateway Tanda Tangani Payload HMAC] -> [HTTP POST ke URL Anda] -> [Server Anda Balas 200 OK]
+```
+
+1. **Daftarkan Endpoint**: Masukkan URL server Anda dan pilih event yang ingin diterima melalui [Dashboard Webhooks](https://app.neosantara.xyz/webhooks).
+2. **Simpan Secret**: Salin kunci signing secret (`whsec_...`) yang ditampilkan saat pendaftaran untuk memvalidasi keaslian signature payload.
+3. **Verifikasi Signature**: Validasi header `webhook-signature` pada server Anda menggunakan library Standard Webhooks sebelum memproses data.
+
+## Konfigurasi Webhook di Dashboard
+
+Pendaftaran dan pengelolaan webhook dilakukan secara visual dan terpusat melalui [Dashboard Webhooks](https://app.neosantara.xyz/webhooks):
+
+1. Masuk ke akun Anda dan buka menu **Webhooks** di dashboard.
+2. Klik tombol **Tambah Webhook**.
+3. Masukkan **URL Endpoint** publik server Anda (harus menggunakan URL `https://` atau `http://` yang dapat dijangkau publik).
+4. Pilih **Event** yang ingin Anda terima (misal: `response.completed`, `batch.completed`, `video.completed`).
+5. Klik **Simpan** dan salin **Signing Secret** (`whsec_...`) yang muncul. Simpan secret ini di environment variables server Anda.
+6. Gunakan tombol **Kirim Tes** untuk mengirimkan event simulasi `webhook.test` guna memverifikasi bahwa endpoint server Anda dapat menerima payload dengan sukses.
+
+<Warning>
+  Kunci signing secret (`whsec_...`) hanya ditampilkan satu kali saat pembuatan webhook. Jika kunci hilang, hapus endpoint tersebut lalu daftarkan kembali untuk mendapatkan secret baru.
+</Warning>
+
+## Daftar Event yang Didukung
+
+| Kategori | Event ID | Pemicu Event |
+| :-- | :-- | :-- |
+| **Responses** | `response.completed` | Job inferensi background responses selesai dengan sukses |
+| **Responses** | `response.failed` | Job background responses mengalami error |
+| **Responses** | `response.cancelled` | Job background responses dibatalkan oleh pengguna |
+| **Batch** | `batch.completed` | Seluruh baris pemrosesan batch selesai dieksekusi |
+| **Batch** | `batch.failed` | Job batch processing gagal dijalankan |
+| **Batch** | `batch.cancelled` | Job batch dibatalkan sebelum selesai |
+| **Video** | `video.completed` | Rendering video selesai dan file siap diunduh |
+| **Video** | `video.failed` | Rendering video gagal |
+
+## Format Payload & Header
+
+Setiap notifikasi dikirimkan menggunakan HTTP `POST` dengan body JSON berstandar [Standard Webhooks](https://www.standardwebhooks.com):
+
+```json
+{
+  "object": "event",
+  "id": "evt_4f8c1a2b3d4e5f60718293a4b5c6d7e8",
+  "type": "response.completed",
+  "created_at": 1750287018,
+  "data": {
+    "id": "resp_abc123"
+  }
+}
+```
+
+Header verifikasi yang disertakan pada setiap pengiriman:
+
+| Header | Keterangan |
+| :-- | :-- |
+| `webhook-id` | ID unik untuk setiap pengiriman. Gunakan sebagai idempotency key untuk deduplikasi. |
+| `webhook-timestamp` | Unix timestamp (detik) saat payload ditandatangani. |
+| `webhook-signature` | Signature HMAC SHA-256 dari payload mentah. |
+
+## Contoh Verifikasi Signature
+
+Gunakan library resmi `standardwebhooks` untuk memvalidasi keaslian signature payload sebelum memproses data:
+
+<CodeGroup>
+
+```javascript Node.js (Express) icon="js"
+import express from 'express';
+import { Webhook } from 'standardwebhooks';
+
+const app = express();
+const wh = new Webhook(process.env.NEOSANTARA_WEBHOOK_SECRET);
+
+app.post('/api/webhooks', express.raw({ type: 'application/json' }), (req, res) => {
+  try {
+    const event = wh.verify(req.body, {
+      'webhook-id': req.header('webhook-id'),
+      'webhook-timestamp': req.header('webhook-timestamp'),
+      'webhook-signature': req.header('webhook-signature')
+    });
+
+    if (event.type === 'response.completed') {
+      console.log('Response ID selesai:', event.data.id);
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    res.status(400).send('Invalid signature');
+  }
+});
+```
+
+```python Python (FastAPI) icon="python"
+from fastapi import FastAPI, Request, HTTPException
+from standardwebhooks.webhooks import Webhook
+import os
+
+app = FastAPI()
+wh = Webhook(os.environ["NEOSANTARA_WEBHOOK_SECRET"])
+
+@app.post("/api/webhooks")
+async def handle_webhook(request: Request):
+    raw_body = await request.body()
+    headers = {
+        "webhook-id": request.headers.get("webhook-id"),
+        "webhook-timestamp": request.headers.get("webhook-timestamp"),
+        "webhook-signature": request.headers.get("webhook-signature"),
+    }
+    try:
+        event = wh.verify(raw_body, headers)
+        if event["type"] == "response.completed":
+            print("Response ID selesai:", event["data"]["id"])
+        return {"status": "ok"}
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+```
+
+</CodeGroup>
+
+<Note>
+  Selalu validasi signature menggunakan **raw body mentah** sebelum di-parse menjadi objek JSON agar urutan byte tidak berubah.
+</Note>
+
+## Kebijakan Retry & Keamanan
+
+1. **Konfirmasi Cepat (HTTP 2xx)**: Server Anda wajib mengembalikan respons HTTP `200 OK` dalam beberapa detik. Proses komputasi berat sebaiknya dialihkan ke background worker internal.
+2. **Otomatisasi Retry**: Jika endpoint Anda mengembalikan status non-2xx atau timeout, gateway akan mencoba mengirim ulang event secara bertahap menggunakan mekanisme exponential backoff.
+3. **Proteksi SSRF**: Gateway menolak alamat loopback (`localhost`, `127.0.0.1`), alamat IP privat (`10.0.0.0/8`, `192.168.0.0/16`), serta link-local demi keamanan infrastruktur.
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Background Responses API | [Eksekusi Background Jobs](/id/gateway/responses-api/background-jobs) |
+| Batch Processing skala besar | [Panduan Batch Processing](/id/gateway/operations/batches) |
+| Generasi video asinkron | [Generasi Video](/id/gateway/capabilities/video-generation) |
+| Pertanyaan umum dan akun | [FAQ & Tanya Jawab](/id/guides/faq) |

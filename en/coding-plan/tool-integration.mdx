@@ -1,0 +1,100 @@
+---
+title: "Coding Tool Integration"
+description: "Integration and configuration guide for Neosantara Coding Plan with Claude Code, Cline, Cursor, and OpenCode."
+icon: "plug"
+related:
+  - /en/coding-plan/quick-start
+  - /en/coding-plan/model-routes
+  - /en/guides/jelma/overview
+---
+
+Neosantara Coding Plan works with all software development environments supporting the **OpenAI Chat Completions** or **Anthropic Messages** specifications.
+
+## Supported Coding Tools
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal">
+    Anthropic agentic CLI running on top of the Anthropic Messages endpoint.
+  </Card>
+  <Card title="Cline" icon="laptop">
+    Autonomous VS Code extension connecting via OpenAI compatibility.
+  </Card>
+  <Card title="OpenCode & Continue" icon="code">
+    Open-source coding agents for the terminal and IDEs like VS Code and JetBrains.
+  </Card>
+  <Card title="Cursor" icon="box">
+    AI-first editor with custom OpenAI model endpoints support.
+  </Card>
+</CardGroup>
+
+## Selecting Coding Endpoints
+
+| Protocol | Base URL | Supported Clients |
+| :-- | :-- | :-- |
+| **Anthropic Messages** | `https://api.neosantara.xyz/coding/anthropic` | Claude Code, Goose, Anthropic SDK |
+| **OpenAI Chat Completions** | `https://api.neosantara.xyz/coding/v1` | Cline, OpenCode, Continue, Cursor |
+
+<Warning>
+  Coding keys (`nsk_code_*`) are strictly restricted to the endpoints above. Sending a coding key to standard PAYG paths (`/v1` or `/anthropic`) returns HTTP status `403`.
+</Warning>
+
+## Client Configuration Guides
+
+### 1. Claude Code
+
+Edit configuration settings in `~/.claude/settings.json`:
+
+```json JSON icon="file-code"
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
+    "ANTHROPIC_AUTH_TOKEN": "nsk_code_YOUR_KEY",
+    "ANTHROPIC_MODEL": "claude-4.5-sonnet",
+    "ANTHROPIC_SMALL_FAST_MODEL": "gemini-3-flash",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-4.5-sonnet",
+    "API_TIMEOUT_MS": "3600000"
+  }
+}
+```
+
+Verify that shell environment variables such as `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_BASE_URL` do not override your local settings file.
+
+### 2. Cline (VS Code)
+
+1. Open the **Cline** panel in VS Code.
+2. Click the gear icon to open Settings.
+3. Set **API Provider** to `OpenAI Compatible`.
+4. Fill in connection details:
+   - **Base URL**: `https://api.neosantara.xyz/coding/v1`
+   - **API Key**: `nsk_code_YOUR_KEY`
+   - **Model ID**: `claude-4.5-sonnet` (or another model enabled on your tier)
+5. Disable **Support Images** if working strictly with text and code files.
+
+### 3. OpenCode & Continue
+
+Add the custom provider block:
+
+```text Configuration icon="terminal"
+Base URL: https://api.neosantara.xyz/coding/v1
+API Key:  nsk_code_YOUR_KEY
+Model:    claude-4.5-sonnet
+```
+
+### 4. Cursor
+
+1. Open **Cursor Settings** -> **Models** -> **Add Custom Model**.
+2. Supply your gateway parameters:
+   - **OpenAI Base URL**: `https://api.neosantara.xyz/coding/v1`
+   - **API Key**: `nsk_code_YOUR_KEY`
+   - **Model Name**: `claude-4.5-sonnet`
+
+### 5. Jelma CLI Runner (Zero Config)
+
+Run your coding agents without modifying configuration files:
+
+```bash Terminal icon="terminal"
+jelma claude local
+jelma opencode local
+```
+
+Jelma automatically detects your coding keys and injects the dedicated base URLs.

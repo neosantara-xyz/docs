@@ -1,0 +1,91 @@
+---
+title: "AutoGen (AG2)"
+description: "Build conversational multi-agent systems and automated code workflows using Neosantara and AG2."
+icon: "/images/integrations/autogen.svg"
+related:
+  - /en/integrations/crewai
+  - /en/agents/overview
+  - /en/gateway/models
+  - /en/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+AG2 (formerly AutoGen) is an open-source framework for building multi-agent conversational systems. It enables LLM-driven agents to converse with one another, execute code, and complete complex software engineering tasks collaboratively.
+
+## Setup
+
+Install the `autogen` package:
+
+```bash
+pip install -U autogen
+```
+
+<SetApiKey />
+
+## LLM Configuration
+
+AutoGen uses a `config_list` dictionary array to define provider endpoints. Point `base_url` to Neosantara and set `api_type: "openai"`.
+
+```python
+import os
+
+config_list = [
+    {
+        "model": "deepseek-v4.1-flash",
+        "base_url": "https://api.neosantara.xyz/v1",
+        "api_key": os.environ["NEOSANTARA_API_KEY"],
+        "api_type": "openai"
+    }
+]
+```
+
+## Two-Agent Collaboration Example
+
+The following example configures an `AssistantAgent` acting as a backend architect and a `UserProxyAgent` acting as an engineering lead verifying the plan:
+
+```python
+import os
+from autogen import AssistantAgent, UserProxyAgent
+
+config_list = [
+    {
+        "model": "deepseek-v4.1-flash",
+        "base_url": "https://api.neosantara.xyz/v1",
+        "api_key": os.environ["NEOSANTARA_API_KEY"],
+        "api_type": "openai"
+    }
+]
+
+assistant = AssistantAgent(
+    name="Architect",
+    llm_config={"config_list": config_list},
+    system_message="You are a senior backend architect. Propose a concise distributed database architecture and conclude your reply with 'TERMINATE' once the design is complete."
+)
+
+user_proxy = UserProxyAgent(
+    name="Engineer",
+    human_input_mode="NEVER",
+    max_consecutive_auto_reply=2,
+    is_termination_msg=lambda msg: "TERMINATE" in msg.get("content", "")
+)
+
+user_proxy.initiate_chat(
+    assistant,
+    message="What is the recommended Postgres sharding strategy for an analytics table tracking hundreds of millions of events?"
+)
+```
+
+## AutoGen Collaboration Patterns
+
+| Pattern | Key Classes | Ideal Scenario |
+| :-- | :-- | :-- |
+| **Two-Agent Chat** | `AssistantAgent` + `UserProxyAgent` | Direct code generation, technical review, or guided brainstorming |
+| **GroupChat** | `GroupChat` + `GroupChatManager` | Multi-role workflows (e.g. Planner, Coder, Validator) |
+| **Code Execution** | `LocalCommandLineCodeExecutor` | Sandboxed local Python testing and automated iteration |
+
+## Next Steps
+
+- [CrewAI Integration Guide](/en/integrations/crewai)
+- [Model Context Protocol (MCP)](/en/agents/overview)
+- [Model Catalog and Pricing](/en/gateway/models)

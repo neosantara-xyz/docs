@@ -1,0 +1,108 @@
+---
+title: "Penalaran (Reasoning)"
+description: "Akses jejak pemikiran model reasoning seperti DeepSeek R1 melalui field reasoning_content."
+icon: "brain"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/anthropic-messages/thinking
+  - /id/gateway/responses-api/reasoning
+  - /id/gateway/models
+---
+
+import ModelsReasoningTable from '/snippets/models-reasoning-table.mdx';
+
+Model penalaran seperti `deepseek-r1` dan `deepseek-v4.1-flash` menghasilkan rantai pemikiran (_chain-of-thought_) internal sebelum mengeluarkan jawaban akhir. Neosantara mengekstrak jejak pemikiran ini ke dalam field terpisah `reasoning_content` pada endpoint `/v1/chat/completions`.
+
+<CodeGroup>
+
+```python Python (Streaming / OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+stream = client.chat.completions.create(
+    model="deepseek-r1",
+    messages=[
+        {"role": "user", "content": "Berapa banyak huruf 'r' dalam kata 'strawberry'?"}
+    ],
+    stream=True
+)
+
+print("=== PROSES PENALARAN ===")
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    # Ekstraksi token pemikiran
+    reasoning = getattr(delta, "reasoning_content", None)
+    if reasoning:
+        print(reasoning, end="", flush=True)
+    
+    # Ekstraksi jawaban publik
+    content = delta.content or ""
+    if content:
+        print(content, end="", flush=True)
+print()
+```
+
+```python Python (Non-Streaming) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-r1",
+    messages=[
+        {"role": "user", "content": "Berapa banyak huruf 'r' dalam kata 'strawberry'?"}
+    ]
+)
+
+message = response.choices[0].message
+
+# Jejak pemikiran internal
+if hasattr(message, "reasoning_content") and message.reasoning_content:
+    print(f"[Thinking]:\n{message.reasoning_content}\n")
+
+# Jawaban publik final
+print(f"[Answer]:\n{message.content}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-r1",
+    "messages": [
+      {"role": "user", "content": "Berapa banyak huruf r dalam strawberry?"}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Aturan Penagihan Token Penalaran
+
+Neosantara menerapkan prinsip integritas penagihan yang ketat:
+
+- **Token Terkirim Ditagih:** Token penalaran yang berhasil dikirimkan ke klien (melalui `reasoning_content`) dicatat sebagai output tokens pada `usage.completion_tokens`.
+- **Rincian Usage:** Objek usage memuat rincian `completion_tokens_details.reasoning_tokens` sehingga Anda dapat menganalisis konsumsi token pemikiran secara presisi.
+- **Harga Bersifat Transparan:** Model ditagih berdasarkan tarif model yang Anda minta tanpa kenaikan tersembunyi.
+
+## Model Penalaran yang Tersedia
+
+<ModelsReasoningTable />
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Extended Thinking di Anthropic | [Anthropic Extended Thinking](/id/gateway/anthropic-messages/thinking) |
+| Reasoning di Responses API | [Responses Reasoning](/id/gateway/responses-api/reasoning) |
+| Streaming Respons | [Streaming Respons](/id/gateway/chat-completions/streaming) |

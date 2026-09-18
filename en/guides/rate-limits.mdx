@@ -1,0 +1,63 @@
+---
+title: "Rate Limits & Throughput"
+description: "Rate limiting policies across RPM, ITPM, and OTPM for all Neosantara tiers."
+icon: "gauge"
+related:
+  - /en/guides/faq
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+---
+
+import BillingTierLimits from '/snippets/billing-tier-limits-en.mdx';
+import McpTierLimits from '/snippets/mcp-tier-limits-en.mdx';
+
+To maintain platform availability and prevent noisy neighbor saturation, Neosantara enforces a multi-layered rate limiter backed by Redis.
+
+## Three Rate Limiting Metrics
+
+The Neosantara Gateway separates throughput controls into three independent metrics:
+
+1. **RPM (Requests Per Minute)**: Total HTTP call volume per minute enforced using a sliding window algorithm.
+2. **ITPM (Input Tokens Per Minute)**: Prompt token throughput enforced via a token bucket algorithm. Evaluated pre-flight before forwarding to the upstream model.
+3. **OTPM (Output Tokens Per Minute)**: Generated completion token volume. Settled post-flight after the model finishes producing output.
+
+## Throughput Limits by Tier
+
+<BillingTierLimits />
+
+## MCP Gateway Quotas & Limits by Tier
+
+For IDE and agent integrations powered by the Model Context Protocol (MCP), Neosantara enforces dedicated request and summary token limits separate from gateway token throughput:
+
+<McpTierLimits />
+
+Each account may provision up to 5 active MCP keys. Learn more in the [MCP API Keys](/en/agents/mcp-keys) guide.
+
+## Promotional Model Limits (Free Tier)
+
+For 100% discounted promotional models on the **Free** tier, a promotional limit of **5 RPM** applies. To unlock the full Free tier limit (10 RPM), deposit at least IDR 50,000 via the billing top-up dashboard.
+
+## Handling Rate Limit Errors (HTTP 429)
+
+When your application exceeds any of the limits, the gateway returns HTTP `429 Too Many Requests` in standard JSON:
+
+```json
+{
+  "error": {
+    "message": "You've reached your Input Tokens Per Minute (ITPM) limit for this tier. Please reduce your input length or wait a moment before retrying.",
+    "type": "rate_limit_error",
+    "code": "itpm_exceeded",
+    "details": {
+      "limit": 30000,
+      "remaining": 0,
+      "retry_after": 12
+    }
+  }
+}
+```
+
+### Client-Side Best Practices
+
+- Inspect the `retry-after` header to determine how many seconds to wait before dispatching the next request.
+- Implement exponential backoff with randomized jitter in your client network layer.
+- For bulk workloads that do not require real-time interactive responses, dispatch requests via [Batch Processing](/en/gateway/operations/batches) which operates outside real-time RPM ceilings.

@@ -1,0 +1,84 @@
+---
+title: "OpenResponses API"
+description: "AI computation execution with official OpenAI SDK, persistent response IDs, and state tracking."
+icon: "bolt"
+related:
+  - /en/gateway/responses-api/conversations
+  - /en/gateway/responses-api/background-jobs
+  - /en/gateway/responses-api/tools
+  - /en/gateway/responses-api/reasoning
+---
+
+The `/v1/responses` endpoint implements the OpenResponses specification using the official OpenAI SDK (`client.responses`), architected for long-running reasoning tasks, asynchronous background jobs, and stateful multi-turn interactions.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Analyze the impact of central bank interest rate changes on the property sector in Indonesia.",
+    instructions="Provide a data-driven, professional, and concise analysis.",
+    store=True
+)
+
+print("Response ID:", response.id)
+print("Output:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Analyze the impact of central bank interest rate changes on the property sector in Indonesia.",
+  instructions: "Provide a data-driven, professional, and concise analysis.",
+  store: true,
+});
+
+console.log("Response ID:", response.id);
+console.log("Output:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## Request Parameters for `client.responses.create`
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Yes | Target AI model (e.g. `deepseek-v4.1-flash`). |
+| `input` | `string \| array` | Yes | Prompt text, message list, or multimodal items. |
+| `instructions` | `string` | No | System prompt guiding model behavior. |
+| `store` | `boolean` | No | If `true`, saves the response state for subsequent continuation. |
+| `background` | `boolean` | No | If `true`, processes request as an asynchronous background job. |
+| `previous_response_id` | `string` | No | Extends context from a prior response ID. |
+| `tools` | `array` | No | Function definitions or remote MCP server endpoints. |
+
+## When to Use `/v1/responses`
+
+| Use Case | Recommended Endpoint | Rationale |
+| :-- | :-- | :-- |
+| Interactive chat and UI | `/v1/chat/completions` | Low-latency streaming with SSE. |
+| In-depth research and reporting | `/v1/responses` | Avoids HTTP timeout drops during runs exceeding 60 seconds. |
+| Large document extraction | `/v1/responses` | Polling and webhook-based result delivery. |
+
+## Advanced Features
+
+| Feature | Guide |
+| :-- | :-- |
+| Background Tasks & Webhooks | [Background Tasks](/en/gateway/responses-api/background-jobs) |
+| Server-Side Conversations & State | [Conversations & State](/en/gateway/responses-api/conversations) |
+| Server Tools & MCP Integration | [Server Tools & MCP](/en/gateway/responses-api/tools) |
+| Reasoning Effort Control | [Responses API Reasoning](/en/gateway/responses-api/reasoning) |

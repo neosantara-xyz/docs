@@ -1,0 +1,135 @@
+---
+title: "Pydantic AI"
+description: "Bangun agent berbasis tipe data dan structured output menggunakan Neosantara dan Pydantic AI."
+icon: "/images/integrations/pydantic.svg"
+related:
+  - /id/gateway/chat-completions/structured-outputs
+  - /id/integrations/agno
+  - /id/gateway/models
+  - /id/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Pydantic AI adalah framework agent dari tim pembuat Pydantic. Framework ini mengusung pendekatan _type-safe_ dan validasi skema otomatis yang ketat untuk output model bahasa.
+
+## Pengaturan
+
+Instal library `pydantic-ai`:
+
+```bash
+pip install -U pydantic-ai
+```
+
+<SetApiKey />
+
+## Konfigurasi Model
+
+Gunakan `OpenAIChatModel` dengan `OpenAIProvider` yang mengarah ke endpoint gateway Neosantara.
+
+```python
+import os
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+model = OpenAIChatModel(
+    "deepseek-v4.1-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(
+    model,
+    system_prompt="Anda asisten AI yang memberikan jawaban teknis singkat dan akurat."
+)
+
+result = agent.run_sync("Apa fungsi utama dari rate limiter pada API Gateway?")
+print(result.data)
+```
+
+## Structured Output dengan Pydantic Model
+
+Pydantic AI memvalidasi respons LLM langsung ke dalam skema model Pydantic via parameter `result_type`:
+
+```python
+import os
+from pydantic import BaseModel, Field
+from pydantic_ai import Agent
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+class ServerMetricReport(BaseModel):
+    server_id: str = Field(description="ID server")
+    healthy: bool = Field(description="Status kesehatan node")
+    cpu_usage_pct: float = Field(description="Persentase beban CPU")
+    summary: str = Field(description="Ringkasan diagnosa dalam 1 kalimat")
+
+model = OpenAIChatModel(
+    "gemini-3.8-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(
+    model,
+    result_type=ServerMetricReport,
+    system_prompt="Ekstrak data metrik server dari teks log menjadi format data terstruktur."
+)
+
+log_text = "Node jkt-prod-02 beroperasi normal pada suhu 42C dengan utilisasi prosesor tercatat di 28.4%."
+result = agent.run_sync(log_text)
+
+print(f"Server: {result.data.server_id}")
+print(f"Status: {'Normal' if result.data.healthy else 'Bermasalah'}")
+print(f"CPU: {result.data.cpu_usage_pct}%")
+print(f"Ringkasan: {result.data.summary}")
+```
+
+## Agent dengan Tool Calling
+
+Gunakan decorator `@agent.tool` untuk menambahkan tool ke agent Pydantic:
+
+```python
+import os
+from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
+
+model = OpenAIChatModel(
+    "deepseek-v4.1-flash",
+    provider=OpenAIProvider(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"],
+    ),
+)
+
+agent = Agent(model, system_prompt="Bantu pengguna menghitung biaya token.")
+
+@agent.tool
+def hitung_biaya_idr(ctx: RunContext[None], jumlah_token: int, harga_per_juta: float) -> str:
+    """Hitung total biaya Rupiah untuk sejumlah token input atau output."""
+    total = (jumlah_token / 1_000_000) * harga_per_juta
+    return f"Rp {total:,.2f}"
+
+result = agent.run_sync("Berapa biaya untuk 2.500.000 token jika harga per 1 juta token adalah Rp 4.500?")
+print(result.data)
+```
+
+## Rekomendasi Model untuk Pydantic AI
+
+| Skenario Penggunaan | Model Rekomendasi | Karakteristik |
+| :-- | :-- | :-- |
+| **Ekstraksi Skema & JSON Parsing** | `gemini-3.8-flash` | Cepat, konsisten mematuhi skema JSON Pydantic |
+| **Multi-Step Tool Calling** | `deepseek-v4.1-flash` | Akurasi pemilihan parameter tool tinggi |
+| **Validasi Logika Bisnis Kompleks** | `claude-4.5-sonnet` | Penalaran mendalam pada aturan validasi ketat |
+
+## Langkah Berikutnya
+
+- [Panduan Structured Outputs](/id/gateway/chat-completions/structured-outputs)
+- [Daftar Model Neosantara](/id/gateway/models)
+- [Integrasi Agno Native](/id/integrations/agno)

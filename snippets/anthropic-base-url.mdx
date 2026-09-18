@@ -1,0 +1,22 @@
+<CodeGroup>
+
+```python Python icon="python"
+import anthropic
+import os
+
+client = anthropic.Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ.get("NEOSANTARA_API_KEY")
+)
+```
+
+```typescript TypeScript icon="js"
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://api.neosantara.xyz/anthropic",
+  apiKey: process.env.NEOSANTARA_API_KEY
+});
+```
+
+</CodeGroup>

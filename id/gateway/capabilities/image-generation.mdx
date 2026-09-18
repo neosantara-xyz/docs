@@ -1,0 +1,106 @@
+---
+title: "Generasi Gambar"
+description: "Sintesis gambar berkualitas tinggi dari deskripsi teks via /v1/images/generations."
+icon: "image"
+related:
+  - /id/gateway/capabilities/video-generation
+  - /id/gateway/chat-completions/vision
+  - /id/gateway/models
+---
+
+import ModelsImageTable from '/snippets/models-image-table.mdx';
+
+Endpoint `/v1/images/generations` menyediakan paritas penuh dengan OpenAI Images API untuk menghasilkan gambar dari prompt teks.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.images.generate(
+    model="imagen-4.0-fast",
+    prompt="Pemandangan sawah terasering di Ubud Bali saat matahari terbit, fotorealistik.",
+    size="1024x1024",
+    n=1
+)
+
+image_url = response.data[0].url
+print(f"URL Gambar: {image_url}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/images/generations \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "imagen-4.0-fast",
+    "prompt": "Pemandangan sawah terasering di Ubud Bali.",
+    "size": "1024x1024",
+    "n": 1
+  }'
+```
+
+</CodeGroup>
+
+## Parameter Permintaan
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `prompt` | `string` | Ya | Deskripsi teks visual gambar yang ingin dibuat. |
+| `model` | `string` | Ya | Pengidentifikasi model (contoh: `imagen-4.0-fast`, `titan-image-g1`). |
+| `size` | `string` | Opsional | Dimensi gambar (contoh: `1024x1024`, `512x512`). Default `1024x1024`. |
+| `n` | `integer` | Opsional | Jumlah variasi gambar yang dihasilkan (1 sampai 4). Default `1`. |
+| `response_format` | `string` | Opsional | Format keluaran: `"url"` atau `"b64_json"`. Default `"url"`. |
+
+## Penagihan Generasi Gambar
+
+Biaya generasi gambar dihitung per unit gambar yang berhasil dibuat (_per-image pricing_), bukan berdasarkan token. Biaya langsung didebet dari saldo deposit Rupiah Anda.
+
+## Galeri Hasil Gambar
+
+Berikut contoh output visual yang dihasilkan melalui Neosantara API:
+
+### Generasi Cepat (Fast Inference)
+**Model**: `imagen-4.0-fast`
+
+<Frame caption="Prompt: 'Lukisan digital laboratorium berteknologi tinggi di Jakarta, pencahayaan neon, desain futuristik, sangat detail.'">
+  <img src="/images/showcase-imagen.png" alt="Hasil generasi gambar Imagen 4.0 Fast" />
+</Frame>
+
+### Artistik & Fantasi
+**Model**: `sdxl-lightning`
+
+<Frame caption="Prompt: 'Candi megah di atas awan, pencahayaan etereal, gaya seni fantasi, resolusi tinggi.'">
+  <img src="/images/showcase-artistic.png" alt="Hasil generasi gambar artistik SDXL Lightning" />
+</Frame>
+
+### Fotografi Realistis
+**Model**: `titan-image-g1`
+
+<Frame caption="Prompt: 'Foto realistis detail tinggi penari tradisional Bali saat malam hari, pencahayaan panggung dramatis.'">
+  <img src="/images/showcase-titan-base.png" alt="Hasil fotografi realistis Titan Image G1" />
+</Frame>
+
+### Transformasi Gambar (Image-to-Image)
+**Model**: `stable-diffusion-v1-5-img2img`
+
+Mengubah gambar referensi ke gaya visual baru dengan tetap mempertahankan komposisi dasarnya.
+
+<CardGroup cols={2}>
+  <Card title="Gambar Asli" icon="image" img="/images/showcase-titan-base.png">
+    Gambar input penari tradisional Bali.
+  </Card>
+  <Card title="Transformasi Sketsa" icon="sparkles" img="/images/showcase-img2img-result.png">
+    Hasil transformasi gaya sketsa arang artistik.
+  </Card>
+</CardGroup>
+
+## Model Generasi Gambar yang Tersedia
+
+<ModelsImageTable />

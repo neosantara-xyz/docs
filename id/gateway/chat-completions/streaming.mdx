@@ -1,0 +1,109 @@
+---
+title: "Streaming Respons"
+description: "Aliran token inkremental real-time menggunakan protokol Server-Sent Events (SSE)."
+icon: "zap"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/anthropic-messages/streaming
+  - /id/gateway/chat-completions/reasoning
+  - /id/guides/rate-limits
+---
+
+Streaming pada endpoint `/v1/chat/completions` memungkinkan aplikasi Anda menampilkan token teks seketika saat dihasilkan oleh model AI, memangkas _perceived latency_ untuk antarmuka chat dan CLI.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+stream = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Tuliskan panduan arsitektur microservices."}],
+    stream=True
+)
+
+for chunk in stream:
+    delta = chunk.choices[0].delta.content or ""
+    print(delta, end="", flush=True)
+print()
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const stream = await client.chat.completions.create({
+  model: "deepseek-v4.1-flash",
+  messages: [{ role: "user", content: "Jelaskan prinsip SOLID secara ringkas." }],
+  stream: true,
+});
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || "");
+}
+console.log();
+```
+
+```bash cURL icon="terminal"
+curl -N -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "Halo"}],
+    "stream": true
+  }'
+```
+
+</CodeGroup>
+
+## Format Event Stream
+
+Setiap chunk dikirim sebagai event SSE dengan format `data: <JSON>`:
+
+```json
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1741764000,"model":"deepseek-v4.1-flash","choices":[{"index":0,"delta":{"content":"Halo"},"finish_reason":null}]}
+```
+
+Ketika generasi token selesai, gateway mengirimkan sinyal penutup:
+
+```text
+data: [DONE]
+```
+
+## Melacak Penggunaan Token saat Streaming
+
+Sertakan parameter `stream_options` untuk menerima total token yang digunakan pada chunk terakhir:
+
+```python
+stream = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Halo"}],
+    stream=True,
+    stream_options={"include_usage": True}
+)
+
+for chunk in stream:
+    if chunk.usage:
+        print(f"\nTotal token: {chunk.usage.total_tokens}")
+    else:
+        print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Panggil Fungsi Eksternal | [Function Calling](/id/gateway/chat-completions/tool-calling) |
+| Output JSON Tervalidasi | [Structured Outputs](/id/gateway/chat-completions/structured-outputs) |
+| Ekstraksi Pemikiran Model | [Penalaran Model](/id/gateway/chat-completions/reasoning) |

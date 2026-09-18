@@ -1,0 +1,101 @@
+---
+title: "Anthropic Vision"
+description: "Send multimodal images to Claude models using Base64 source blocks and URLs."
+icon: "eye"
+related:
+  - /en/gateway/anthropic-messages
+  - /en/gateway/chat-completions/vision
+  - /en/gateway/capabilities/ocr
+---
+
+The `/anthropic/v1/messages` endpoint supports document and visual processing using standard Anthropic image content blocks.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK - Base64) icon="python"
+from anthropic import Anthropic
+import base64
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("architecture_diagram.png", "rb") as img_file:
+    image_data = base64.b64encode(img_file.read()).decode("utf-8")
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_data
+                    }
+                },
+                {
+                    "type": "text",
+                    "text": "Explain data flow between system components in this diagram."
+                }
+            ]
+        }
+    ]
+)
+
+print(response.content[0].text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image",
+            "source": {
+              "type": "url",
+              "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+            }
+          },
+          {
+            "type": "text",
+            "text": "Analyze this chart."
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Supported Media Types
+
+- `image/jpeg`
+- `image/png`
+- `image/gif`
+- `image/webp`
+
+Maximum file size is 20 MB per image.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| OpenAI Vision | [OpenAI Vision](/en/gateway/chat-completions/vision) |
+| Document OCR | [Document OCR](/en/gateway/capabilities/ocr) |
+| Extended Thinking | [Extended Thinking](/en/gateway/anthropic-messages/thinking) |

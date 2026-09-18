@@ -1,0 +1,68 @@
+---
+title: "File Management"
+description: "Upload, manage, and retrieve files for batch jobs and multimodal workflows via /v1/files."
+icon: "folder"
+related:
+  - /en/gateway/operations/batches
+  - /en/gateway/capabilities/ocr
+  - /en/gateway/chat-completions/vision
+---
+
+The `/v1/files` endpoint provides complete OpenAI Files API parity to store datasets, batch input files, and auxiliary documents.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# 1. Upload file for batch execution
+with open("batch_input.jsonl", "rb") as f:
+    file_obj = client.files.create(
+        file=f,
+        purpose="batch"
+    )
+
+print(f"File uploaded with ID: {file_obj.id}")
+
+# 2. List stored files
+file_list = client.files.list()
+for item in file_list.data[:5]:
+    print(f"{item.id} - {item.filename} ({item.bytes} bytes)")
+```
+
+```bash cURL icon="terminal"
+# Upload file
+curl -X POST https://api.neosantara.xyz/v1/files \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -F purpose="batch" \
+  -F file="@batch_input.jsonl"
+
+# List files
+curl https://api.neosantara.xyz/v1/files \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Upload Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `file` | `binary` | Yes | File payload sent via multipart/form-data. |
+| `purpose` | `string` | Yes | Intended purpose of the file: `"batch"` or `"assistants"`. |
+
+## Supported File Operations
+
+| Operation | Endpoint | Description |
+| :-- | :-- | :-- |
+| **Upload** | `POST /v1/files` | Store a new file in gateway storage. |
+| **List** | `GET /v1/files` | List active files associated with your account. |
+| **Metadata** | `GET /v1/files/{file_id}` | Retrieve file size, creation timestamp, and status. |
+| **Content** | `GET /v1/files/{file_id}/content` | Download raw file bytes (e.g. batch output files). |
+| **Delete** | `DELETE /v1/files/{file_id}` | Permanently delete a file from storage. |

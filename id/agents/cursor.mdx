@@ -1,0 +1,82 @@
+---
+title: "Integrasi Cursor"
+description: "Konfigurasikan IDE Cursor untuk model koding kustom dan tools MCP Neosantara."
+icon: "terminal"
+related:
+  - /id/agents/overview
+  - /id/agents/claude-code
+  - /id/agents/mcp-connector
+  - /id/agents/mcp-keys
+---
+
+Cursor dapat dihubungkan ke Neosantara melalui dua cara: menggunakan gateway OpenAI-compatible sebagai penyedia model koding utama (Chat, Composer, Agent), dan menambahkan Neosantara sebagai server Model Context Protocol (MCP) untuk tools tambahan.
+
+## Metode 1: Model Koding Utama (OpenAI-Compatible)
+
+Gunakan model Neosantara untuk menjalankan Cursor Tab, Chat, dan Composer:
+
+<Steps>
+  <Step title="Buka Pengaturan Model Cursor">
+    Tekan `Ctrl + Shift + J` (Windows/Linux) atau `Cmd + Shift + J` (macOS) untuk membuka **Cursor Settings**, lalu pilih menu **Models**.
+  </Step>
+
+  <Step title="Konfigurasikan Kredensial OpenAI">
+    1. Masukkan API key Neosantara (`nsk_...`) pada kolom **OpenAI API Key**.
+    2. Aktifkan opsi **Override OpenAI Base URL**.
+    3. Masukkan base URL gateway:
+       ```text
+       https://api.neosantara.xyz/v1
+       ```
+  </Step>
+
+  <Step title="Tambahkan Model Neosantara">
+    Klik **+ Add model** dan tambahkan model berikut:
+    - `deepseek-v4.1-flash` (Direkomendasikan untuk Composer dan Agent)
+    - `gemini-3.8-flash` (Direkomendasikan untuk percakapan cepat dan latensi rendah)
+    - `gpt-5.4-mini` (Efisiensi biaya)
+  </Step>
+</Steps>
+
+## Metode 2: Server Tools MCP
+
+Hubungkan tools Neosantara (katalog model, generasi gambar, dan audit) ke jendela percakapan Cursor.
+
+<Steps>
+  <Step title="Buka Menu MCP">
+    Buka **Cursor Settings** -> **Features** -> **MCP**.
+  </Step>
+
+  <Step title="Tambahkan Konfigurasi Server">
+    Klik **+ Add New MCP Server** atau tambahkan langsung ke file konfigurasi `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+  </Step>
+
+  <Step title="Verifikasi Status Koneksi">
+    Kembali ke menu MCP di pengaturan Cursor. Pastikan server `neosantara` menampilkan indikator status hijau dengan daftar tools aktif (`chat`, `list-models`, `generate-image`).
+  </Step>
+</Steps>
+
+<Note>
+Koneksi MCP memerlukan API key dengan awalan `nsk_mcp_`. Pemanggilan model inferensi di Metode 1 menggunakan API key gateway standar (`nsk_...`).
+</Note>
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Konfigurasi Claude Code | [Integrasi Claude Code](/id/agents/claude-code) |
+| Konfigurasi OpenCode | [Integrasi OpenCode](/id/agents/opencode) |
+| Konfigurasi Cline | [Integrasi Cline](/id/agents/cline) |
+| Rincian API Key MCP | [API Key MCP](/id/agents/mcp-keys) |

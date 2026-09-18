@@ -1,0 +1,94 @@
+---
+title: "Integrations Overview"
+description: "Integration options for Neosantara: native frameworks, orchestration libraries, AI coding agents, and cloud agents."
+icon: "layout-grid"
+related:
+  - /en/quickstart
+  - /en/gateway/models
+  - /en/agents/overview
+---
+
+import SupportedFrameworks from '/snippets/supported-frameworks-en.mdx';
+
+Neosantara is designed for straightforward connectivity across the modern AI ecosystem. Integrations fall into four distinct categories: **Native Frameworks** with built-in official providers, standard OpenAI/Anthropic **Orchestration Frameworks**, **Coding Agents & IDEs** for developer productivity, and **Autonomous Cloud Agents** hosted directly on the dashboard.
+
+## Comparing Integration Categories
+
+| Category | Typical Libraries & Tools | Capability Focus | Defining Feature |
+| :-- | :-- | :-- | :-- |
+| **Native Frameworks** | Any-LLM, LiteLLM, Agno | Built-in Official Provider | Automated routing, dynamic multi-model failover, and multi-agent execution through Indonesia's AI Gateway. |
+| **Orchestration Frameworks** | LangChain, LlamaIndex, CrewAI | Unified Adapters | Drop-in compatibility using standard OpenAI or Anthropic client adapters. |
+| **Coding Agents & IDEs** | Cursor, Claude Code, OpenCode, Cline, Pi | Agentic Dev Loop | Custom coding model inference via the gateway or contextual tool calling via the Neosantara MCP server. |
+| **Autonomous Cloud Agents** | OpenClaw Cloud, Hermes Agent Cloud | Managed MicroVMs | Isolated E2B microVMs with Telegram webhook handling, automatic voice STT, and scale-to-zero lifecycle. |
+
+## Integration Code Patterns
+
+<CodeGroup>
+
+```python Python (Native: LiteLLM) icon="python"
+import litellm
+import os
+
+os.environ["NEOSANTARA_API_KEY"] = "nsk_..."
+
+# Invoke model via official neosantara/ provider
+response = litellm.completion(
+    model="neosantara/deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Explain agentic loop architectures."}]
+)
+print(response.choices[0].message.content)
+```
+
+```python Python (Framework: LangChain) icon="python"
+from langchain_openai import ChatOpenAI
+import os
+
+llm = ChatOpenAI(
+    model="gemini-3.8-flash",
+    openai_api_base="https://api.neosantara.xyz/v1",
+    openai_api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = llm.invoke("Explain agentic loop architectures.")
+print(response.content)
+```
+
+```bash Terminal (Coding Agent: Claude Code) icon="terminal"
+# Route Anthropic traffic to the Neosantara gateway
+export ANTHROPIC_BASE_URL="https://api.neosantara.xyz/anthropic"
+export ANTHROPIC_API_KEY="nsk_your_api_key_here"
+
+# Launch the coding agent
+claude
+```
+
+</CodeGroup>
+
+## Supported Integrations Catalog
+
+<SupportedFrameworks />
+
+## Next Steps
+
+| Goal | Guide |
+| :-- | :-- |
+| Native LiteLLM routing | [LiteLLM Guide](/en/integrations/litellm) |
+| Native Any-LLM SDK | [Any-LLM Guide](/en/integrations/any-llm) |
+| Autonomous Agno agents | [Agno Guide](/en/integrations/agno) |
+| LangChain orchestration | [LangChain Guide](/en/integrations/langchain) |
+| Modular DSPy programming | [DSPy Guide](/en/integrations/dspy) |
+| Multi-agent CrewAI systems | [CrewAI Guide](/en/integrations/crewai) |
+| Document RAG with LlamaIndex | [LlamaIndex Guide](/en/integrations/llama-index) |
+| Type-safe Pydantic AI agents | [Pydantic AI Guide](/en/integrations/pydantic-ai) |
+| Conversational AutoGen (AG2) | [AutoGen Guide](/en/integrations/autogen) |
+| Next.js Vercel AI SDK | [Vercel AI SDK Guide](/en/integrations/vercel-ai-sdk) |
+| E2B Code Interpreter sandbox | [E2B Guide](/en/integrations/e2b) |
+| Cursor IDE configuration | [Cursor Integration](/en/agents/cursor) |
+| Terminal coding with Claude Code | [Claude Code Integration](/en/agents/claude-code) |
+| OpenCode CLI agent | [OpenCode Integration](/en/agents/opencode) |
+| Cline VS Code extension | [Cline Integration](/en/agents/cline) |
+| Pi terminal coding agent | [Pi Integration](/en/agents/pi) |
+| Hosted cloud agent runtime | [Hosted Cloud Agents](/en/agents/cloud-agents) |
+| OpenClaw integration | [OpenClaw Integration](/en/agents/openclaw) |
+| Hermes Agent integration | [Hermes Agent Integration](/en/agents/hermes) |
+| Model Context Protocol architecture | [MCP Overview](/en/agents/overview) |

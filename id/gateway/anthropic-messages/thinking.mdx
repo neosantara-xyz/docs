@@ -1,0 +1,75 @@
+---
+title: "Extended Thinking Anthropic"
+description: "Konfigurasikan anggaran token penalaran dan tangkap blok thinking pada Claude."
+icon: "brain"
+related:
+  - /id/gateway/anthropic-messages
+  - /id/gateway/chat-completions/reasoning
+  - /id/gateway/responses-api/reasoning
+---
+
+Extended Thinking pada endpoint `/anthropic/v1/messages` memungkinkan model Claude memikirkan masalah kompleks sebelum memberikan jawaban. Anda dapat menentukan batas anggaran token pemikiran menggunakan objek `thinking`.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=4096,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 2048
+    },
+    messages=[
+        {"role": "user", "content": "Berapa banyak huruf 'r' dalam kata 'strawberry'?"}
+    ]
+)
+
+for block in response.content:
+    if block.type == "thinking":
+        print(f"[Proses Pemikiran]:\n{block.thinking}\n")
+    elif block.type == "text":
+        print(f"[Jawaban Akhir]:\n{block.text}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 4096,
+    "thinking": {
+      "type": "enabled",
+      "budget_tokens": 2048
+    },
+    "messages": [
+      {"role": "user", "content": "Berapa banyak huruf r dalam kata strawberry?"}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Aturan Parameter `thinking`
+
+- **Nilai `max_tokens` Wajib Lebih Besar:** Nilai `max_tokens` harus selalu lebih besar dari nilai `budget_tokens` agar tersedia ruang token untuk jawaban akhir.
+- **Batas Minimum Anggaran:** Nilai minimum untuk `budget_tokens` adalah 1024 token.
+- **Struktur Blok Respons:** Respons terdiri dari urutan blok konten di mana blok `type: "thinking"` muncul sebelum blok `type: "text"`.
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Tool Use Anthropic | [Anthropic Tool Use](/id/gateway/anthropic-messages/tool-use) |
+| Streaming Anthropic | [Streaming Anthropic](/id/gateway/anthropic-messages/streaming) |
+| Penalaran di Chat Completions | [Penalaran OpenAI](/id/gateway/chat-completions/reasoning) |

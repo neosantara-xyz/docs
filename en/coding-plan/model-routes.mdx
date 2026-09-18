@@ -1,0 +1,77 @@
+---
+title: "Model Routes"
+description: "Configure virtual model aliases with automated fallback chains for Neosantara Coding Plan."
+icon: "route"
+related:
+  - /en/coding-plan/overview
+  - /en/coding-plan/quota-and-limits
+  - /en/guides/jelma/overview
+---
+
+**Model Routes** allows Coding Plan subscribers to create virtual model aliases that map to a sequence (*chain*) of real models. When the primary model encounters upstream capacity exhaustion or rate limits, the gateway fails over to the next configured model in the chain without client-side retry logic.
+
+<Note>
+  Model Routes requires an **active Coding Plan subscription** (paid or trial) and operates exclusively through dedicated coding endpoints with coding keys (`nsk_code_*`).
+</Note>
+
+## How It Works
+
+```
+Virtual Name: my-coder
+       │
+       ▼
+1. Primary Model: claude-4.5-sonnet
+       │ (on capacity error)
+       ▼
+2. Fallback Model: gemini-3-flash
+```
+
+1. You create a virtual alias (for example `my-coder`) and assign an ordered sequence of models (such as `["claude-4.5-sonnet", "gemini-3-flash"]`).
+2. When submitting requests with `model: "my-coder"` to the coding endpoints, the gateway attempts the primary model first.
+3. If the primary provider reports an upstream capacity error, the gateway dispatches the payload to the next model in your chain.
+
+## Tier Limits
+
+| Subscription Tier | Max Models Per Chain | Max Routes Per Account |
+| :-- | :-- | :-- |
+| **Coding Hemat** | 3 models | 10 routes |
+| **Coding Reguler** | 5 models | 10 routes |
+| **Coding Eksklusif** | 8 models | 10 routes |
+
+## Route Creation Rules
+
+- Virtual alias names must not conflict with native catalog model IDs (for example, you cannot name a route `claude-4.5-sonnet`).
+- Route names are case-insensitive and unique to your user account.
+- Every model included in a chain must belong to your active tier allowlist.
+- Maximum length for virtual route names is 100 characters.
+
+## Using Virtual Routes in Clients
+
+Once defined in your dashboard, supply the virtual alias to your coding agent:
+
+### 1. Jelma CLI
+
+```bash Terminal icon="terminal"
+jelma claude local --model my-coder
+jelma opencode local --model my-coder
+```
+
+### 2. Claude Code
+
+Edit configuration in `~/.claude/settings.json`:
+
+```json JSON icon="file-code"
+{
+  "env": {
+    "ANTHROPIC_MODEL": "my-coder"
+  }
+}
+```
+
+### 3. Cline / OpenCode
+
+Set the model field in your settings panel:
+
+```text Configuration icon="terminal"
+Model: my-coder
+```

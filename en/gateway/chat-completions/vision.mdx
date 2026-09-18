@@ -1,0 +1,125 @@
+---
+title: "Multimodal Vision"
+description: "Send images via URLs or Base64 encoding to multimodal models on Chat Completions."
+icon: "eye"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/anthropic-messages/vision
+  - /en/gateway/capabilities/ocr
+  - /en/gateway/capabilities/image-generation
+---
+
+import ModelsVisionTable from '/snippets/models-vision-table.mdx';
+
+The `/v1/chat/completions` endpoint supports multimodal image input using the standard OpenAI `content` array format.
+
+<CodeGroup>
+
+```python Python (Image URL) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Describe the contents of this chart in detail."},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+                    }
+                }
+            ]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Local Base64) icon="python"
+from openai import OpenAI
+import base64
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+with open("receipt.jpg", "rb") as image_file:
+    encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Extract store name, date, and total amount from this receipt."},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded_string}"
+                    }
+                }
+            ]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "What is the main subject in this picture?"},
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71"
+            }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Supported Formats
+
+- **File Types:** PNG, JPEG, WEBP, GIF (non-animated).
+- **Delivery Methods:**
+  - Public HTTPS URLs accessible directly by the gateway.
+  - Base64 Data URIs (`data:image/<format>;base64,<string>`).
+- **Maximum Size:** 20 MB per image.
+
+## Featured Multimodal Models
+
+<ModelsVisionTable />
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Anthropic Vision | [Anthropic Vision](/en/gateway/anthropic-messages/vision) |
+| Advanced Text Extraction | [Document OCR](/en/gateway/capabilities/ocr) |
+| Validated Schema Output | [Structured Outputs](/en/gateway/chat-completions/structured-outputs) |

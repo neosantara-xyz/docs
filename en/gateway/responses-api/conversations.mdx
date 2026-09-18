@@ -1,0 +1,153 @@
+---
+title: "Conversations & State"
+description: "Persist conversation history server-side using previous_response_id with OpenAI SDK."
+icon: "messages-square"
+related:
+  - /en/gateway/responses-api
+  - /en/gateway/responses-api/background-jobs
+  - /en/gateway/chat-completions
+---
+
+The Responses API (`/v1/responses`) eliminates the need to re-transmit expanding transcripts of previous messages on every interaction turn. By setting `store=True` with the official OpenAI SDK, Neosantara maintains conversation state on the gateway, enabling direct multi-turn interaction via `previous_response_id`.
+
+## Multi-Turn Workflows with OpenAI SDK
+
+Send your initial prompt with `store=True`. On subsequent turns, provide `previous_response_id` referencing the earlier response ID. The gateway reconstructs context automatically.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Turn 1: Store context on the gateway
+turn1 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Hello, my name is Alex and I am a network engineer based in Jakarta.",
+    instructions="Respond in a helpful, professional tone.",
+    store=True
+)
+
+print(f"Turn 1 ID: {turn1.id}")
+print(f"Turn 1 Output:\n{turn1.output_text}\n")
+
+# Turn 2: Continue conversation referencing Turn 1 ID
+turn2 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Based on my role and location, which certification should I pursue first?",
+    previous_response_id=turn1.id,
+    store=True
+)
+
+print(f"Turn 2 ID: {turn2.id}")
+print(f"Turn 2 Output (Context preserved):\n{turn2.output_text}\n")
+
+# Turn 3: Chain further from Turn 2
+turn3 = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="What is the estimated examination cost for that certification in Indonesia?",
+    previous_response_id=turn2.id,
+    store=True
+)
+
+print(f"Turn 3 Output:\n{turn3.output_text}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+// Turn 1: Persist context
+const turn1 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Hello, my name is Alex and I am a network engineer based in Jakarta.",
+  store: true,
+});
+
+console.log("Turn 1 Output:", turn1.output_text);
+
+// Turn 2: Forward previous_response_id
+const turn2 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Based on my background, which certification should I pursue first?",
+  previous_response_id: turn1.id,
+  store: true,
+});
+
+console.log("Turn 2 Output:", turn2.output_text);
+
+// Turn 3: Chain further
+const turn3 = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "What is the estimated examination cost for that certification in Indonesia?",
+  previous_response_id: turn2.id,
+  store: true,
+});
+
+console.log("Turn 3 Output:", turn3.output_text);
+```
+
+</CodeGroup>
+
+## Inspecting Conversation State
+
+Inspect saved response metadata and token consumption details at any time using `client.responses.retrieve`.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Inspect token breakdown and metadata from stored response
+saved_response = client.responses.retrieve("resp_01j7x8abc...")
+
+print(f"Model ID: {saved_response.model}")
+print(f"Status: {saved_response.status}")
+print(f"Total Tokens: {saved_response.usage.total_tokens}")
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const savedResponse = await client.responses.retrieve("resp_01j7x8abc...");
+
+console.log(`Model ID: ${savedResponse.model}`);
+console.log(`Status: ${savedResponse.status}`);
+console.log(`Total Tokens: ${savedResponse.usage.total_tokens}`);
+```
+
+</CodeGroup>
+
+## Benefits of Server-Side State
+
+- **Bandwidth Efficiency:** Clients do not re-upload expanding transcripts of prior messages on every request.
+- **Reliable Continuity:** State is persisted in high-speed, durable cache layers on the gateway.
+- **Ideal for Thin Clients:** Well-suited for mobile applications, messaging bots, and IoT hardware with payload limitations.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Background Execution | [Background Tasks](/en/gateway/responses-api/background-jobs) |
+| Server Tools & MCP | [Tools & MCP](/en/gateway/responses-api/tools) |
+| Responses API Reference | [Responses API](/en/gateway/responses-api) |

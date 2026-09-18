@@ -1,0 +1,118 @@
+---
+title: "LlamaIndex"
+description: "Build production RAG pipelines and index custom data using Neosantara and LlamaIndex."
+icon: "/images/integrations/llamaindex.svg"
+related:
+  - /en/gateway/capabilities/embeddings
+  - /en/guides/guardrails
+  - /en/integrations/litellm
+  - /en/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+LlamaIndex is a data framework designed to connect private and enterprise data to large language models through Retrieval-Augmented Generation (RAG). Neosantara provides OpenAI-compatible endpoints for both text generation and vector embeddings.
+
+## Setup
+
+Install the LlamaIndex packages and OpenAI-compatible adapters:
+
+```bash
+pip install -U llama-index llama-index-llms-openai-like llama-index-embeddings-openai-like
+```
+
+<SetApiKey />
+
+## Global Settings Configuration
+
+Use the LlamaIndex `Settings` module to set both the generation LLM and the embedding provider globally.
+
+```python
+import os
+from llama_index.core import Settings
+from llama_index.llms.openai_like import OpenAILike
+from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+Settings.llm = OpenAILike(
+    model="deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1",
+    temperature=0.2,
+    max_tokens=1024,
+    is_chat_model=True
+)
+
+Settings.embed_model = OpenAILikeEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+```
+
+## End-to-End RAG Pipeline Example
+
+The following script creates an in-memory vector index from text documents and queries the index with synthesized context:
+
+```python
+import os
+from llama_index.core import Document, VectorStoreIndex, Settings
+from llama_index.llms.openai_like import OpenAILike
+from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+# 1. Configure generation and embedding models
+Settings.llm = OpenAILike(
+    model="deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1",
+    is_chat_model=True
+)
+
+Settings.embed_model = OpenAILikeEmbedding(
+    model="text-embedding-3-small",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+
+# 2. Define source documents
+documents = [
+    Document(text="Neosantara is Indonesia's AI Gateway providing Rupiah PAYG billing and multi-provider routing."),
+    Document(text="The Free tier rate limits are 10 RPM, 30,000 ITPM, and 8,000 OTPM with a minimum deposit floor of IDR 50,000."),
+    Document(text="The Indonesian UU PDP No. 27/2022 automated PII guardrail is enabled per-request via the X-Guard: on header.")
+]
+
+# 3. Build vector index
+index = VectorStoreIndex.from_documents(documents)
+
+# 4. Instantiate query engine and ask questions
+query_engine = index.as_query_engine(similarity_top_k=2)
+response = query_engine.query("How do developers enable Indonesian PII redaction on Neosantara?")
+
+print("Answer:", response)
+```
+
+## Streaming Responses in LlamaIndex
+
+For conversational chat interfaces or interactive CLIs, enable streaming on the query engine:
+
+```python
+query_engine = index.as_query_engine(streaming=True)
+streaming_response = query_engine.query("What are the rate limits for the Free tier?")
+
+for text in streaming_response.response_gen:
+    print(text, end="", flush=True)
+print()
+```
+
+## Recommended RAG Model Pairings
+
+| Workflow | Embedding Model | Generation Model (LLM) |
+| :-- | :-- | :-- |
+| **High Throughput & Low Cost** | `text-embedding-3-small` | `gemini-3.8-flash` |
+| **Deep Synthesis & Long Documents** | `text-embedding-3-small` | `deepseek-v4.1-flash` |
+| **High Precision & Legal Compliance** | `text-embedding-3-large` | `claude-4.5-sonnet` |
+
+## Next Steps
+
+- [Embeddings Capability Documentation](/en/gateway/capabilities/embeddings)
+- [UU PDP Guardrails Documentation](/en/guides/guardrails)
+- [LiteLLM Integration Guide](/en/integrations/litellm)

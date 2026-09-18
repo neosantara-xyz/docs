@@ -1,0 +1,96 @@
+---
+title: "Any-LLM"
+description: "Standardized Python interface for multi-provider inference, streaming, and model portability."
+icon: "/images/integrations/any-llm.png"
+related:
+  - /en/integrations/overview
+  - /en/integrations/litellm
+  - /en/integrations/langchain
+  - /en/gateway/models
+---
+
+Any-LLM provides a single, standardized Python interface across diverse AI model providers. Neosantara is officially integrated under provider identifier `neosantara`, delivering uniform streaming semantics, consistent parameter handling, and cross-model portability.
+
+## Installation
+
+Install Any-LLM with the native Neosantara extra:
+
+```bash
+pip install "any-llm-sdk[neosantara]"
+```
+
+## Authentication
+
+Export your Neosantara API key in your environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+The native provider automatically targets `https://api.neosantara.xyz/v1`.
+
+## Native Usage Example
+
+Initialize a reusable client with `AnyLLM.create("neosantara")`:
+
+<CodeGroup>
+
+```python Python (Reusable Client) icon="python"
+from any_llm import AnyLLM
+
+llm = AnyLLM.create("neosantara")
+
+response = llm.completion(
+    model="gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "Explain the advantages of Indonesia's AI Gateway in one sentence."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (One-Off Completion) icon="python"
+from any_llm import completion
+
+response = completion(
+    model="neosantara/gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "What is a distributed system?"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+</CodeGroup>
+
+## Streaming Responses
+
+Any-LLM supports token streaming directly with the native provider:
+
+```python
+from any_llm import AnyLLM
+
+llm = AnyLLM.create("neosantara")
+
+stream = llm.completion(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Write a quick guide."}],
+    stream=True
+)
+
+for chunk in stream:
+    content = chunk.choices[0].delta.content or ""
+    print(content, end="", flush=True)
+print()
+```
+
+## Any-LLM Integration Advantages
+
+| Capability | Manual Wrapper Approach | Native Neosantara Provider |
+| :-- | :-- | :-- |
+| **Client Initialization** | Custom client adapters per invocation | Instant `AnyLLM.create("neosantara")` |
+| **Code Portability** | Locked to vendor-specific SDK semantics | Universal interface across model catalog |
+| **Streaming Normalization** | Inconsistent chunk shapes across upstreams | Uniform, standardized chunk streaming |
+| **Environment Management** | Scattered endpoint configurations | Centralized via `NEOSANTARA_API_KEY` |

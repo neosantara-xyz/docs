@@ -1,0 +1,114 @@
+---
+title: "Hosted Cloud Agents"
+description: "Deploy and manage autonomous AI agents directly from the Neosantara dashboard with isolated E2B sandboxes and Telegram integration."
+icon: "cloud"
+related:
+  - /en/agents/openclaw
+  - /en/agents/hermes
+  - /en/agents/overview
+  - /en/guides/faq
+---
+
+Neosantara provides hosted cloud AI agent runtimes directly within the dashboard ([app.neosantara.xyz/cloud](https://app.neosantara.xyz)). You can deploy autonomous agents such as **OpenClaw** and **Hermes Agent** inside secure, isolated sandboxes by connecting a Telegram bot.
+
+## Cloud Runtime Architecture
+
+Neosantara cloud agents execute inside dedicated E2B microVM sandboxes with automated lifecycle management:
+
+```
+[User on Telegram]
+        │
+        ▼
+[Telegram Bot API]
+        │ HTTPS Webhook (~700ms wake-up)
+        ▼
+[Neosantara Cloud Router]
+        │ HMAC Verification & Secure Egress Filtering
+        ▼
+┌─────────────────────────────────────────┐
+│ E2B MicroVM Sandbox (Isolated)          │
+│ ├─ Agent Runtime (OpenClaw / Hermes)   │
+│ ├─ Session Storage & SQLite             │
+│ └─ Tool Execution (Bash, Browser, Files)│
+└─────────────────────────────────────────┘
+        │
+        ▼ HTTPS API Gateway
+[Neosantara AI Gateway (api.neosantara.xyz)]
+```
+
+### Key Specifications
+
+| Capability | Specification | Details |
+| :--- | :--- | :--- |
+| **Scale-to-Zero** | Auto-pause after 30 minutes idle | Reduces compute resource consumption when no active messages arrive. |
+| **Wake-Up Latency** | ~700 ms from paused state | The sandbox initializes and serves incoming Telegram webhooks almost instantly. |
+| **Full Isolation** | E2B microVM per agent sandbox | Independent execution boundary hardened with SSRF protection against private networks. |
+| **Zero Secret Storage** | Transit encryption & runtime injection | Telegram bot tokens and gateway credentials are never persisted in plaintext DB storage. |
+| **Telegram Guard** | User ID allowlisting | Locks agent access strictly to your authorized Telegram numerical Owner ID. |
+
+## Available Hosted Cloud Agents
+
+<CardGroup cols={2}>
+  <Card title="OpenClaw Cloud" icon="/images/integrations/openclaw.svg" href="/en/agents/openclaw">
+    Autonomous personal agent with tool calling, terminal execution, and multi-channel workflows.
+  </Card>
+
+  <Card title="Hermes Agent Cloud" icon="/images/integrations/hermes.svg" href="/en/agents/hermes">
+    Reasoning agent by Nous Research featuring persistent session memory and native speech-to-text transcription.
+  </Card>
+</CardGroup>
+
+## Comparing Hosted Agents
+
+| Feature | OpenClaw Cloud | Hermes Agent Cloud |
+| :--- | :--- | :--- |
+| **Maintainer** | OpenClaw Community | Nous Research |
+| **Default Models** | `deepseek-v4.1-flash`, `gemini-3.8-flash` | `deepseek-v4.1-flash`, `gpt-5.4-mini` |
+| **Audio / Voice Support** | General audio file handling | Built-in STT transcription via `whisper-large-v3-turbo` |
+| **Telegram Message Types** | Text, files, attachments | Text, voice notes, inline callback buttons |
+| **Tool Execution** | Shell commands, web search, custom skills | Bash, Python, web search, function calling |
+| **Dashboard Path** | [app.neosantara.xyz/cloud/openclaw](https://app.neosantara.xyz/cloud/openclaw) | [app.neosantara.xyz/cloud/hermes](https://app.neosantara.xyz/cloud/hermes) |
+
+## Deploying in 3 Steps
+
+### 1. Create a Telegram Bot & Retrieve User ID
+
+1. Open [@BotFather](https://t.me/BotFather) on Telegram.
+2. Send `/newbot`, follow the naming prompts, and copy the generated **Bot Token** (format: `123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ`).
+3. Open [@userinfobot](https://t.me/userinfobot) on Telegram to retrieve your numerical account **User ID** (e.g., `987654321`). This serves as your Owner ID.
+
+### 2. Complete the Dashboard Setup Wizard
+
+Navigate to **Cloud Agents** in the Neosantara dashboard and select your preferred agent:
+
+1. **Telegram Connection**: Enter your Bot Token and Owner ID. The Owner ID prevents unauthorized users from executing agent commands.
+2. **Model Selection**: Select your primary model (such as `deepseek-v4.1-flash`) and an optional fallback model.
+3. **System Prompt & Timezone**: Set the agent persona and preferred local timezone (e.g., `Asia/Jakarta`).
+
+### 3. Deploy and Run
+
+Click **Deploy Agent**. The dashboard provisions an E2B sandbox, configures the Telegram webhook automatically, and boots the agent.
+
+Open your bot in Telegram and send a message:
+
+```text
+/start
+Hello! Summarize my latest GitHub repository issues and draft an action plan.
+```
+
+## Monitoring and Maintenance
+
+Manage your agent instance directly from the dashboard view:
+
+- **Live Logs**: Stream execution output, tool calls, and model responses in real time.
+- **State Control**: Use **Pause**, **Resume**, or **Restart** buttons to control sandbox lifecycle.
+- **Terminate**: Destroy the sandbox and revoke the Telegram webhook when the agent is no longer needed.
+
+## Next Steps
+
+| Goal | Guide |
+| :--- | :--- |
+| Detailed OpenClaw setup | [OpenClaw Guide](/en/agents/openclaw) |
+| Detailed Hermes Agent setup | [Hermes Agent Guide](/en/agents/hermes) |
+| Setup Pi terminal coding agent | [Pi Coding Agent Guide](/en/agents/pi) |
+| Model Context Protocol overview | [MCP Overview](/en/agents/overview) |

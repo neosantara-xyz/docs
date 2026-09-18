@@ -1,0 +1,81 @@
+---
+title: "Batch Processing"
+description: "Execute thousands of asynchronous requests in bulk with a 50% token rate discount."
+icon: "boxes"
+related:
+  - /en/gateway/operations/files
+  - /en/gateway/responses-api/background-jobs
+  - /en/guides/rate-limits
+---
+
+The `/v1/batches` endpoint allows large-scale, asynchronous request processing without impacting your real-time Requests Per Minute (RPM) limits, with a 50% discount on token pricing.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# 1. Create a batch job from an uploaded input file
+batch_job = client.batches.create(
+    input_file_id="file-xyz123",
+    endpoint="/v1/chat/completions",
+    completion_window="24h"
+)
+
+print(f"Batch ID: {batch_job.id}, Status: {batch_job.status}")
+
+# 2. Check batch job status
+status = client.batches.retrieve(batch_job.id)
+print(f"Progress: {status.request_counts.completed}/{status.request_counts.total}")
+```
+
+```bash cURL icon="terminal"
+# Create batch job
+curl -X POST https://api.neosantara.xyz/v1/batches \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input_file_id": "file-xyz123",
+    "endpoint": "/v1/chat/completions",
+    "completion_window": "24h"
+  }'
+
+# Retrieve batch status
+curl https://api.neosantara.xyz/v1/batches/batch_abc123 \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Input JSONL Format
+
+The batch input file must be a `.jsonl` document where each line represents an independent request:
+
+```json
+{"custom_id": "req-1", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gemini-3.8-flash", "messages": [{"role": "user", "content": "Hello 1"}]}}
+{"custom_id": "req-2", "method": "POST", "url": "/v1/chat/completions", "body": {"model": "gemini-3.8-flash", "messages": [{"role": "user", "content": "Hello 2"}]}}
+```
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `input_file_id` | `string` | Yes | ID of a file uploaded to `/v1/files` with purpose `batch`. |
+| `endpoint` | `string` | Yes | Target endpoint: `/v1/chat/completions` or `/v1/embeddings`. |
+| `completion_window` | `string` | Yes | Target turnaround timeframe (currently `"24h"`). |
+
+## Batch Status Lifecycle
+
+| Status | Description |
+| :-- | :-- |
+| `validating` | Gateway is verifying JSONL syntax and schema integrity. |
+| `in_progress` | Batch requests are actively processing upstream. |
+| `finalizing` | All responses are being compiled into the output file. |
+| `completed` | Batch job finished. Output file ID is available for download. |
+| `failed` | Batch execution failed due to invalid schema or insufficient balance. |

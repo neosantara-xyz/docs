@@ -1,0 +1,133 @@
+---
+title: "DSPy"
+description: "Program and optimize language model prompts algorithmically with Neosantara and DSPy."
+icon: "/images/integrations/dspy.svg"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/integrations/crewai
+  - /en/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+DSPy separates program logic from text prompts. You define task signatures and modules such as `Predict` or `ChainOfThought`, and DSPy compiles and optimizes prompts and parameters automatically.
+
+## Setup
+
+Install the DSPy library:
+
+```bash
+pip install -U dspy
+```
+
+<SetApiKey />
+
+## Client Configuration
+
+Neosantara is fully OpenAI-compatible. Use the `dspy.LM` class with the `openai/` model prefix and point `api_base` to the Neosantara gateway.
+
+```python
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+
+dspy.configure(lm=lm)
+```
+
+## Basic Modules: Predict and ChainOfThought
+
+<CodeGroup>
+
+```python Simple QA (Predict) icon="python"
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+class BasicQA(dspy.Signature):
+    """Answer technical questions concisely."""
+    question = dspy.InputField(desc="User question")
+    answer = dspy.OutputField(desc="Concise answer in 1-2 sentences")
+
+qa = dspy.Predict(BasicQA)
+response = qa(question="What is the primary difference between input and output tokens in an LLM gateway?")
+
+print(response.answer)
+```
+
+```python Reasoning (ChainOfThought) icon="python"
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+class MathProblem(dspy.Signature):
+    """Solve math questions with step-by-step reasoning."""
+    problem = dspy.InputField()
+    solution = dspy.OutputField()
+
+cot = dspy.ChainOfThought(MathProblem)
+result = cot(problem="A server processes 120 requests per second. Each request consumes 400 input tokens. How many input tokens does the server receive per minute?")
+
+print(result.solution)
+```
+
+</CodeGroup>
+
+## ReAct Agent with Tools
+
+Use `dspy.ReAct` to build autonomous agents that invoke Python tools before synthesizing a final answer.
+
+```python
+import os
+import dspy
+
+lm = dspy.LM(
+    "openai/deepseek-v4.1-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    api_base="https://api.neosantara.xyz/v1"
+)
+dspy.configure(lm=lm)
+
+def get_server_load(region: str) -> str:
+    """Return simulated CPU load and active instances for a region."""
+    return f"Region {region}: 34% average CPU utilization, 12 healthy pods."
+
+react = dspy.ReAct(
+    "question: str -> answer: str",
+    tools=[get_server_load]
+)
+
+pred = react(question="What is the current server health in the jkt-1 region?")
+print(pred.answer)
+```
+
+## Recommended Models for DSPy
+
+| Pipeline Need | Recommended Model | Strengths |
+| :-- | :-- | :-- |
+| **Fast Iteration & Compilation** | `gemini-3.8-flash` | Low latency and cost efficiency for repeated evaluations |
+| **Complex Reasoning & Math** | `deepseek-v4.1-flash` | Strong reasoning capabilities with 1M token context window |
+| **Agentic & Tool Calling** | `claude-4.5-sonnet` | High tool-calling precision for multi-step ReAct flows |
+
+## Next Steps
+
+- [Chat Completions Guide](/en/gateway/chat-completions)
+- [Model Catalog and Pricing](/en/gateway/models)
+- [Any-LLM Integration](/en/integrations/any-llm)

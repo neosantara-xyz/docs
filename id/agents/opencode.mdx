@@ -1,0 +1,65 @@
+---
+title: "Integrasi OpenCode"
+description: "Hubungkan terminal coding agent OpenCode ke gateway API Neosantara."
+icon: "laptop"
+related:
+  - /id/agents/claude-code
+  - /id/agents/cursor
+  - /id/gateway/chat-completions
+---
+
+OpenCode adalah asisten koding terminal open-source untuk otomatisasi pengembangan perangkat lunak, refactoring, dan debugging berbasis agen. Anda dapat mengarahkannya langsung ke gateway OpenAI-compatible Neosantara.
+
+## Konfigurasi Variabel Lingkungan
+
+Cara tercepat untuk menghubungkan OpenCode adalah mengekspor kredensial gateway di sesi terminal Anda:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+export OPENAI_MODEL="deepseek-v4.1-flash"
+```
+
+## Konfigurasi File Proyek
+
+Buat atau perbarui file konfigurasi OpenCode (`opencode.json` di direktori proyek atau `~/.config/opencode/config.json` untuk pengaturan global):
+
+```json
+{
+  "provider": "openai",
+  "baseURL": "https://api.neosantara.xyz/v1",
+  "apiKey": "nsk_your_api_key_here",
+  "model": "deepseek-v4.1-flash",
+  "temperature": 0.2
+}
+```
+
+## Model yang Direkomendasikan
+
+| Kasus Penggunaan | Model Rujukan | Jendela Konteks |
+| :--- | :--- | :--- |
+| **Penalaran & Koding Mendalam** | `deepseek-v4.1-flash` | 1.000.000 token |
+| **Iterasi Cepat & Latensi Rendah** | `gemini-3.8-flash` | 1.000.000 token |
+| **Tugas Ringan & Efisiensi Biaya** | `gpt-5.4-mini` | 128.000 token |
+
+## Menjalankan OpenCode
+
+Setelah konfigurasi selesai, jalankan OpenCode di repositori proyek Anda:
+
+```bash
+opencode
+```
+
+Minta agen memeriksa struktur kode atau melakukan perubahan langsung:
+
+```text
+> Periksa seluruh file di src/services dan buatkan unit test menggunakan Vitest.
+```
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Konfigurasi Claude Code | [Integrasi Claude Code](/id/agents/claude-code) |
+| Konfigurasi Cursor | [Integrasi Cursor](/id/agents/cursor) |
+| Rincian API Key MCP | [API Key MCP](/id/agents/mcp-keys) |

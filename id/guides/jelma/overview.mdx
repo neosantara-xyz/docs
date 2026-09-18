@@ -1,0 +1,75 @@
+---
+title: "Ringkasan Jelma CLI"
+description: "CLI runner resmi Neosantara untuk menjalankan AI coding agent di lingkungan lokal atau cloud server secara instan."
+icon: "cpu"
+related:
+  - /id/guides/jelma/usage
+  - /id/coding-plan/overview
+  - /id/agents/claude-code
+---
+
+**Jelma** adalah CLI runner resmi dari Neosantara untuk meluncurkan berbagai AI coding agent ke lingkungan lokal maupun penyedia cloud (AWS, GCP, Hetzner, DigitalOcean, Daytona, E2B, atau Sprite) dengan satu perintah. Jelma menangani injeksi kredensial, pemilihan base URL, dan konfigurasi agent secara otomatis.
+
+## Keuntungan Menggunakan Jelma
+
+| Tanpa Jelma | Dengan Jelma |
+| :-- | :-- |
+| Mengedit berkas konfigurasi manual per agent | Satu perintah langsung menjalankan agent yang diinginkan |
+| Menyesuaikan base URL per protokol dan mode billing | Dipilih otomatis berdasarkan format API key Anda |
+| Memasukkan token kredensial berulang kali | Jelma menyimpan dan menginjeksi kredensial dengan aman |
+| Setup terpisah di setiap mesin atau VPS baru | Cukup jalankan `jelma <agent> <cloud>` |
+
+## Daftar Agent yang Didukung
+
+| Agent | Deskripsi | Protokol |
+| :-- | :-- | :-- |
+| **Claude Code** | CLI coding agentic dari Anthropic | Anthropic Messages |
+| **Codex CLI** | Terminal coding assistant dari OpenAI | OpenAI-compatible |
+| **OpenClaw** | TUI coding dengan integrasi browser otomatis | OpenAI / MCP |
+| **OpenCode** | Coding agent terminal open-source | OpenAI-compatible |
+| **Hermes** | Autonomous coding agent dari Nous Research | OpenAI-compatible |
+| **Pi** | Terminal coding agent minimalis dan ultra-ringan | OpenAI-compatible |
+
+## Lingkungan Deployment Cloud
+
+Jelma mendukung eksekusi lokal dan deployment provisioning instance cloud:
+
+- **Mesin Lokal**: Menjalankan agent langsung di mesin developer Anda tanpa perlu kredensial cloud.
+- **Penyedia Cloud**: AWS Lightsail, Google Cloud, Hetzner, DigitalOcean, Daytona, E2B, dan Sprite.
+
+## Mode Billing Otomatis
+
+Jelma mendeteksi jenis API key yang Anda gunakan secara otomatis:
+
+- **Pay-As-You-Go (PAYG)**: Jika menggunakan key standar (`nsk_...`), Jelma mengarahkan request ke `/v1` atau `/anthropic` dengan pemotongan saldo per-token.
+- **Coding Plan**: Jika menggunakan coding key (`nsk_code_...`), Jelma mengarahkan request ke `/coding/v1` atau `/coding/anthropic` dengan kuota prompt.
+
+## Pemilihan Model & Routing
+
+Secara default, Jelma menggunakan model `garda-core` (context window 1M). Anda dapat mengganti model menggunakan opsi `--model`:
+
+```bash Terminal icon="terminal"
+# Menggunakan model katalog tertentu
+jelma claude local --model deepseek-v4.1-flash
+
+# Menggunakan Model Route kustom (Coding Plan)
+jelma claude local --model my-coder
+```
+
+## Mulai Cepat
+
+Pasang Jelma melalui terminal:
+
+```bash Terminal icon="terminal"
+curl -fsSL https://cli.neosantara.xyz/install.sh | bash
+```
+
+Jalankan perintah interaktif:
+
+```bash Terminal icon="terminal"
+# Menu interaktif pemilihan agent dan target
+jelma
+
+# Menjalankan Claude Code di mesin lokal secara langsung
+jelma claude local
+```

@@ -1,0 +1,136 @@
+---
+title: "Vercel AI SDK"
+description: "Hubungkan model Neosantara ke aplikasi Next.js, React, dan TypeScript menggunakan Vercel AI SDK."
+icon: "/images/integrations/vercel.svg"
+related:
+  - /id/gateway/chat-completions/streaming
+  - /id/gateway/chat-completions
+  - /id/gateway/models
+  - /id/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Vercel AI SDK adalah library TypeScript untuk membangun aplikasi AI interaktif. SDK ini mendukung streaming token, UI hooks untuk React/Next.js, serta structured outputs.
+
+## Pengaturan
+
+Instal `ai` dan adapter `@ai-sdk/openai-compatible`:
+
+<CodeGroup>
+
+```bash npm icon="terminal"
+npm i ai @ai-sdk/openai-compatible
+```
+
+```bash pnpm icon="terminal"
+pnpm add ai @ai-sdk/openai-compatible
+```
+
+```bash bun icon="terminal"
+bun add ai @ai-sdk/openai-compatible
+```
+
+</CodeGroup>
+
+<SetApiKey />
+
+## Inisialisasi Provider
+
+Buat instance provider Neosantara menggunakan fungsi `createOpenAICompatible`:
+
+```typescript
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+
+export const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+```
+
+## Eksekusi Teks dan Streaming
+
+<CodeGroup>
+
+```typescript Teks Tunggal (generateText) icon="js"
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { generateText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+const { text, usage } = await generateText({
+  model: neosantara('gemini-3.8-flash'),
+  prompt: 'Jelaskan arsitektur microservices dalam 3 kalimat.',
+});
+
+console.log(text);
+console.log('Token usage:', usage);
+```
+
+```typescript Streaming di Terminal (streamText) icon="js"
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { streamText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+const result = streamText({
+  model: neosantara('deepseek-v4.1-flash'),
+  prompt: 'Tuliskan 3 prinsip clean architecture pada backend TypeScript.',
+});
+
+for await (const delta of result.textStream) {
+  process.stdout.write(delta);
+}
+console.log();
+```
+
+</CodeGroup>
+
+## Next.js App Router API Route (`app/api/chat/route.ts`)
+
+Gunakan fungsi helper `toDataStreamResponse()` untuk streaming langsung ke hook frontend `useChat`:
+
+```typescript app/api/chat/route.ts
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { streamText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const result = streamText({
+    model: neosantara('deepseek-v4.1-flash'),
+    messages,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+## Perbandingan Fungsi Utama Vercel AI SDK
+
+| Fungsi | Tipe Output | Skenario Penggunaan |
+| :-- | :-- | :-- |
+| `generateText` | Promise teks lengkap | Ekstraksi data background, batch worker, atau bot Telegram |
+| `streamText` | Asynchronous stream | Chat interaktif, UI streaming Next.js via hook `useChat` |
+| `generateObject` | Skema typed Zod | Ekstraksi JSON terstruktur dan validasi form otomatis |
+
+## Langkah Berikutnya
+
+- [Panduan Streaming Neosantara](/id/gateway/chat-completions/streaming)
+- [Contoh Next.js Chatbot](https://github.com/neosantara-xyz/examples)
+- [Pilihan Model dan Harga](/id/gateway/models)

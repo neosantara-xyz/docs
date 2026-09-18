@@ -1,0 +1,51 @@
+---
+title: "Model Catalog"
+description: "Active foundation models, context window limits, capabilities, and token pricing in IDR."
+icon: "list"
+related:
+  - /en/gateway/chat-completions
+  - /en/guides/faq
+  - /en/guides/rate-limits
+  - /en/gateway/chat-completions/reasoning
+---
+
+import ModelsTable from '/snippets/models-table.mdx';
+
+Neosantara provides unified access to hundreds of foundation models through Indonesia's AI Gateway. All token pricing is calculated and settled directly in Indonesian Rupiah (IDR).
+
+## Retrieve Active Models
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+models = client.models.list()
+for model in models.data[:10]:
+    print(f"Model ID: {model.id}")
+```
+
+```bash cURL icon="terminal"
+curl https://api.neosantara.xyz/v1/models \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Active Models & Pricing (IDR)
+
+<ModelsTable />
+
+## Automatic Synchronization
+
+The model catalog and pricing above are synchronized directly from the Neosantara API:
+
+```bash
+python3 scripts/sync_models.py
+```

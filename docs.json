@@ -1,0 +1,3705 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "willow",
+  "name": "Neosantara",
+  "colors": {
+    "primary": "#8A4300",
+    "light": "#FF8C1A",
+    "dark": "#CC6600"
+  },
+  "background": {
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#111113"
+    }
+  },
+  "fonts": {
+    "heading": {
+      "family": "Inter",
+      "weight": 750,
+      "display": "swap"
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400,
+      "display": "swap"
+    }
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "icon": "gauge",
+        "href": "https://app.neosantara.xyz"
+      },
+      {
+        "label": "API Status",
+        "icon": "signal",
+        "href": "https://status.neosantara.xyz"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get API Key",
+      "icon": "key",
+      "href": "https://app.neosantara.xyz/api-keys"
+    }
+  },
+  "api": {
+    "baseUrl": "https://api.neosantara.xyz",
+    "auth": {
+      "method": "bearer"
+    },
+    "playground": {
+      "display": "interactive"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "mcp",
+      "cursor",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/neosantara-xyz"
+    },
+    "links": [
+      {
+        "header": "Resources",
+        "items": [
+          {
+            "label": "llms.txt",
+            "href": "https://docs.neosantara.xyz/llms.txt"
+          },
+          {
+            "label": "TOS",
+            "href": "https://www.neosantara.xyz/terms"
+          },
+          {
+            "label": "Privacy",
+            "href": "https://www.neosantara.xyz/privacy"
+          }
+        ]
+      }
+    ]
+  },
+  "head": [
+    "<link rel=\"stylesheet\" href=\"/style.css\">"
+  ],
+  "navigation": {
+    "languages": [
+      {
+        "language": "id",
+        "default": true,
+        "tabs": [
+          {
+            "tab": "Gateway & Kapabilitas",
+            "groups": [
+              {
+                "group": "Memulai",
+                "pages": [
+                  "id/index",
+                  "id/quickstart"
+                ],
+                "icon": "rocket"
+              },
+              {
+                "group": "Pengantar & Model",
+                "pages": [
+                  "id/gateway/overview",
+                  "id/gateway/models"
+                ],
+                "icon": "layout-grid"
+              },
+              {
+                "group": "Protokol Kompatibilitas",
+                "pages": [
+                  {
+                    "group": "OpenAI Chat Completions",
+                    "expanded": false,
+                    "pages": [
+                      "id/gateway/chat-completions",
+                      "id/gateway/chat-completions/streaming",
+                      "id/gateway/chat-completions/tool-calling",
+                      "id/gateway/chat-completions/structured-outputs",
+                      "id/gateway/chat-completions/reasoning",
+                      "id/gateway/chat-completions/vision"
+                    ],
+                    "icon": "message-square"
+                  },
+                  {
+                    "group": "Anthropic Messages",
+                    "expanded": false,
+                    "pages": [
+                      "id/gateway/anthropic-messages",
+                      "id/gateway/anthropic-messages/streaming",
+                      "id/gateway/anthropic-messages/tool-use",
+                      "id/gateway/anthropic-messages/thinking",
+                      "id/gateway/anthropic-messages/vision"
+                    ],
+                    "icon": "message-circle"
+                  },
+                  {
+                    "group": "Responses API",
+                    "expanded": false,
+                    "pages": [
+                      "id/gateway/responses-api",
+                      "id/gateway/responses-api/prompt-templates",
+                      "id/gateway/responses-api/background-jobs",
+                      "id/gateway/responses-api/conversations",
+                      "id/gateway/responses-api/tools",
+                      "id/gateway/responses-api/reasoning"
+                    ],
+                    "icon": "bolt"
+                  }
+                ],
+                "icon": "layers"
+              },
+              {
+                "group": "Modalitas Khusus",
+                "pages": [
+                  "id/gateway/capabilities/image-generation",
+                  "id/gateway/capabilities/video-generation",
+                  "id/gateway/capabilities/audio",
+                  "id/gateway/capabilities/ocr",
+                  "id/gateway/capabilities/embeddings"
+                ],
+                "icon": "sparkles"
+              },
+              {
+                "group": "Operasional Gateway",
+                "pages": [
+                  "id/gateway/operations/files",
+                  "id/gateway/operations/batches"
+                ],
+                "icon": "boxes"
+              }
+            ],
+            "icon": "server"
+          },
+          {
+            "tab": "Agen & MCP",
+            "groups": [
+              {
+                "group": "Model Context Protocol",
+                "pages": [
+                  "id/agents/overview",
+                  "id/agents/mcp-connector",
+                  "id/agents/mcp-keys"
+                ],
+                "icon": "puzzle"
+              },
+              {
+                "group": "Asisten Koding & IDE",
+                "pages": [
+                  "id/agents/cursor",
+                  "id/agents/claude-code",
+                  "id/agents/opencode",
+                  "id/agents/cline",
+                  "id/agents/pi",
+                  "id/agents/claude-desktop"
+                ],
+                "icon": "terminal"
+              },
+              {
+                "group": "Agen Otonom & Cloud",
+                "pages": [
+                  "id/agents/cloud-agents",
+                  "id/agents/openclaw",
+                  "id/agents/hermes"
+                ],
+                "icon": "cloud"
+              }
+            ],
+            "icon": "bot"
+          },
+          {
+            "tab": "Coding Plan",
+            "groups": [
+              {
+                "group": "Paket Coding Plan",
+                "pages": [
+                  "id/coding-plan/overview",
+                  "id/coding-plan/quick-start",
+                  "id/coding-plan/quota-and-limits",
+                  "id/coding-plan/tool-integration",
+                  "id/coding-plan/model-routes",
+                  "id/coding-plan/usage-policy"
+                ],
+                "icon": "terminal"
+              },
+              {
+                "group": "Jelma CLI Runner",
+                "pages": [
+                  "id/guides/jelma/overview",
+                  "id/guides/jelma/usage"
+                ],
+                "icon": "cpu"
+              }
+            ],
+            "icon": "terminal"
+          },
+          {
+            "tab": "Integrasi",
+            "groups": [
+              {
+                "group": "Framework",
+                "pages": [
+                  "id/integrations/overview",
+                  "id/integrations/litellm",
+                  "id/integrations/agno",
+                  "id/integrations/any-llm",
+                  "id/integrations/langchain",
+                  "id/integrations/dspy",
+                  "id/integrations/crewai",
+                  "id/integrations/llama-index",
+                  "id/integrations/pydantic-ai",
+                  "id/integrations/autogen",
+                  "id/integrations/vercel-ai-sdk",
+                  {
+                    "group": "E2B",
+                    "icon": "terminal",
+                    "pages": [
+                      "id/integrations/e2b",
+                      "id/integrations/e2b-sandbox"
+                    ]
+                  },
+                  {
+                    "group": "Daytona",
+                    "icon": "server",
+                    "pages": [
+                      "id/integrations/daytona-code-interpreter",
+                      "id/integrations/daytona"
+                    ]
+                  }
+                ],
+                "icon": "cpu"
+              },
+              {
+                "group": "Alat & Widget",
+                "pages": [
+                  "id/integrations/chat-widget"
+                ],
+                "icon": "bot-message-square"
+              }
+            ],
+            "icon": "plug"
+          },
+          {
+            "tab": "Referensi API",
+            "groups": [
+              {
+                "group": "Pengantar",
+                "pages": [
+                  "id/api-reference/introduction"
+                ],
+                "icon": "book-open"
+              },
+              {
+                "group": "Chat & Responses",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/chat/completions",
+                  "POST /v1/responses"
+                ],
+                "icon": "message-square"
+              },
+              {
+                "group": "Anthropic Messages",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /anthropic/v1/messages",
+                  "POST /anthropic/v1/messages/count_tokens",
+                  "GET /anthropic/v1/models",
+                  "GET /anthropic/v1/models/{modelId}"
+                ],
+                "icon": "message-circle"
+              },
+              {
+                "group": "Katalog Model",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "GET /v1/models",
+                  "GET /v1/models/{modelId}"
+                ],
+                "icon": "list"
+              },
+              {
+                "group": "Multimodal & Audio",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/images/generations",
+                  "POST /v1/audio/transcriptions",
+                  "POST /v1/ocr",
+                  "POST /v1/embeddings",
+                  "POST /v1/videos",
+                  "GET /v1/videos/{video_id}",
+                  "GET /v1/videos/{video_id}/content"
+                ],
+                "icon": "sparkles"
+              },
+              {
+                "group": "Berkas & Batches",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/files",
+                  "GET /v1/files",
+                  "GET /v1/files/{file_id}",
+                  "DELETE /v1/files/{file_id}",
+                  "GET /v1/files/{file_id}/content",
+                  "POST /v1/batches",
+                  "GET /v1/batches",
+                  "GET /v1/batches/{batch_id}",
+                  "POST /v1/batches/{batch_id}/cancel"
+                ],
+                "icon": "folder-archive"
+              },
+              {
+                "group": "Model Context Protocol (MCP)",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/mcp/audit-web",
+                  "POST /v1/mcp/summarize-audit"
+                ],
+                "icon": "puzzle"
+              },
+              {
+                "group": "Moderasi Konten",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/moderations"
+                ],
+                "icon": "shield-check"
+              }
+            ],
+            "icon": "code"
+          },
+          {
+            "tab": "Panduan",
+            "groups": [
+              {
+                "group": "Panduan",
+                "pages": [
+                  "id/guides/rate-limits",
+                  "id/guides/guardrails",
+                  "id/guides/webhooks"
+                ],
+                "icon": "shield-check"
+              }
+            ],
+            "icon": "book-open"
+          },
+          {
+            "tab": "FAQ",
+            "pages": [
+              "id/guides/faq"
+            ],
+            "icon": "circle-help"
+          }
+        ]
+      },
+      {
+        "language": "en",
+        "tabs": [
+          {
+            "tab": "Gateway & Capabilities",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "en/index",
+                  "en/quickstart"
+                ],
+                "icon": "rocket"
+              },
+              {
+                "group": "Introduction & Models",
+                "pages": [
+                  "en/gateway/overview",
+                  "en/gateway/models"
+                ]
+              },
+              {
+                "group": "Compatibility Protocols",
+                "pages": [
+                  {
+                    "group": "OpenAI Chat Completions",
+                    "expanded": false,
+                    "pages": [
+                      "en/gateway/chat-completions",
+                      "en/gateway/chat-completions/streaming",
+                      "en/gateway/chat-completions/tool-calling",
+                      "en/gateway/chat-completions/structured-outputs",
+                      "en/gateway/chat-completions/reasoning",
+                      "en/gateway/chat-completions/vision"
+                    ],
+                    "icon": "message-square"
+                  },
+                  {
+                    "group": "Anthropic Messages",
+                    "expanded": false,
+                    "pages": [
+                      "en/gateway/anthropic-messages",
+                      "en/gateway/anthropic-messages/streaming",
+                      "en/gateway/anthropic-messages/tool-use",
+                      "en/gateway/anthropic-messages/thinking",
+                      "en/gateway/anthropic-messages/vision"
+                    ],
+                    "icon": "message-circle"
+                  },
+                  {
+                    "group": "Responses API",
+                    "expanded": false,
+                    "pages": [
+                      "en/gateway/responses-api",
+                      "en/gateway/responses-api/prompt-templates",
+                      "en/gateway/responses-api/background-jobs",
+                      "en/gateway/responses-api/conversations",
+                      "en/gateway/responses-api/tools",
+                      "en/gateway/responses-api/reasoning"
+                    ],
+                    "icon": "bolt"
+                  }
+                ],
+                "icon": "layers"
+              },
+              {
+                "group": "Specialized Modalities",
+                "pages": [
+                  "en/gateway/capabilities/image-generation",
+                  "en/gateway/capabilities/video-generation",
+                  "en/gateway/capabilities/audio",
+                  "en/gateway/capabilities/ocr",
+                  "en/gateway/capabilities/embeddings"
+                ],
+                "icon": "sparkles"
+              },
+              {
+                "group": "Gateway Operations",
+                "pages": [
+                  "en/gateway/operations/files",
+                  "en/gateway/operations/batches"
+                ],
+                "icon": "boxes"
+              }
+            ],
+            "icon": "server"
+          },
+          {
+            "tab": "Agents & MCP",
+            "groups": [
+              {
+                "group": "Model Context Protocol",
+                "pages": [
+                  "en/agents/overview",
+                  "en/agents/mcp-connector",
+                  "en/agents/mcp-keys"
+                ],
+                "icon": "puzzle"
+              },
+              {
+                "group": "Coding Assistants & IDEs",
+                "pages": [
+                  "en/agents/cursor",
+                  "en/agents/claude-code",
+                  "en/agents/opencode",
+                  "en/agents/cline",
+                  "en/agents/pi",
+                  "en/agents/claude-desktop"
+                ],
+                "icon": "terminal"
+              },
+              {
+                "group": "Autonomous & Cloud Agents",
+                "pages": [
+                  "en/agents/cloud-agents",
+                  "en/agents/openclaw",
+                  "en/agents/hermes"
+                ],
+                "icon": "cloud"
+              }
+            ],
+            "icon": "bot"
+          },
+          {
+            "tab": "Coding Plan",
+            "groups": [
+              {
+                "group": "Coding Plan Subscription",
+                "pages": [
+                  "en/coding-plan/overview",
+                  "en/coding-plan/quick-start",
+                  "en/coding-plan/quota-and-limits",
+                  "en/coding-plan/tool-integration",
+                  "en/coding-plan/model-routes",
+                  "en/coding-plan/usage-policy"
+                ],
+                "icon": "terminal"
+              },
+              {
+                "group": "Jelma CLI Runner",
+                "pages": [
+                  "en/guides/jelma/overview",
+                  "en/guides/jelma/usage"
+                ],
+                "icon": "cpu"
+              }
+            ],
+            "icon": "terminal"
+          },
+          {
+            "tab": "Integrations",
+            "groups": [
+              {
+                "group": "Frameworks",
+                "pages": [
+                  "en/integrations/overview",
+                  "en/integrations/litellm",
+                  "en/integrations/agno",
+                  "en/integrations/any-llm",
+                  "en/integrations/langchain",
+                  "en/integrations/dspy",
+                  "en/integrations/crewai",
+                  "en/integrations/llama-index",
+                  "en/integrations/pydantic-ai",
+                  "en/integrations/autogen",
+                  "en/integrations/vercel-ai-sdk",
+                  {
+                    "group": "E2B",
+                    "icon": "terminal",
+                    "pages": [
+                      "en/integrations/e2b",
+                      "en/integrations/e2b-sandbox"
+                    ]
+                  },
+                  {
+                    "group": "Daytona",
+                    "icon": "server",
+                    "pages": [
+                      "en/integrations/daytona-code-interpreter",
+                      "en/integrations/daytona"
+                    ]
+                  }
+                ],
+                "icon": "cpu"
+              },
+              {
+                "group": "Tools & Widgets",
+                "pages": [
+                  "en/integrations/chat-widget"
+                ],
+                "icon": "bot-message-square"
+              }
+            ],
+            "icon": "plug"
+          },
+          {
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Introduction",
+                "pages": [
+                  "en/api-reference/introduction"
+                ],
+                "icon": "book-open"
+              },
+              {
+                "group": "Chat & Responses",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/chat/completions",
+                  "POST /v1/responses"
+                ],
+                "icon": "message-square"
+              },
+              {
+                "group": "Anthropic Messages",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /anthropic/v1/messages",
+                  "POST /anthropic/v1/messages/count_tokens",
+                  "GET /anthropic/v1/models",
+                  "GET /anthropic/v1/models/{modelId}"
+                ],
+                "icon": "message-circle"
+              },
+              {
+                "group": "Model Catalog",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "GET /v1/models",
+                  "GET /v1/models/{modelId}"
+                ],
+                "icon": "list"
+              },
+              {
+                "group": "Multimodal & Audio",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/images/generations",
+                  "POST /v1/audio/transcriptions",
+                  "POST /v1/ocr",
+                  "POST /v1/embeddings",
+                  "POST /v1/videos",
+                  "GET /v1/videos/{video_id}",
+                  "GET /v1/videos/{video_id}/content"
+                ],
+                "icon": "sparkles"
+              },
+              {
+                "group": "Files & Batches",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/files",
+                  "GET /v1/files",
+                  "GET /v1/files/{file_id}",
+                  "DELETE /v1/files/{file_id}",
+                  "GET /v1/files/{file_id}/content",
+                  "POST /v1/batches",
+                  "GET /v1/batches",
+                  "GET /v1/batches/{batch_id}",
+                  "POST /v1/batches/{batch_id}/cancel"
+                ],
+                "icon": "folder-archive"
+              },
+              {
+                "group": "Model Context Protocol (MCP)",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/mcp/audit-web",
+                  "POST /v1/mcp/summarize-audit"
+                ],
+                "icon": "puzzle"
+              },
+              {
+                "group": "Content Moderation",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/moderations"
+                ],
+                "icon": "shield-check"
+              }
+            ],
+            "icon": "code"
+          },
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Guides",
+                "pages": [
+                  "en/guides/rate-limits",
+                  "en/guides/guardrails",
+                  "en/guides/webhooks"
+                ],
+                "icon": "shield-check"
+              }
+            ],
+            "icon": "book-open"
+          },
+          {
+            "tab": "FAQ",
+            "pages": [
+              "en/guides/faq"
+            ],
+            "icon": "circle-help"
+          }
+        ]
+      }
+    ]
+  },
+  "redirects": [
+    {
+      "source": "/index",
+      "destination": "/id/index"
+    },
+    {
+      "source": "/intro",
+      "destination": "/id/index"
+    },
+    {
+      "source": "/id/intro",
+      "destination": "/id/index"
+    },
+    {
+      "source": "/en/intro",
+      "destination": "/en/index"
+    },
+    {
+      "source": "/use-these-docs",
+      "destination": "/id/index"
+    },
+    {
+      "source": "/id/use-these-docs",
+      "destination": "/id/index"
+    },
+    {
+      "source": "/en/use-these-docs",
+      "destination": "/en/index"
+    },
+    {
+      "source": "/about",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/id/about",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/en/about",
+      "destination": "/en/gateway/overview"
+    },
+    {
+      "source": "/about/billing-pricing",
+      "destination": "/id/guides/faq"
+    },
+    {
+      "source": "/id/about/billing-pricing",
+      "destination": "/id/guides/faq"
+    },
+    {
+      "source": "/en/about/billing-pricing",
+      "destination": "/en/guides/faq"
+    },
+    {
+      "source": "/about/rate-limits",
+      "destination": "/id/guides/rate-limits"
+    },
+    {
+      "source": "/id/about/rate-limits",
+      "destination": "/id/guides/rate-limits"
+    },
+    {
+      "source": "/en/about/rate-limits",
+      "destination": "/en/guides/rate-limits"
+    },
+    {
+      "source": "/about/errors",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/id/about/errors",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/about/errors",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/about/prompt-templates",
+      "destination": "/id/gateway/responses-api/prompt-templates"
+    },
+    {
+      "source": "/id/about/prompt-templates",
+      "destination": "/id/gateway/responses-api/prompt-templates"
+    },
+    {
+      "source": "/en/about/prompt-templates",
+      "destination": "/en/gateway/responses-api/prompt-templates"
+    },
+    {
+      "source": "/error-handling",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/id/error-handling",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/error-handling",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/authentication",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/id/authentication",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/authentication",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/api-introduction",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/id/api-introduction",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/api-introduction",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/check-api-key-status",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/id/check-api-key-status",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/check-api-key-status",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/widget",
+      "destination": "/id/integrations/chat-widget"
+    },
+    {
+      "source": "/id/widget",
+      "destination": "/id/integrations/chat-widget"
+    },
+    {
+      "source": "/en/widget",
+      "destination": "/en/integrations/chat-widget"
+    },
+    {
+      "source": "/advanced-examples",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/id/advanced-examples",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/en/advanced-examples",
+      "destination": "/en/integrations/overview"
+    },
+    {
+      "source": "/models-overview",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/id/models-overview",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models-overview",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/models",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/id/models",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/batches-overview",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/id/batches-overview",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/en/batches-overview",
+      "destination": "/en/gateway/operations/batches"
+    },
+    {
+      "source": "/files-overview",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/id/files-overview",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/files-overview",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/conversation-management",
+      "destination": "/id/gateway/responses-api/conversations"
+    },
+    {
+      "source": "/id/conversation-management",
+      "destination": "/id/gateway/responses-api/conversations"
+    },
+    {
+      "source": "/en/conversation-management",
+      "destination": "/en/gateway/responses-api/conversations"
+    },
+    {
+      "source": "/response",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/id/response",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/response",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/webhooks-overview",
+      "destination": "/id/guides/webhooks"
+    },
+    {
+      "source": "/id/webhooks-overview",
+      "destination": "/id/guides/webhooks"
+    },
+    {
+      "source": "/en/webhooks-overview",
+      "destination": "/en/guides/webhooks"
+    },
+    {
+      "source": "/tools-overview",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/id/tools-overview",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/en/tools-overview",
+      "destination": "/en/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/how-tools",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/id/how-tools",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/en/how-tools",
+      "destination": "/en/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/id/agents/mcp-connector"
+    },
+    {
+      "source": "/id/mcp",
+      "destination": "/id/agents/mcp-connector"
+    },
+    {
+      "source": "/en/mcp",
+      "destination": "/en/agents/mcp-connector"
+    },
+    {
+      "source": "/agent-overview",
+      "destination": "/id/agents/overview"
+    },
+    {
+      "source": "/id/agent-overview",
+      "destination": "/id/agents/overview"
+    },
+    {
+      "source": "/en/agent-overview",
+      "destination": "/en/agents/overview"
+    },
+    {
+      "source": "/capability/audio-transcription",
+      "destination": "/id/gateway/capabilities/audio"
+    },
+    {
+      "source": "/id/capability/audio-transcription",
+      "destination": "/id/gateway/capabilities/audio"
+    },
+    {
+      "source": "/en/capability/audio-transcription",
+      "destination": "/en/gateway/capabilities/audio"
+    },
+    {
+      "source": "/capability/embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/id/capability/embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/en/capability/embeddings",
+      "destination": "/en/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/capability/guardrails",
+      "destination": "/id/guides/guardrails"
+    },
+    {
+      "source": "/id/capability/guardrails",
+      "destination": "/id/guides/guardrails"
+    },
+    {
+      "source": "/en/capability/guardrails",
+      "destination": "/en/guides/guardrails"
+    },
+    {
+      "source": "/capability/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/id/capability/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/en/capability/image-generation",
+      "destination": "/en/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/capability/image-understanding",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/id/capability/image-understanding",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/en/capability/image-understanding",
+      "destination": "/en/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/capability/ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/id/capability/ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/en/capability/ocr",
+      "destination": "/en/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/capability/rag",
+      "destination": "/id/integrations/llama-index"
+    },
+    {
+      "source": "/id/capability/rag",
+      "destination": "/id/integrations/llama-index"
+    },
+    {
+      "source": "/en/capability/rag",
+      "destination": "/en/integrations/llama-index"
+    },
+    {
+      "source": "/capability/reasoning",
+      "destination": "/id/gateway/chat-completions/reasoning"
+    },
+    {
+      "source": "/id/capability/reasoning",
+      "destination": "/id/gateway/chat-completions/reasoning"
+    },
+    {
+      "source": "/en/capability/reasoning",
+      "destination": "/en/gateway/chat-completions/reasoning"
+    },
+    {
+      "source": "/capability/stream",
+      "destination": "/id/gateway/chat-completions/streaming"
+    },
+    {
+      "source": "/id/capability/stream",
+      "destination": "/id/gateway/chat-completions/streaming"
+    },
+    {
+      "source": "/en/capability/stream",
+      "destination": "/en/gateway/chat-completions/streaming"
+    },
+    {
+      "source": "/capability/structured",
+      "destination": "/id/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/id/capability/structured",
+      "destination": "/id/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/en/capability/structured",
+      "destination": "/en/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/capability/video-generation",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/id/capability/video-generation",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/en/capability/video-generation",
+      "destination": "/en/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/deepseek-ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/id/deepseek-ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/en/deepseek-ocr",
+      "destination": "/en/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/glm-ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/id/glm-ocr",
+      "destination": "/id/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/en/glm-ocr",
+      "destination": "/en/gateway/capabilities/ocr"
+    },
+    {
+      "source": "/sdk",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/id/sdk",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/en/sdk",
+      "destination": "/en/gateway/overview"
+    },
+    {
+      "source": "/sdk/index",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/id/sdk/index",
+      "destination": "/id/gateway/overview"
+    },
+    {
+      "source": "/en/sdk/index",
+      "destination": "/en/gateway/overview"
+    },
+    {
+      "source": "/sdk/python",
+      "destination": "/id/quickstart"
+    },
+    {
+      "source": "/id/sdk/python",
+      "destination": "/id/quickstart"
+    },
+    {
+      "source": "/en/sdk/python",
+      "destination": "/en/quickstart"
+    },
+    {
+      "source": "/sdk/python/index",
+      "destination": "/id/quickstart"
+    },
+    {
+      "source": "/id/sdk/python/index",
+      "destination": "/id/quickstart"
+    },
+    {
+      "source": "/en/sdk/python/index",
+      "destination": "/en/quickstart"
+    },
+    {
+      "source": "/sdk/openai-compat",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/sdk/openai-compat",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/sdk/openai-compat",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/sdk/openai-compat/index",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/sdk/openai-compat/index",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/sdk/openai-compat/index",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/sdk/openai-compat/chat-completions",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/sdk/openai-compat/chat-completions",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/sdk/openai-compat/chat-completions",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/sdk/openai-compat/tool-calls",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/id/sdk/openai-compat/tool-calls",
+      "destination": "/id/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/en/sdk/openai-compat/tool-calls",
+      "destination": "/en/gateway/chat-completions/tool-calling"
+    },
+    {
+      "source": "/sdk/openai-compat/structured-outputs",
+      "destination": "/id/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/id/sdk/openai-compat/structured-outputs",
+      "destination": "/id/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/en/sdk/openai-compat/structured-outputs",
+      "destination": "/en/gateway/chat-completions/structured-outputs"
+    },
+    {
+      "source": "/sdk/openai-compat/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/id/sdk/openai-compat/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/en/sdk/openai-compat/image-generation",
+      "destination": "/en/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/sdk/openai-compat/file-input",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/id/sdk/openai-compat/file-input",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/en/sdk/openai-compat/file-input",
+      "destination": "/en/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/sdk/openai-compat/embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/id/sdk/openai-compat/embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/en/sdk/openai-compat/embeddings",
+      "destination": "/en/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/sdk/openai-compat/rest-api",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/sdk/openai-compat/rest-api",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/sdk/openai-compat/rest-api",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/sdk/openai-compat/advanced",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/sdk/openai-compat/advanced",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/sdk/openai-compat/advanced",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/sdk/anthropic-compat",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat",
+      "destination": "/en/gateway/anthropic-messages"
+    },
+    {
+      "source": "/sdk/anthropic-compat/index",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat/index",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat/index",
+      "destination": "/en/gateway/anthropic-messages"
+    },
+    {
+      "source": "/sdk/anthropic-compat/messages",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat/messages",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat/messages",
+      "destination": "/en/gateway/anthropic-messages"
+    },
+    {
+      "source": "/sdk/anthropic-compat/tool-calls",
+      "destination": "/id/gateway/anthropic-messages/tool-use"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat/tool-calls",
+      "destination": "/id/gateway/anthropic-messages/tool-use"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat/tool-calls",
+      "destination": "/en/gateway/anthropic-messages/tool-use"
+    },
+    {
+      "source": "/sdk/anthropic-compat/file-attachments",
+      "destination": "/id/gateway/anthropic-messages/vision"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat/file-attachments",
+      "destination": "/id/gateway/anthropic-messages/vision"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat/file-attachments",
+      "destination": "/en/gateway/anthropic-messages/vision"
+    },
+    {
+      "source": "/sdk/anthropic-compat/advanced",
+      "destination": "/id/gateway/anthropic-messages/thinking"
+    },
+    {
+      "source": "/id/sdk/anthropic-compat/advanced",
+      "destination": "/id/gateway/anthropic-messages/thinking"
+    },
+    {
+      "source": "/en/sdk/anthropic-compat/advanced",
+      "destination": "/en/gateway/anthropic-messages/thinking"
+    },
+    {
+      "source": "/sdk/responses-api",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/id/sdk/responses-api",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/sdk/responses-api",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/sdk/responses-api/index",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/id/sdk/responses-api/index",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/sdk/responses-api/index",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/sdk/responses-api/text-generation",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/id/sdk/responses-api/text-generation",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/sdk/responses-api/text-generation",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/sdk/responses-api/streaming",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/id/sdk/responses-api/streaming",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/sdk/responses-api/streaming",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/sdk/responses-api/tool-calling",
+      "destination": "/id/gateway/responses-api/tools"
+    },
+    {
+      "source": "/id/sdk/responses-api/tool-calling",
+      "destination": "/id/gateway/responses-api/tools"
+    },
+    {
+      "source": "/en/sdk/responses-api/tool-calling",
+      "destination": "/en/gateway/responses-api/tools"
+    },
+    {
+      "source": "/sdk/responses-api/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/id/sdk/responses-api/image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/en/sdk/responses-api/image-generation",
+      "destination": "/en/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/sdk/responses-api/image-input",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/id/sdk/responses-api/image-input",
+      "destination": "/id/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/en/sdk/responses-api/image-input",
+      "destination": "/en/gateway/chat-completions/vision"
+    },
+    {
+      "source": "/sdk/responses-api/file-input",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/id/sdk/responses-api/file-input",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/sdk/responses-api/file-input",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/coding-plan/best-practice",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/id/coding-plan/best-practice",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/en/coding-plan/best-practice",
+      "destination": "/en/coding-plan/overview"
+    },
+    {
+      "source": "/coding-plan/faq",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/id/coding-plan/faq",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/en/coding-plan/faq",
+      "destination": "/en/coding-plan/overview"
+    },
+    {
+      "source": "/coding-plan/jelma",
+      "destination": "/id/guides/jelma/overview"
+    },
+    {
+      "source": "/id/coding-plan/jelma",
+      "destination": "/id/guides/jelma/overview"
+    },
+    {
+      "source": "/en/coding-plan/jelma",
+      "destination": "/en/guides/jelma/overview"
+    },
+    {
+      "source": "/coding-plan/learning-path",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/id/coding-plan/learning-path",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/en/coding-plan/learning-path",
+      "destination": "/en/coding-plan/overview"
+    },
+    {
+      "source": "/coding-plan/memory-mechanism",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/id/coding-plan/memory-mechanism",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/en/coding-plan/memory-mechanism",
+      "destination": "/en/coding-plan/overview"
+    },
+    {
+      "source": "/coding-plan/switching-models",
+      "destination": "/id/coding-plan/model-routes"
+    },
+    {
+      "source": "/id/coding-plan/switching-models",
+      "destination": "/id/coding-plan/model-routes"
+    },
+    {
+      "source": "/en/coding-plan/switching-models",
+      "destination": "/en/coding-plan/model-routes"
+    },
+    {
+      "source": "/coding-plan/overview",
+      "destination": "/id/coding-plan/overview"
+    },
+    {
+      "source": "/coding-plan/quick-start",
+      "destination": "/id/coding-plan/quick-start"
+    },
+    {
+      "source": "/coding-plan/quota-and-limits",
+      "destination": "/id/coding-plan/quota-and-limits"
+    },
+    {
+      "source": "/coding-plan/tool-integration",
+      "destination": "/id/coding-plan/tool-integration"
+    },
+    {
+      "source": "/coding-plan/model-routes",
+      "destination": "/id/coding-plan/model-routes"
+    },
+    {
+      "source": "/coding-plan/usage-policy",
+      "destination": "/id/coding-plan/usage-policy"
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/id/quickstart"
+    },
+    {
+      "source": "/guides/ai-coding-tools",
+      "destination": "/id/coding-plan/tool-integration"
+    },
+    {
+      "source": "/id/guides/ai-coding-tools",
+      "destination": "/id/coding-plan/tool-integration"
+    },
+    {
+      "source": "/en/guides/ai-coding-tools",
+      "destination": "/en/coding-plan/tool-integration"
+    },
+    {
+      "source": "/guides/jelma/best-practices",
+      "destination": "/id/guides/jelma/usage"
+    },
+    {
+      "source": "/id/guides/jelma/best-practices",
+      "destination": "/id/guides/jelma/usage"
+    },
+    {
+      "source": "/en/guides/jelma/best-practices",
+      "destination": "/en/guides/jelma/usage"
+    },
+    {
+      "source": "/guides/jelma/faq",
+      "destination": "/id/guides/jelma/overview"
+    },
+    {
+      "source": "/id/guides/jelma/faq",
+      "destination": "/id/guides/jelma/overview"
+    },
+    {
+      "source": "/en/guides/jelma/faq",
+      "destination": "/en/guides/jelma/overview"
+    },
+    {
+      "source": "/guides/jelma/reference",
+      "destination": "/id/guides/jelma/usage"
+    },
+    {
+      "source": "/id/guides/jelma/reference",
+      "destination": "/id/guides/jelma/usage"
+    },
+    {
+      "source": "/en/guides/jelma/reference",
+      "destination": "/en/guides/jelma/usage"
+    },
+    {
+      "source": "/guides/jelma/overview",
+      "destination": "/id/guides/jelma/overview"
+    },
+    {
+      "source": "/guides/jelma/usage",
+      "destination": "/id/guides/jelma/usage"
+    },
+    {
+      "source": "/integrations",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/id/integrations",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/en/integrations",
+      "destination": "/en/integrations/overview"
+    },
+    {
+      "source": "/using-neosantara-with-vercels-ai-sdk",
+      "destination": "/id/integrations/vercel-ai-sdk"
+    },
+    {
+      "source": "/id/using-neosantara-with-vercels-ai-sdk",
+      "destination": "/id/integrations/vercel-ai-sdk"
+    },
+    {
+      "source": "/en/using-neosantara-with-vercels-ai-sdk",
+      "destination": "/en/integrations/vercel-ai-sdk"
+    },
+    {
+      "source": "/agno",
+      "destination": "/id/integrations/agno"
+    },
+    {
+      "source": "/id/agno",
+      "destination": "/id/integrations/agno"
+    },
+    {
+      "source": "/en/agno",
+      "destination": "/en/integrations/agno"
+    },
+    {
+      "source": "/any-llm",
+      "destination": "/id/integrations/any-llm"
+    },
+    {
+      "source": "/id/any-llm",
+      "destination": "/id/integrations/any-llm"
+    },
+    {
+      "source": "/en/any-llm",
+      "destination": "/en/integrations/any-llm"
+    },
+    {
+      "source": "/autogen",
+      "destination": "/id/integrations/autogen"
+    },
+    {
+      "source": "/id/autogen",
+      "destination": "/id/integrations/autogen"
+    },
+    {
+      "source": "/en/autogen",
+      "destination": "/en/integrations/autogen"
+    },
+    {
+      "source": "/crewai",
+      "destination": "/id/integrations/crewai"
+    },
+    {
+      "source": "/id/crewai",
+      "destination": "/id/integrations/crewai"
+    },
+    {
+      "source": "/en/crewai",
+      "destination": "/en/integrations/crewai"
+    },
+    {
+      "source": "/dspy",
+      "destination": "/id/integrations/dspy"
+    },
+    {
+      "source": "/id/dspy",
+      "destination": "/id/integrations/dspy"
+    },
+    {
+      "source": "/en/dspy",
+      "destination": "/en/integrations/dspy"
+    },
+    {
+      "source": "/e2b",
+      "destination": "/id/integrations/e2b"
+    },
+    {
+      "source": "/id/e2b",
+      "destination": "/id/integrations/e2b"
+    },
+    {
+      "source": "/en/e2b",
+      "destination": "/en/integrations/e2b"
+    },
+    {
+      "source": "/langchain",
+      "destination": "/id/integrations/langchain"
+    },
+    {
+      "source": "/id/langchain",
+      "destination": "/id/integrations/langchain"
+    },
+    {
+      "source": "/en/langchain",
+      "destination": "/en/integrations/langchain"
+    },
+    {
+      "source": "/litellm",
+      "destination": "/id/integrations/litellm"
+    },
+    {
+      "source": "/id/litellm",
+      "destination": "/id/integrations/litellm"
+    },
+    {
+      "source": "/en/litellm",
+      "destination": "/en/integrations/litellm"
+    },
+    {
+      "source": "/llama-index",
+      "destination": "/id/integrations/llama-index"
+    },
+    {
+      "source": "/id/llama-index",
+      "destination": "/id/integrations/llama-index"
+    },
+    {
+      "source": "/en/llama-index",
+      "destination": "/en/integrations/llama-index"
+    },
+    {
+      "source": "/pydantic-ai",
+      "destination": "/id/integrations/pydantic-ai"
+    },
+    {
+      "source": "/id/pydantic-ai",
+      "destination": "/id/integrations/pydantic-ai"
+    },
+    {
+      "source": "/en/pydantic-ai",
+      "destination": "/en/integrations/pydantic-ai"
+    },
+    {
+      "source": "/guides/migration",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/id/guides/migration",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/guides/migration",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/guides/rag-chromadb-example",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/id/guides/rag-chromadb-example",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/en/guides/rag-chromadb-example",
+      "destination": "/en/integrations/overview"
+    },
+    {
+      "source": "/guides/rag-cloudflare-vectorize-example",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/id/guides/rag-cloudflare-vectorize-example",
+      "destination": "/id/integrations/overview"
+    },
+    {
+      "source": "/en/guides/rag-cloudflare-vectorize-example",
+      "destination": "/en/integrations/overview"
+    },
+    {
+      "source": "/api-reference/chat/completions/create",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/api-reference/chat/completions/create",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/id/api-reference/chat/completions/create",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/api-reference/chat/create-chat-completion",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/en/api-reference/chat/create-chat-completion",
+      "destination": "/en/gateway/chat-completions"
+    },
+    {
+      "source": "/id/api-reference/chat/create-chat-completion",
+      "destination": "/id/gateway/chat-completions"
+    },
+    {
+      "source": "/api-reference/responses/create",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/api-reference/responses/create",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/id/api-reference/responses/create",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/api-reference/response/create-a-response",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/en/api-reference/response/create-a-response",
+      "destination": "/en/gateway/responses-api"
+    },
+    {
+      "source": "/id/api-reference/response/create-a-response",
+      "destination": "/id/gateway/responses-api"
+    },
+    {
+      "source": "/api-reference/messages/create",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/en/api-reference/messages/create",
+      "destination": "/en/gateway/anthropic-messages"
+    },
+    {
+      "source": "/id/api-reference/messages/create",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/api-reference/models/list-available-models",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/api-reference/models/list-available-models",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/api-reference/models/list-available-models",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/api-reference/models/get",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/api-reference/models/get",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/api-reference/models/get",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/api-reference/images/create-image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/en/api-reference/images/create-image-generation",
+      "destination": "/en/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/id/api-reference/images/create-image-generation",
+      "destination": "/id/gateway/capabilities/image-generation"
+    },
+    {
+      "source": "/api-reference/audio/transcription",
+      "destination": "/id/gateway/capabilities/audio"
+    },
+    {
+      "source": "/en/api-reference/audio/transcription",
+      "destination": "/en/gateway/capabilities/audio"
+    },
+    {
+      "source": "/id/api-reference/audio/transcription",
+      "destination": "/id/gateway/capabilities/audio"
+    },
+    {
+      "source": "/api-reference/embeddings/create-embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/en/api-reference/embeddings/create-embeddings",
+      "destination": "/en/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/id/api-reference/embeddings/create-embeddings",
+      "destination": "/id/gateway/capabilities/embeddings"
+    },
+    {
+      "source": "/api-reference/files/upload",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/api-reference/files/upload",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/id/api-reference/files/upload",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/api-reference/files/list",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/api-reference/files/list",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/id/api-reference/files/list",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/api-reference/files/get",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/api-reference/files/get",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/id/api-reference/files/get",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/api-reference/files/delete",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/api-reference/files/delete",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/id/api-reference/files/delete",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/api-reference/files/download",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/en/api-reference/files/download",
+      "destination": "/en/gateway/operations/files"
+    },
+    {
+      "source": "/id/api-reference/files/download",
+      "destination": "/id/gateway/operations/files"
+    },
+    {
+      "source": "/api-reference/batches/create",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/en/api-reference/batches/create",
+      "destination": "/en/gateway/operations/batches"
+    },
+    {
+      "source": "/id/api-reference/batches/create",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/api-reference/batches/list",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/en/api-reference/batches/list",
+      "destination": "/en/gateway/operations/batches"
+    },
+    {
+      "source": "/id/api-reference/batches/list",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/api-reference/batches/get",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/en/api-reference/batches/get",
+      "destination": "/en/gateway/operations/batches"
+    },
+    {
+      "source": "/id/api-reference/batches/get",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/api-reference/batches/cancel",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/en/api-reference/batches/cancel",
+      "destination": "/en/gateway/operations/batches"
+    },
+    {
+      "source": "/id/api-reference/batches/cancel",
+      "destination": "/id/gateway/operations/batches"
+    },
+    {
+      "source": "/api-reference/videos/create",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/en/api-reference/videos/create",
+      "destination": "/en/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/id/api-reference/videos/create",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/api-reference/videos/get",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/en/api-reference/videos/get",
+      "destination": "/en/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/id/api-reference/videos/get",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/api-reference/videos/content",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/en/api-reference/videos/content",
+      "destination": "/en/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/id/api-reference/videos/content",
+      "destination": "/id/gateway/capabilities/video-generation"
+    },
+    {
+      "source": "/api-reference/moderations/content-moderation-check",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/en/api-reference/moderations/content-moderation-check",
+      "destination": "/en/api-reference/introduction"
+    },
+    {
+      "source": "/id/api-reference/moderations/content-moderation-check",
+      "destination": "/id/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/utility/count-tokens",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/en/api-reference/utility/count-tokens",
+      "destination": "/en/gateway/anthropic-messages"
+    },
+    {
+      "source": "/id/api-reference/utility/count-tokens",
+      "destination": "/id/gateway/anthropic-messages"
+    },
+    {
+      "source": "/api-reference/user/usage",
+      "destination": "/id/guides/faq"
+    },
+    {
+      "source": "/en/api-reference/user/usage",
+      "destination": "/en/guides/faq"
+    },
+    {
+      "source": "/id/api-reference/user/usage",
+      "destination": "/id/guides/faq"
+    },
+    {
+      "source": "/models/agnes-2.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/agnes-2.5-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/agnes-2.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/agnes-image-2.0-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/agnes-image-2.0-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/agnes-image-2.0-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/agnes-image-2.1-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/agnes-image-2.1-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/agnes-image-2.1-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/agnes-image-2.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/agnes-image-2.5-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/agnes-image-2.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/amazon-nova-lite",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/amazon-nova-lite",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/amazon-nova-lite",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/amazon-nova-micro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/amazon-nova-micro",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/amazon-nova-micro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/amazon-nova-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/amazon-nova-pro",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/amazon-nova-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/archipelago-core-70b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/archipelago-core-70b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/archipelago-core-70b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/bonsai-27b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/bonsai-27b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/bonsai-27b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-3-5-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-3-5-haiku",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-3-5-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-3-5-sonnet-v2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-3-5-sonnet-v2",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-3-5-sonnet-v2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-3-5-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-3-5-sonnet",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-3-5-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-3-7-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-3-7-sonnet",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-3-7-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-3-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-3-haiku",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-3-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-4-5-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-4-5-haiku",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-4-5-haiku",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-4.5-opus",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-4.5-opus",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-4.5-opus",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-4.5-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-4.5-sonnet",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-4.5-sonnet",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-fable-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-fable-5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-fable-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-4-6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-opus-4-6",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-opus-4-6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-4-7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-opus-4-7",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-opus-4-7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-4-8",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-opus-4-8",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-opus-4-8",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-opus-5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-opus-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-sonnet-4-6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-sonnet-4-6",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-sonnet-4-6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-sonnet-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/claude-sonnet-5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/claude-sonnet-5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/codestral-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/codestral-2",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/codestral-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-ocr",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-ocr",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-ocr",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-r1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-r1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-r1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-v4-flash-0731",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-v4-flash-0731",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-v4-flash-0731",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-v4-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-v4-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-v4-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-v4-pro-0813",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-v4-pro-0813",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-v4-pro-0813",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-v4-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-v4-pro",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-v4-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/deepseek-v4.1-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/deepseek-v4.1-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/deepseek-v4.1-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/devstral-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/devstral-2",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/devstral-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/garda-agentic-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/garda-agentic-mini",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/garda-agentic-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/garda-core",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/garda-core",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/garda-core",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.1-flash-lite",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.1-flash-lite",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.1-flash-lite",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.1-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.1-pro",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.1-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.5-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.6-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.6-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.6-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.7-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.7-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.7-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-3.8-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-3.8-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-3.8-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemini-embedding-001",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemini-embedding-001",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemini-embedding-001",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemma-3-27b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemma-3-27b-it",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemma-3-27b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemma-4-e2b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemma-4-e2b-it",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemma-4-e2b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemma2-9b-cpt-sahabatai-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemma2-9b-cpt-sahabatai-instruct",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemma2-9b-cpt-sahabatai-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gemma2-9b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gemma2-9b-it",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gemma2-9b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.5-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.6-plus",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.6-plus",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.6-plus",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.6",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.6v-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.6v-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.6v-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.7-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.7-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.7-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-4.7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-4.7",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-4.7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-5.3-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-5.3-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-5.3-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-5.3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-5.3",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-5.3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/glm-ocr",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/glm-ocr",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/glm-ocr",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5-nano",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5-nano",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5-nano",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.4-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.4-mini",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.4-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.4-nano",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.4-nano",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.4-nano",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.4",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.4",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.4",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.6-luna",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.6-luna",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.6-luna",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.6-sol",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.6-sol",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.6-sol",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-5.6-terra",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-5.6-terra",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-5.6-terra",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-image-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-image-2",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-image-2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-oss-120b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-oss-120b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-oss-120b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/gpt-oss-20b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/gpt-oss-20b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/gpt-oss-20b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/granite-3-8b-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/granite-3-8b-instruct",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/granite-3-8b-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-4.1-fast-non-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-4.1-fast-non-reasoning",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-4.1-fast-non-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-4.1-fast-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-4.1-fast-reasoning",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-4.1-fast-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-4.20-non-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-4.20-non-reasoning",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-4.20-non-reasoning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-4.3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-4.3",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-4.3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-4.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-4.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-4.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-code-fast",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-code-fast",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-code-fast",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/grok-imagine-image",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/grok-imagine-image",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/grok-imagine-image",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/hermes-2-pro-mistral-7b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/hermes-2-pro-mistral-7b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/hermes-2-pro-mistral-7b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/imagen-4.0-fast",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/imagen-4.0-fast",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/imagen-4.0-fast",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2-thinking",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2-thinking",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2-thinking",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2.6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2.6",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2.6",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2:latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2:latest",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2:latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2:math",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2:math",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2:math",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2:research",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2:research",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2:research",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2:search",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2:search",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2:search",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k2:silent",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k2:silent",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k2:silent",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/kimi-k3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/kimi-k3",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/kimi-k3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/laguna-s-2.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/laguna-s-2.1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/laguna-s-2.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/laguna-xs-2.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/laguna-xs-2.1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/laguna-xs-2.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/ling-3.0-flash-fin",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/ling-3.0-flash-fin",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/ling-3.0-flash-fin",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-3-2-11b-vision",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-3-2-11b-vision",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-3-2-11b-vision",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-3.1-8b-wse",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-3.1-8b-wse",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-3.1-8b-wse",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-3.2-11b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-3.2-11b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-3.2-11b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-3.3-nemotron-super-49b-v1.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-3.3-nemotron-super-49b-v1.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-3.3-nemotron-super-49b-v1.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-guard-3-8b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-guard-3-8b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-guard-3-8b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama-sea-lion-v3-8b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama-sea-lion-v3-8b-it",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama-sea-lion-v3-8b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/llama3-8b-cpt-sahabatai-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/llama3-8b-cpt-sahabatai-instruct",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/llama3-8b-cpt-sahabatai-instruct",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/longcat-2.0",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/longcat-2.0",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/longcat-2.0",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/luma-ray2-540p",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/luma-ray2-540p",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/luma-ray2-540p",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/luma-ray2-720p",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/luma-ray2-720p",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/luma-ray2-720p",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mimo-v2.5-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mimo-v2.5-pro",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mimo-v2.5-pro",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mimo-v2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mimo-v2.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mimo-v2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/minimax-m2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/minimax-m2.5",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/minimax-m2.5",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/minimax-m2.7-free",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/minimax-m2.7-free",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/minimax-m2.7-free",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/minimax-m2.7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/minimax-m2.7",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/minimax-m2.7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/minimax-m3-free",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/minimax-m3-free",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/minimax-m3-free",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/minimax-m3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/minimax-m3",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/minimax-m3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mistral-large-latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mistral-large-latest",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mistral-large-latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mistral-nemotron",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mistral-nemotron",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mistral-nemotron",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mistral-small-latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mistral-small-latest",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mistral-small-latest",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/mistral-voxtral-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/mistral-voxtral-mini",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/mistral-voxtral-mini",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/muse-glimmer-30b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/muse-glimmer-30b",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/muse-glimmer-30b",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/muse-spark-1.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/muse-spark-1.1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/muse-spark-1.1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/neosantara-gen-2045",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/neosantara-gen-2045",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/neosantara-gen-2045",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/nusa-embedding-0001",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/nusa-embedding-0001",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/nusa-embedding-0001",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/nv-embed-v1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/nv-embed-v1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/nv-embed-v1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/qwen-sea-lion-v4-8b-vl",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/qwen-sea-lion-v4-8b-vl",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/qwen-sea-lion-v4-8b-vl",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/qwen3-235b-wse",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/qwen3-235b-wse",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/qwen3-235b-wse",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/qwen3.6-35b-a3b-mtp",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/qwen3.6-35b-a3b-mtp",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/qwen3.6-35b-a3b-mtp",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/sahabatai-lion-9b-ties-v1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/sahabatai-lion-9b-ties-v1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/sahabatai-lion-9b-ties-v1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/sdxl-lightning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/sdxl-lightning",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/sdxl-lightning",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/sea-lion-v4-27b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/sea-lion-v4-27b-it",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/sea-lion-v4-27b-it",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/stable-diffusion-v1-5-img2img",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/stable-diffusion-v1-5-img2img",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/stable-diffusion-v1-5-img2img",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/step-3.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/step-3.5-flash",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/step-3.5-flash",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/text-embedding-3-small",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/text-embedding-3-small",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/text-embedding-3-small",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/titan-image-g1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/titan-image-g1",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/titan-image-g1",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/whisper-large-v3-turbo",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/whisper-large-v3-turbo",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/whisper-large-v3-turbo",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/whisper-large-v3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/en/models/whisper-large-v3",
+      "destination": "/en/gateway/models"
+    },
+    {
+      "source": "/id/models/whisper-large-v3",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-7",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/claude-opus-8",
+      "destination": "/id/gateway/models"
+    },
+    {
+      "source": "/models/longcat-flash-thinking",
+      "destination": "/id/gateway/models"
+    }
+  ]
+}

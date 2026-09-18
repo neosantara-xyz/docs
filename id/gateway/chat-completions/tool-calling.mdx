@@ -1,0 +1,127 @@
+---
+title: "Function Calling (Tools)"
+description: "Hubungkan model AI ke fungsi, database, dan API eksternal menggunakan OpenAI Tool Calling."
+icon: "wrench"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/anthropic-messages/tool-use
+  - /id/gateway/responses-api/tools
+  - /id/agents/mcp-connector
+---
+
+import ModelsToolsTable from '/snippets/models-tools-table.mdx';
+
+Function Calling pada `/v1/chat/completions` memungkinkan model mendeteksi kapan harus memanggil fungsi eksternal dan menghasilkan argumen JSON terstruktur sesuai definisi schema Anda.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import json
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_stock_price",
+            "description": "Ambil harga saham terkini berdasarkan kode ticker.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ticker": {"type": "string", "description": "Kode saham (contoh: BBCA)"}
+                },
+                "required": ["ticker"]
+            }
+        }
+    }
+]
+
+# Langkah 1: Minta model menganalisis pertanyaan
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Berapa harga saham BBCA hari ini?"}],
+    tools=tools,
+    tool_choice="auto"
+)
+
+message = response.choices[0].message
+
+# Langkah 2: Periksa apakah model meminta pemanggilan fungsi
+if message.tool_calls:
+    for tool_call in message.tool_calls:
+        print(f"Fungsi: {tool_call.function.name}")
+        print(f"Argumen: {tool_call.function.arguments}")
+        
+        # Langkah 3: Eksekusi fungsi lokal Anda
+        tool_result = json.dumps({"ticker": "BBCA", "price": 9850, "currency": "IDR"})
+        
+        # Langkah 4: Kirimkan hasil kembali ke model
+        final_response = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=[
+                {"role": "user", "content": "Berapa harga saham BBCA hari ini?"},
+                message,
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": tool_result
+                }
+            ]
+        )
+        print("Jawaban akhir:", final_response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "Cek harga BBCA"}],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_stock_price",
+          "description": "Ambil harga saham",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticker": {"type": "string"}
+            },
+            "required": ["ticker"]
+          }
+        }
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Opsi `tool_choice`
+
+| Nilai | Perilaku |
+| :--- | :--- |
+| `"auto"` | Model bebas memutuskan apakah akan memanggil fungsi atau membalas dengan teks biasa (default). |
+| `"none"` | Memaksa model menghasilkan teks biasa tanpa memanggil fungsi apa pun. |
+| `"required"` | Memaksa model memanggil setidaknya satu fungsi dari daftar yang tersedia. |
+| `{"type": "function", "function": {"name": "get_stock_price"}}` | Memaksa model memanggil fungsi tertentu yang Anda tentukan. |
+
+## Model yang Mendukung Tool Calling
+
+<ModelsToolsTable />
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Validasi Skema Output | [Structured Outputs](/id/gateway/chat-completions/structured-outputs) |
+| Streaming Token | [Streaming Respons](/id/gateway/chat-completions/streaming) |
+| Tool Use di Anthropic | [Anthropic Tool Use](/id/gateway/anthropic-messages/tool-use) |

@@ -1,0 +1,91 @@
+---
+title: "Ringkasan Gateway"
+description: "Arsitektur routing multi-provider, autentikasi, dan endpoint terpadu Neosantara."
+icon: "compass"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/responses-api
+  - /id/gateway/anthropic-messages
+  - /id/gateway/models
+---
+
+Neosantara adalah AI Gateway Indonesia yang mengarahkan request ke puluhan penyedia upstream (OpenAI, Anthropic, Bedrock, Gemini, Mistral, Ollama) melalui satu endpoint terpadu dengan latensi rendah lokal.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Jelaskan konsep AI Gateway Indonesia."}]
+)
+print(response.choices[0].message.content)
+```
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Jelaskan konsep AI Gateway Indonesia."}]
+)
+print(response.content[0].text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.8-flash",
+    "messages": [{"role": "user", "content": "Halo Neosantara"}]
+  }'
+```
+
+</CodeGroup>
+
+## Endpoint Utama
+
+| Jalur Endpoint | Protokol | Keterangan |
+| :-- | :-- | :-- |
+| `/v1/chat/completions` | OpenAI | Chat universal, streaming SSE, tool calling, JSON schema. |
+| `/anthropic/v1/messages` | Anthropic | Paritas protokol Anthropic Messages API. |
+| `/v1/responses` | OpenResponses | Job asinkron persisten, polling status, retrieval. |
+| `/v1/models` | OpenAI | Daftar model aktif, batas token, harga Rupiah per 1M token. |
+| `/v1/audio/*` | OpenAI | Transkripsi suara Whisper dan Text-to-Speech. |
+| `/v1/images/*` | OpenAI | Pembuatan gambar melalui model generatif. |
+| `/v1/embeddings` | OpenAI | Representasi vektor teks untuk pencarian semantik dan RAG. |
+| `/v1/ocr` | Khusus | Ekstraksi teks dan tabel terstruktur dari dokumen. |
+
+## Header Permintaan
+
+| Header | Wajib | Keterangan |
+| :-- | :-- | :-- |
+| `Authorization` | Ya (OpenAI) | Format: `Bearer nsk_...` menggunakan API key Neosantara. |
+| `x-api-key` | Ya (Anthropic) | Format: `nsk_...` pada endpoint `/anthropic/*`. |
+| `anthropic-version` | Ya (Anthropic) | Gunakan versi `2023-06-01`. |
+| `X-Guard` | Opsional | Nilai `on` untuk mengaktifkan sensor data sensitif otomatis (UU PDP). |
+| `x-request-id` | Opsional | ID unik permintaan untuk penelusuran audit dan log. |
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Chat dan streaming | [Chat Completions](/id/gateway/chat-completions) |
+| Integrasi Anthropic | [Anthropic Messages](/id/gateway/anthropic-messages) |
+| Job asinkron | [OpenResponses API](/id/gateway/responses-api) |
+| Daftar model dan harga | [Katalog Model](/id/gateway/models) |

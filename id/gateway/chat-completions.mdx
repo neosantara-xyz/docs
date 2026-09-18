@@ -1,0 +1,111 @@
+---
+title: "Chat Completions"
+description: "Kirim permintaan percakapan dengan standar OpenAI SDK dan cURL."
+icon: "message-square"
+related:
+  - /id/gateway/chat-completions/streaming
+  - /id/gateway/chat-completions/tool-calling
+  - /id/gateway/chat-completions/structured-outputs
+  - /id/gateway/chat-completions/reasoning
+  - /id/gateway/models
+---
+
+Endpoint `/v1/chat/completions` menyediakan kompatibilitas penuh dengan format OpenAI API untuk penyelesaian teks, streaming token, dan pemanggilan alat.
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="gemini-3.8-flash",
+    messages=[
+        {"role": "system", "content": "Jawab secara ringkas."},
+        {"role": "user", "content": "Apa itu konsistensi data?"}
+    ],
+    temperature=0.7,
+    max_tokens=500
+)
+
+print(response.choices[0].message.content)
+```
+
+```typescript TypeScript icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.chat.completions.create({
+  model: "gemini-3.8-flash",
+  messages: [
+    { role: "system", content: "Jawab secara ringkas." },
+    { role: "user", content: "Apa itu konsistensi data?" },
+  ],
+  temperature: 0.7,
+});
+
+console.log(response.choices[0].message.content);
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.8-flash",
+    "messages": [
+      {"role": "user", "content": "Apa itu konsistensi data?"}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Parameter Permintaan
+
+| Parameter | Tipe | Default | Deskripsi |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Wajib | Pengidentifikasi model (contoh: `gemini-3.8-flash`, `deepseek-v4.1-flash`). |
+| `messages` | `array` | Wajib | Daftar objek pesan dengan atribut `role` dan `content`. |
+| `temperature` | `number` | `1.0` | Derajat keacakan sampling (antara `0.0` hingga `2.0`). |
+| `max_tokens` | `integer` | Otomatis | Batas maksimum token output yang dihasilkan. |
+| `stream` | `boolean` | `false` | Kirim respons secara inkremental via Server-Sent Events (SSE). |
+| `tools` | `array` | Opsional | Daftar fungsi yang dapat dipanggil model saat eksekusi. |
+| `response_format` | `object` | Opsional | Paksa output berupa objek JSON atau skema terstruktur. |
+
+## Format Objek Penggunaan Token
+
+Setiap respons yang berhasil menyertakan objek `usage` untuk kalkulasi billing Pay-As-You-Go:
+
+```json
+{
+  "usage": {
+    "prompt_tokens": 18,
+    "completion_tokens": 64,
+    "total_tokens": 82
+  }
+}
+```
+
+- `prompt_tokens`: Jumlah token input yang dikirim ke gateway.
+- `completion_tokens`: Jumlah token output publik yang dihasilkan model.
+- `total_tokens`: Total akumulasi token input dan output.
+
+## Fitur Lanjutan
+
+| Fitur | Panduan |
+| :-- | :-- |
+| Aliran token real-time | [Streaming Respons](/id/gateway/chat-completions/streaming) |
+| Integrasi fungsi eksternal | [Tool Calling](/id/gateway/chat-completions/tool-calling) |
+| Output JSON tervalidasi | [Structured Outputs](/id/gateway/chat-completions/structured-outputs) |
+| Model pemikiran mendalam | [Penalaran Model](/id/gateway/chat-completions/reasoning) |
+| Input gambar multimodal | [Vision Multimodal](/id/gateway/chat-completions/vision) |

@@ -1,0 +1,33 @@
+---
+title: "Kebijakan Penggunaan Coding Plan"
+description: "Aturan dan pedoman penggunaan wajar (fair-use) untuk pelanggan Neosantara Coding Plan."
+icon: "shield-check"
+related:
+  - /id/coding-plan/overview
+  - /id/coding-plan/quota-and-limits
+---
+
+Neosantara Coding Plan dirancang khusus untuk mendukung produktivitas pengembang software perorangan. Penggunaan layanan ini tunduk pada ketentuan dan pedoman batas wajar (*fair-use*) berikut.
+
+## Ketentuan Penggunaan
+
+1. **Eksklusif untuk AI-Assisted Coding**: Paket ini hanya diperuntukkan bagi alur kerja koding yang menggunakan tool yang didukung melalui endpoint `/coding/v1` dan `/coding/anthropic`.
+2. **Satu Akun Per Pengguna**: Coding key bersifat personal. Pembagian kunci API (*key sharing*) ke pihak ketiga atau penggunaan bersama secara massal dalam organisasi tidak diperkenankan.
+3. **Larangan Penjualan Kembali**: Dilarang menjual kembali akses atau membuat layanan proxy pihak ketiga di atas endpoint Coding Plan Neosantara.
+4. **Larangan Otomasi Berlebih**: Penggunaan skrip otomasi yang bertujuan memanipulasi jumlah prompt atau membobol batasan rate limit dilarang.
+
+## Mekanisme Penegakan Batas
+
+| Jendela Waktu | Penegakan |
+| :-- | :-- |
+| **Rolling 5 Jam** | Request dihentikan sementara (*hard-stop*) begitu kuota tercapai; reset otomatis 5 jam kemudian. |
+| **Mingguan** | Request dihentikan sementara begitu batas mingguan tercapai; reset 7 hari sejak tanggal aktivasi. |
+
+- **Tanpa Overdraft**: Akun Anda tidak akan dikenakan biaya overage. Ketika kuota habis, permintaan baru akan ditolak dengan pesan error yang jelas hingga siklus berikutnya.
+- **Deteksi Beban Dinamis**: Multiplier model flagship dapat meningkat ke 3× saat provider hulu mengalami beban kapasitas tinggi, untuk menjaga keandalan throughput seluruh pengguna.
+
+## Perlindungan Data & Privasi
+
+- Data prompt teks Anda tidak pernah digunakan untuk melatih model AI (*no training*).
+- Log request hanya disimpan untuk keperluan verifikasi akurasi billing dan audit keamanan.
+- Kebijakan penanganan data selaras dengan regulasi perlindungan data pribadi UU PDP No. 27/2022.

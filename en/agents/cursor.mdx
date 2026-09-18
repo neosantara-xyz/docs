@@ -1,0 +1,82 @@
+---
+title: "Cursor Integration"
+description: "Configure Cursor IDE for custom coding models and Neosantara MCP tools."
+icon: "terminal"
+related:
+  - /en/agents/overview
+  - /en/agents/claude-code
+  - /en/agents/mcp-connector
+  - /en/agents/mcp-keys
+---
+
+Cursor connects to Neosantara in two ways: using the OpenAI-compatible gateway as your primary coding model provider (Chat, Composer, Agent), and configuring Neosantara as a Model Context Protocol (MCP) server for supplemental tools.
+
+## Method 1: Primary Coding Models (OpenAI-Compatible)
+
+Route Cursor Tab, Chat, and Composer requests through Neosantara:
+
+<Steps>
+  <Step title="Open Cursor Model Settings">
+    Press `Ctrl + Shift + J` (Windows/Linux) or `Cmd + Shift + J` (macOS) to open **Cursor Settings**, then navigate to the **Models** tab.
+  </Step>
+
+  <Step title="Configure OpenAI Credentials">
+    1. Enter your Neosantara API key (`nsk_...`) in the **OpenAI API Key** field.
+    2. Toggle on **Override OpenAI Base URL**.
+    3. Input the gateway base URL:
+       ```text
+       https://api.neosantara.xyz/v1
+       ```
+  </Step>
+
+  <Step title="Add Neosantara Models">
+    Click **+ Add model** and enter the following identifiers:
+    - `deepseek-v4.1-flash` (Recommended for Composer and Agent workflows)
+    - `gemini-3.8-flash` (Recommended for low latency code chat)
+    - `gpt-5.4-mini` (Cost-efficient general tasks)
+  </Step>
+</Steps>
+
+## Method 2: MCP Tool Server
+
+Attach Neosantara tools (model discovery, image generation, web audits) directly to Cursor's agent environment.
+
+<Steps>
+  <Step title="Navigate to MCP Settings">
+    Go to **Cursor Settings** -> **Features** -> **MCP**.
+  </Step>
+
+  <Step title="Add Server Configuration">
+    Click **+ Add New MCP Server** or add this block directly to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "neosantara": {
+      "url": "https://api.neosantara.xyz/v1/mcp",
+      "headers": {
+        "x-api-key": "nsk_mcp_your_key_here"
+      }
+    }
+  }
+}
+```
+  </Step>
+
+  <Step title="Verify Connection Status">
+    Check the MCP settings tab. Confirm that the `neosantara` entry displays a green status indicator with available tools (`chat`, `list-models`, `generate-image`).
+  </Step>
+</Steps>
+
+<Note>
+MCP tool connections require an API key prefixed with `nsk_mcp_`. Model inference calls in Method 1 use standard gateway API keys (`nsk_...`).
+</Note>
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Configure Claude Code | [Claude Code Integration](/en/agents/claude-code) |
+| Configure OpenCode | [OpenCode Integration](/en/agents/opencode) |
+| Configure Cline | [Cline Integration](/en/agents/cline) |
+| Review MCP Keys | [MCP API Keys](/en/agents/mcp-keys) |

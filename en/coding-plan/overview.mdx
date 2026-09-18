@@ -1,0 +1,95 @@
+---
+title: "Coding Plan Overview"
+description: "Flat-fee subscription designed for AI coding agents with prompt-based quotas and zero overages."
+icon: "terminal"
+related:
+  - /en/coding-plan/quick-start
+  - /en/coding-plan/quota-and-limits
+  - /en/coding-plan/tool-integration
+---
+
+**Neosantara Coding Plan** is a flat-fee subscription designed specifically for AI-assisted coding workflows. It works across tools such as Claude Code, Cline, OpenCode, and Jelma.
+
+<Note>
+  Coding Plan routes through **dedicated base URLs** (`/coding/v1` and `/coding/anthropic`). Coding keys (`nsk_code_*`) cannot be used on standard PAYG endpoints (`/v1` and `/anthropic`) and will return HTTP `403`. Standard PAYG keys sent to coding endpoints remain billed as regular PAYG requests and do not consume coding plan quota.
+</Note>
+
+## How It Works
+
+| Concept | Detail |
+| :-- | :-- |
+| **1 Prompt** | 1 user turn in your coding tool. A single prompt can trigger 15 to 20 background model calls (agent loop). |
+| **Quota Windows** | Rolling 5-hour window and weekly window. Both reset automatically. |
+| **Overage** | Zero overage charges. Requests hard-stop when quota is exhausted until the next window reset. |
+| **Auto-Renewal** | No automated recurring charges. You receive a reminder 3 days before expiration and can renew via the dashboard. |
+
+## Dedicated Base URLs
+
+Coding keys (`nsk_code_*`) are only valid on dedicated coding paths:
+
+| Protocol | Base URL |
+| :-- | :-- |
+| OpenAI-compatible | `https://api.neosantara.xyz/coding/v1` |
+| Anthropic-compatible | `https://api.neosantara.xyz/coding/anthropic` |
+
+<Warning>
+  Sending a coding key to regular endpoints (`/v1` or `/anthropic`) produces a `403 coding_key_requires_coding_endpoint` error.
+</Warning>
+
+## Quick Start Steps
+
+<Steps>
+  <Step title="Create a Coding Key">
+    Navigate to the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys) and generate a key prefixed with `[CODE]`.
+  </Step>
+  <Step title="Subscribe to a Tier">
+    Select your desired plan tier (Hemat, Reguler, or Eksklusif) and complete invoice payment via Mayar.
+  </Step>
+  <Step title="Configure Your Tool">
+    Point your coding agent to the coding base URL with your new coding key.
+
+    **Claude Code** (`~/.claude/settings.json`):
+    ```json JSON icon="file-code"
+    {
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "nsk_code_YOUR_KEY",
+        "ANTHROPIC_MODEL": "claude-4.5-sonnet"
+      }
+    }
+    ```
+
+    **Cline / OpenCode / Continue** (OpenAI mode):
+    ```text Terminal icon="terminal"
+    Base URL: https://api.neosantara.xyz/coding/v1
+    API Key:  nsk_code_YOUR_KEY
+    Model:    claude-4.5-sonnet
+    ```
+  </Step>
+  <Step title="Launch via Jelma">
+    Use the [Jelma](https://app.neosantara.xyz/jelma) CLI to spawn Neosantara coding agents instantly without manual configuration.
+  </Step>
+</Steps>
+
+## Quotas & Models
+
+Quotas are calculated per prompt turn: **1 prompt = 1 user turn**, regardless of the number of internal sub-queries or tool calls executed by the agent.
+
+For tier limits, rolling window schedules, and load-based multipliers, see [Quotas & Limits](/en/coding-plan/quota-and-limits).
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Does the Coding Plan renew automatically?">
+    No. Invoices are paid once per 30-day billing cycle. The platform sends renewal reminder emails 3 days prior to expiration.
+  </Accordion>
+  <Accordion title="What happens when quota is exhausted?">
+    Requests hard-stop until the 5-hour or weekly window resets. Your PAYG deposit balance is never deducted.
+  </Accordion>
+  <Accordion title="Can I use a coding key on standard /v1 endpoints?">
+    No. Coding keys only operate on `/coding/v1` and `/coding/anthropic`. Standard keys prefixed with `nsk_` are required for general PAYG endpoints.
+  </Accordion>
+  <Accordion title="Which models can I access?">
+    All models available in the Neosantara catalog that are permitted within your specific subscription tier.
+  </Accordion>
+</AccordionGroup>

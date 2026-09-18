@@ -1,0 +1,165 @@
+---
+title: "Server Tools & MCP Integration"
+description: "Execute server-side tools and delegate to remote MCP servers using OpenAI SDK."
+icon: "wrench"
+related:
+  - /en/gateway/responses-api
+  - /en/gateway/chat-completions/tool-calling
+  - /en/agents/mcp-connector
+---
+
+The Responses API (`/v1/responses`) supports two categories of tools: standard client-side function declarations and server-side tools orchestrated directly by the gateway via the **Model Context Protocol (MCP)** using the official OpenAI SDK.
+
+## Remote MCP Server Integration
+
+By adding MCP server endpoints to the `tools` array, Neosantara operates as an MCP client and executes tools directly at the gateway level without requiring client-side execution loops.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Attach remote MCP servers directly in tools array
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Check priority bug issues in our repository.",
+    tools=[
+        {
+            "type": "mcp",
+            "server_label": "github",
+            "server_url": "https://mcp.github-service.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer gh_mcp_token_secret"
+            },
+            "allowed_tools": ["list_issues", "get_issue"]
+        }
+    ]
+)
+
+print(response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Check warehouse inventory stock for SKU-9821.",
+  tools: [
+    {
+      type: "mcp",
+      server_label: "inventory",
+      server_url: "https://mcp.warehouse.example.com/mcp",
+      headers: {
+        Authorization: "Bearer warehouse_secret_token",
+      },
+    },
+  ],
+});
+
+console.log(response.output_text);
+```
+
+</CodeGroup>
+
+## Client-Side Function Declarations
+
+When you want the model to generate structured arguments for functions executed on your own infrastructure, declare standard JSON function tools.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Declare custom functions for model evaluation
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="What is the weather in Bandung today?",
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Fetch current weather by city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string"}
+                    },
+                    "required": ["city"]
+                }
+            }
+        }
+    ]
+)
+
+print(response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "What is the weather in Bandung today?",
+  tools: [
+    {
+      type: "function",
+      function: {
+        name: "get_weather",
+        description: "Fetch current weather by city",
+        parameters: {
+          type: "object",
+          properties: {
+            city: { type: "string" },
+          },
+          required: ["city"],
+        },
+      },
+    },
+  ],
+});
+
+console.log(response.output_text);
+```
+
+</CodeGroup>
+
+## Why Use Server MCP in Responses API?
+
+In standard Chat Completions, when an AI model requests a tool call, your client application must catch `tool_calls`, execute code locally, and return output back to the gateway.
+
+With Responses API and `type: "mcp"`:
+1. **Automated Gateway Execution:** Neosantara connects to your remote MCP server directly.
+2. **Zero Client Orchestration:** Your application simply awaits the finished result.
+3. **Async Synergy:** Combines cleanly with `background=True` for long-running workflows.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Full MCP Connector Guide | [MCP Connector](/en/agents/mcp-connector) |
+| Background Tasks | [Background Tasks](/en/gateway/responses-api/background-jobs) |
+| Conversation State | [Conversations & State](/en/gateway/responses-api/conversations) |

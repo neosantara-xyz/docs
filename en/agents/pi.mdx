@@ -1,0 +1,91 @@
+---
+title: "Pi Coding Agent Integration"
+description: "Minimalist and fast terminal coding agent with tree-session branching and Neosantara models."
+icon: "terminal"
+related:
+  - /en/agents/hermes
+  - /en/agents/openclaw
+  - /en/agents/overview
+---
+
+[Pi](https://github.com/badlogic/pi-mono) (`@mariozechner/pi-coding-agent` by Mario Zechner) is a fast, modular, zero-fluff terminal coding harness. It features interactive tree sessions with non-linear branching, sandboxed bash execution, direct file editing, and TypeScript extensions without heavy runtime dependencies.
+
+## Installing Pi
+
+Install Pi globally with Node.js and npm:
+
+```bash
+npm install -g @mariozechner/pi-coding-agent
+```
+
+## Configuring Neosantara Gateway
+
+### Option A: Environment Variables
+
+Export OpenAI-compatible gateway credentials in your current shell session:
+
+```bash
+export OPENAI_BASE_URL="https://api.neosantara.xyz/v1"
+export OPENAI_API_KEY="nsk_your_api_key_here"
+```
+
+### Option B: Global Configuration File
+
+Persist settings in `~/.pi/config.json`:
+
+```json
+{
+  "provider": "openai",
+  "baseURL": "https://api.neosantara.xyz/v1",
+  "apiKey": "nsk_your_api_key_here",
+  "model": "deepseek-v4.1-flash"
+}
+```
+
+## Running Pi
+
+Navigate to your project repository and launch the `pi` command:
+
+```bash
+pi
+```
+
+Alternatively, override provider and model parameters via CLI flags:
+
+```bash
+pi --provider openai --model deepseek-v4.1-flash
+```
+
+Example coding prompt:
+
+```text
+> Search for all unhandled console.log statements in src/ and replace them with our structured logger.
+```
+
+Pi inspects the codebase, computes a diff, and prompts for your approval before writing changes to disk.
+
+## Recommended Models
+
+| Use Case | Model Identifier | Context Window | Characteristics |
+| :--- | :--- | :--- | :--- |
+| **Deep Reasoning & Refactoring** | `deepseek-v4.1-flash` | 1M tokens | High syntax precision for TypeScript, Go, Python, and Rust. |
+| **Rapid Iteration & Scripting** | `gemini-3.8-flash` | 1M tokens | Minimal latency for fast bug fixes and exploratory coding. |
+| **Routine Unit Tests** | `gpt-5.4-mini` | 128k tokens | Token-efficient choice for repetitive scaffolding and test generation. |
+
+## Terminal Coding Agents Comparison
+
+| Feature | Pi (`pi`) | OpenCode | Claude Code |
+| :--- | :--- | :--- | :--- |
+| **Session Control** | Tree sessions with branching | Linear interactive loop | Dialog-based terminal agent |
+| **Gateway Protocol** | OpenAI-compatible (`/v1`) | OpenAI-compatible (`/v1`) | Anthropic (`/anthropic`) |
+| **Extensions** | TypeScript & JavaScript | Plugin config | MCP tools |
+| **Footprint** | Minimal and lightweight | Moderate | Moderate |
+
+## Next Steps
+
+| Goal | Guide |
+| :--- | :--- |
+| OpenCode terminal agent | [OpenCode Guide](/en/agents/opencode) |
+| Claude Code terminal agent | [Claude Code Guide](/en/agents/claude-code) |
+| Cline VS Code extension | [Cline Guide](/en/agents/cline) |
+| Hosted cloud agents | [Cloud Agents Guide](/en/agents/cloud-agents) |

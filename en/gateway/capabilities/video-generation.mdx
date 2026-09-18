@@ -1,0 +1,94 @@
+---
+title: "Video Generation"
+description: "Generate AI video asynchronously using OpenAI Sora compatible endpoint /v1/videos."
+icon: "video"
+related:
+  - /en/gateway/capabilities/image-generation
+  - /en/gateway/responses-api/background-jobs
+  - /en/guides/faq
+---
+
+Neosantara Gateway supports generative video creation via OpenAI Sora-compatible endpoints (`/v1/videos`). Video rendering runs asynchronously with progress polling.
+
+<CodeGroup>
+
+```python Python icon="python"
+import requests
+import time
+import os
+
+headers = {
+    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
+    "Content-Type": "application/json"
+}
+
+# 1. Dispatch video creation job
+init_res = requests.post(
+    "https://api.neosantara.xyz/v1/videos",
+    headers=headers,
+    json={
+        "model": "luma-ray2-720p",
+        "prompt": "Drone sweep over Uluwatu coastal waves at golden hour, cinematic slow motion.",
+        "seconds": 5,
+        "size": "1280x720"
+    }
+).json()
+
+job_id = init_res["id"]
+print(f"Video job created: {job_id}")
+
+# 2. Poll job progress until completion
+while True:
+    job = requests.get(
+        f"https://api.neosantara.xyz/v1/videos/{job_id}",
+        headers=headers
+    ).json()
+    status = job.get("status")
+    progress = job.get("progress", 0)
+    print(f"Status: {status} ({progress}%)")
+    
+    if status == "completed":
+        print("Video URL:", job.get("url"))
+        break
+    elif status == "failed":
+        print("Failed:", job.get("error"))
+        break
+    time.sleep(5)
+```
+
+```bash cURL icon="terminal"
+# Create video job
+curl -X POST https://api.neosantara.xyz/v1/videos \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "luma-ray2-720p",
+    "prompt": "Drone sweep over Uluwatu coastal waves.",
+    "seconds": 5,
+    "size": "1280x720"
+  }'
+
+# Poll video job status
+curl https://api.neosantara.xyz/v1/videos/vid_123456 \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `prompt` | `string` | Yes | Description of the scene, camera movement, and lighting. |
+| `model` | `string` | Yes | `luma-ray2-720p` or `luma-ray2-540p`. |
+| `seconds` | `integer` | Optional | Video clip duration in seconds (e.g. 5 or 9). Default `5`. |
+| `size` | `string` | Optional | Output resolution: `"1280x720"` or `"960x540"`. |
+
+## Video Job Status Lifecycle
+
+| Status | Description |
+| :-- | :-- |
+| `queued` | Request received and enqueued in upstream rendering workers. |
+| `in_progress` | Video generation actively rendering with `0-99%` progress. |
+| `completed` | Generation finished. Media download URL is available. |
+| `failed` | Video generation failed. No balance is deducted or credits are refunded automatically. |

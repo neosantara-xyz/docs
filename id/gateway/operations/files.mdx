@@ -1,0 +1,68 @@
+---
+title: "Manajemen File"
+description: "Upload, kelola, dan download file untuk alur kerja batch dan multimodal via /v1/files."
+icon: "folder"
+related:
+  - /id/gateway/operations/batches
+  - /id/gateway/capabilities/ocr
+  - /id/gateway/chat-completions/vision
+---
+
+Endpoint `/v1/files` menyediakan paritas penuh dengan OpenAI Files API untuk menyimpan dataset, file input batch, dan dokumen pendukung.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# 1. Upload file untuk kebutuhan batch
+with open("batch_input.jsonl", "rb") as f:
+    file_obj = client.files.create(
+        file=f,
+        purpose="batch"
+    )
+
+print(f"File di-upload dengan ID: {file_obj.id}")
+
+# 2. Ambil daftar file yang tersimpan
+file_list = client.files.list()
+for item in file_list.data[:5]:
+    print(f"{item.id} - {item.filename} ({item.bytes} bytes)")
+```
+
+```bash cURL icon="terminal"
+# Meng-upload file
+curl -X POST https://api.neosantara.xyz/v1/files \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -F purpose="batch" \
+  -F file="@batch_input.jsonl"
+
+# Mengambil daftar file
+curl https://api.neosantara.xyz/v1/files \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Parameter Upload File
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `file` | `binary` | Ya | File yang di-upload via multipart/form-data. |
+| `purpose` | `string` | Ya | Tujuan penggunaan file: `"batch"` atau `"assistants"`. |
+
+## Operasi File yang Didukung
+
+| Operasi | Endpoint | Deskripsi |
+| :-- | :-- | :-- |
+| **Upload** | `POST /v1/files` | Simpan file baru ke penyimpanan gateway. |
+| **Daftar** | `GET /v1/files` | Ambil riwayat file aktif milik akun Anda. |
+| **Metadata** | `GET /v1/files/{file_id}` | Ambil informasi ukuran, tanggal dibuat, dan status. |
+| **Konten** | `GET /v1/files/{file_id}/content` | Download isi byte file (misal file output batch). |
+| **Hapus** | `DELETE /v1/files/{file_id}` | Hapus file dari penyimpanan secara permanen. |

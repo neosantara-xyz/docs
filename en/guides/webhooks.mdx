@@ -1,0 +1,152 @@
+---
+title: "Webhook Integration"
+description: "Configure real-time event notifications for background responses, batch jobs, and video generation via the dashboard."
+icon: "webhook"
+related:
+  - /en/gateway/responses-api/background-jobs
+  - /en/gateway/operations/batches
+  - /en/gateway/capabilities/video-generation
+  - /en/guides/faq
+---
+
+Webhooks allow your system to receive instant HTTP notifications when long-running asynchronous tasks (such as background responses, batch processing, or video generation) complete or transition states without continuous polling.
+
+## Webhook Architecture
+
+```
+[Job Completed / Failed] -> [Gateway Signs HMAC Payload] -> [HTTP POST to Your Endpoint] -> [Your Server Returns 200 OK]
+```
+
+1. **Register Endpoint**: Add your server URL and select subscribed events via the [Webhooks Dashboard](https://app.neosantara.xyz/webhooks).
+2. **Store Secret**: Secure the `whsec_...` signing secret generated upon creation.
+3. **Verify Signature**: Validate the `webhook-signature` header on your server using the Standard Webhooks specification before processing payloads.
+
+## Configuring Webhooks via Dashboard
+
+Webhook registration and lifecycle management are handled visually via the [Webhooks Dashboard](https://app.neosantara.xyz/webhooks):
+
+1. Sign in to your account and navigate to the **Webhooks** section in the dashboard.
+2. Click **Add Webhook**.
+3. Provide your server's public **Endpoint URL** (must be a publicly accessible `https://` or `http://` destination).
+4. Select the **Events** you want to receive (e.g., `response.completed`, `batch.completed`, `video.completed`).
+5. Click **Save** and copy the generated **Signing Secret** (`whsec_...`). Save this secret in your server environment variables.
+6. Use the **Send Test** button to dispatch a mock `webhook.test` event and confirm your endpoint handles deliveries with HTTP `200 OK`.
+
+<Warning>
+  The signing secret (`whsec_...`) is shown only once when creating an endpoint. If lost, delete the endpoint and create a new one to generate a new secret.
+</Warning>
+
+## Supported Events
+
+| Category | Event ID | Trigger Condition |
+| :-- | :-- | :-- |
+| **Responses** | `response.completed` | Background response inference completed successfully |
+| **Responses** | `response.failed` | Background response job encountered an error |
+| **Responses** | `response.cancelled` | Background response cancelled by caller |
+| **Batch** | `batch.completed` | All items in batch execution finished processing |
+| **Batch** | `batch.failed` | Batch processing job failed |
+| **Batch** | `batch.cancelled` | Batch job cancelled prior to completion |
+| **Video** | `video.completed` | Video rendering finished and output asset is ready |
+| **Video** | `video.failed` | Video rendering job failed |
+
+## Payload Structure & Headers
+
+Deliveries are dispatched as HTTP `POST` requests formatted as standard JSON conforming to [Standard Webhooks](https://www.standardwebhooks.com):
+
+```json
+{
+  "object": "event",
+  "id": "evt_4f8c1a2b3d4e5f60718293a4b5c6d7e8",
+  "type": "response.completed",
+  "created_at": 1750287018,
+  "data": {
+    "id": "resp_abc123"
+  }
+}
+```
+
+Every delivery includes three verification headers:
+
+| Header | Description |
+| :-- | :-- |
+| `webhook-id` | Unique delivery identifier. Use as an idempotency key for deduplication. |
+| `webhook-timestamp` | Unix timestamp (seconds) when the payload was signed. |
+| `webhook-signature` | HMAC SHA-256 signature of the raw payload. |
+
+## Signature Verification Examples
+
+Use the official `standardwebhooks` package to verify payload signatures before processing events:
+
+<CodeGroup>
+
+```javascript Node.js (Express) icon="js"
+import express from 'express';
+import { Webhook } from 'standardwebhooks';
+
+const app = express();
+const wh = new Webhook(process.env.NEOSANTARA_WEBHOOK_SECRET);
+
+app.post('/api/webhooks', express.raw({ type: 'application/json' }), (req, res) => {
+  try {
+    const event = wh.verify(req.body, {
+      'webhook-id': req.header('webhook-id'),
+      'webhook-timestamp': req.header('webhook-timestamp'),
+      'webhook-signature': req.header('webhook-signature')
+    });
+
+    if (event.type === 'response.completed') {
+      console.log('Completed response ID:', event.data.id);
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    res.status(400).send('Invalid signature');
+  }
+});
+```
+
+```python Python (FastAPI) icon="python"
+from fastapi import FastAPI, Request, HTTPException
+from standardwebhooks.webhooks import Webhook
+import os
+
+app = FastAPI()
+wh = Webhook(os.environ["NEOSANTARA_WEBHOOK_SECRET"])
+
+@app.post("/api/webhooks")
+async def handle_webhook(request: Request):
+    raw_body = await request.body()
+    headers = {
+        "webhook-id": request.headers.get("webhook-id"),
+        "webhook-timestamp": request.headers.get("webhook-timestamp"),
+        "webhook-signature": request.headers.get("webhook-signature"),
+    }
+    try:
+        event = wh.verify(raw_body, headers)
+        if event["type"] == "response.completed":
+            print("Completed response ID:", event["data"]["id"])
+        return {"status": "ok"}
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+```
+
+</CodeGroup>
+
+<Note>
+  Always verify the signature against the **raw byte body** before parsing into a JSON object to prevent byte order divergence.
+</Note>
+
+## Delivery Retries & Security
+
+1. **Immediate Acknowledgment (HTTP 2xx)**: Your server must acknowledge reception with HTTP `200 OK` within seconds. Heavy computations should be deferred to internal workers.
+2. **Exponential Backoff Retries**: If your server returns non-2xx codes or times out, the gateway retries delivery automatically with exponential backoff.
+3. **SSRF Guardrails**: Loopback destinations (`localhost`, `127.0.0.1`), private RFC 1918 subnets, and link-local targets are blocked by default.
+
+## Next Steps
+
+| Goal | Guide |
+| :-- | :-- |
+| Background Responses API | [Background Jobs Execution](/en/gateway/responses-api/background-jobs) |
+| Batch Processing at scale | [Batch Processing Guide](/en/gateway/operations/batches) |
+| Asynchronous video rendering | [Video Generation](/en/gateway/capabilities/video-generation) |
+| Common questions & policies | [FAQ & Questions](/en/guides/faq) |

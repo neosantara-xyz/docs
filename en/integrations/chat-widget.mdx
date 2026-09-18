@@ -1,0 +1,96 @@
+---
+title: "Customer Chat Widget"
+description: "Embed an interactive AI customer chat widget on your website with visual customization and RAG knowledge base integration."
+icon: "bot-message-square"
+related:
+  - /en/gateway/overview
+  - /en/integrations/overview
+  - /en/guides/faq
+---
+
+The Neosantara Customer Chat Widget lets you deploy an interactive AI assistant for customer support, lead qualification, or documentation navigation directly onto your website with a single script embed.
+
+## Quick Start
+
+Insert the following script tag into your website HTML before the closing `</body>` tag:
+
+```html icon="code"
+<!-- Neosantara Customer Chat Support Widget -->
+<script
+  src="https://api.neosantara.xyz/widget.js"
+  data-widget-id="YOUR_WIDGET_ID"
+  async
+></script>
+```
+
+Replace `YOUR_WIDGET_ID` with the widget identifier obtained from the [Chat Widget Dashboard](https://app.neosantara.xyz/integration/widget).
+
+## Creating a Widget in Dashboard
+
+Widget configuration is managed visually through the dashboard:
+
+<Steps>
+  <Step title="Open Chat Widget Menu">
+    Sign in to your [Chat Widget Dashboard](https://app.neosantara.xyz/integration/widget) and click **Create Widget**.
+  </Step>
+
+  <Step title="Configure Core Parameters">
+    - **Widget Name**: Assign an internal label such as Main Web Support.
+    - **AI Model**: Select the underlying language model such as `deepseek-v4.1-flash` or `garda-core`.
+    - **Allowed Domains**: Provide authorized domain origins such as `company.com` or `app.company.com`.
+    - **System Prompt**: Set system personas, brand guidelines, and greeting tones.
+  </Step>
+
+  <Step title="Customize Appearance">
+    - **Theme Color**: Define primary color HEX codes to match your brand palette.
+    - **Logo URL**: Display your company mark inside the chat window header.
+    - **Layout Style**: Select from modern-round, classic-square, or compact styles.
+    - **Placement**: Anchor the launcher to the bottom-right or bottom-left of the viewport.
+  </Step>
+
+  <Step title="Save and Deploy">
+    Save the configuration and copy the embed script snippet to your site.
+  </Step>
+</Steps>
+
+## Knowledge Base Integration
+
+Attach proprietary documents to provide accurate, grounded answers to customer inquiries:
+
+<Steps>
+  <Step title="Open Knowledge Base Tab">
+    Within the saved widget settings, open the **Knowledge Base** tab.
+  </Step>
+
+  <Step title="Upload Reference Documents">
+    Upload support documents in PDF, TXT, or Markdown format.
+  </Step>
+
+  <Step title="Automatic Vector Indexing">
+    The gateway ingests, chunks, and creates vector indices automatically for context retrieval when users submit queries.
+  </Step>
+</Steps>
+
+## Configuration Options
+
+| Setting | Options | Description |
+| :-- | :-- | :-- |
+| `theme_color` | HEX Code like `#8A4300` | Primary color applied to buttons, window headers, and badges. |
+| `layout_style` | `modern-round`, `classic-square`, `compact` | Border radius and chat frame geometry. |
+| `placement` | `bottom-right`, `bottom-left` | Screen coordinate position for the launcher trigger. |
+| `launcher_style` | `icon`, `text`, `pill` | Collapsed state launcher appearance. |
+| `proactive_delay` | Seconds like `10` | Idle duration before the widget automatically triggers greeting dialogs. |
+| `allow_uploads` | `true`, `false` | Enable user image and document attachments in live chat sessions. |
+
+<Note>
+  The widget verifies incoming browser Origin or Referer headers to ensure execution only occurs on domains defined in Allowed Domains.
+</Note>
+
+## Next Steps
+
+| Goal | Guide |
+| :-- | :-- |
+| Model catalog and pricing | [Model Catalog & Pricing](/en/gateway/models) |
+| Agent frameworks | [Framework Integrations](/en/integrations/overview) |
+| Request limits and quotas | [Rate Limits & Quotas](/en/guides/rate-limits) |
+| Common questions and policies | [FAQ & Questions](/en/guides/faq) |

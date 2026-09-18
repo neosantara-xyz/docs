@@ -1,0 +1,109 @@
+---
+title: "Streaming Responses"
+description: "Real-time incremental token streams using Server-Sent Events (SSE) protocol."
+icon: "zap"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/anthropic-messages/streaming
+  - /en/gateway/chat-completions/reasoning
+  - /en/guides/rate-limits
+---
+
+Streaming on the `/v1/chat/completions` endpoint enables your applications to display text tokens as soon as they are produced by the AI model, minimizing perceived latency for chat and terminal interfaces.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+stream = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Outline a microservices architecture guide."}],
+    stream=True
+)
+
+for chunk in stream:
+    delta = chunk.choices[0].delta.content or ""
+    print(delta, end="", flush=True)
+print()
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const stream = await client.chat.completions.create({
+  model: "deepseek-v4.1-flash",
+  messages: [{ role: "user", content: "Explain SOLID principles concisely." }],
+  stream: true,
+});
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content || "");
+}
+console.log();
+```
+
+```bash cURL icon="terminal"
+curl -N -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "Hello"}],
+    "stream": true
+  }'
+```
+
+</CodeGroup>
+
+## Event Stream Format
+
+Each chunk arrives as an SSE event in `data: <JSON>` format:
+
+```json
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1741764000,"model":"deepseek-v4.1-flash","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+```
+
+When generation finishes, the gateway transmits the standard completion signal:
+
+```text
+data: [DONE]
+```
+
+## Tracking Token Usage During Streams
+
+Pass `stream_options` to receive the final token accounting block in the trailing chunk:
+
+```python
+stream = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Hello"}],
+    stream=True,
+    stream_options={"include_usage": True}
+)
+
+for chunk in stream:
+    if chunk.usage:
+        print(f"\nTotal tokens: {chunk.usage.total_tokens}")
+    else:
+        print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Invoke External Functions | [Function Calling](/en/gateway/chat-completions/tool-calling) |
+| Validated JSON Outputs | [Structured Outputs](/en/gateway/chat-completions/structured-outputs) |
+| Extract Model Reasoning | [Model Reasoning](/en/gateway/chat-completions/reasoning) |

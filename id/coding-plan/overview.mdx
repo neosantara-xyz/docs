@@ -1,0 +1,95 @@
+---
+title: "Ringkasan Coding Plan"
+description: "Paket langganan flat-fee khusus AI coding agent berbasis kuota prompt tanpa overage."
+icon: "terminal"
+related:
+  - /id/coding-plan/quick-start
+  - /id/coding-plan/quota-and-limits
+  - /id/coding-plan/tool-integration
+---
+
+**Neosantara Coding Plan** adalah paket langganan flat-fee yang dirancang khusus untuk alur kerja AI coding. Paket ini dapat digunakan pada berbagai tool seperti Claude Code, Cline, OpenCode, dan Jelma.
+
+<Note>
+  Coding Plan menggunakan **base URL khusus** (`/coding/v1` dan `/coding/anthropic`). Coding key (`nsk_code_*`) tidak dapat digunakan pada endpoint PAYG biasa (`/v1` dan `/anthropic`). Request dengan coding key ke endpoint biasa akan ditolak dengan status `403`. Key PAYG standar yang dikirim ke base URL coding tetap diperlakukan sebagai request PAYG biasa dan tidak memotong kuota coding plan.
+</Note>
+
+## Cara Kerja
+
+| Konsep | Penjelasan |
+| :-- | :-- |
+| **1 Prompt** | 1 giliran interaksi user di coding tool. Satu prompt dapat memicu 15 hingga 20 panggilan model di balik layar (agent loop). |
+| **Jendela Kuota** | Rolling 5 jam dan mingguan. Reset terjadi secara otomatis. |
+| **Overage** | Tidak ada overage. Request dihentikan sementara (*hard-stop*) saat kuota habis hingga jendela waktu reset. |
+| **Perpanjangan Otomatis** | Tidak ada auto-renewal. Pengguna menerima pengingat 3 hari sebelum masa aktif berakhir dan dapat memperpanjang lewat dashboard. |
+
+## Base URL Khusus
+
+Coding key (`nsk_code_*`) hanya valid pada path khusus coding:
+
+| Protokol | Base URL |
+| :-- | :-- |
+| OpenAI-compatible | `https://api.neosantara.xyz/coding/v1` |
+| Anthropic-compatible | `https://api.neosantara.xyz/coding/anthropic` |
+
+<Warning>
+  Coding key yang dikirim ke endpoint standar (`/v1` atau `/anthropic`) akan menghasilkan error `403 coding_key_requires_coding_endpoint`.
+</Warning>
+
+## Alur Singkat Mulai
+
+<Steps>
+  <Step title="Buat Coding Key">
+    Buka [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan) atau [API Keys](https://app.neosantara.xyz/api-keys), lalu buat key baru dengan awalan `[CODE]`.
+  </Step>
+  <Step title="Pilih Paket Langganan">
+    Pilih tier paket (Hemat, Reguler, atau Eksklusif), kemudian selesaikan pembayaran invoice melalui Mayar.
+  </Step>
+  <Step title="Konfigurasikan Tool">
+    Arahkan coding agent Anda ke base URL coding dengan coding key yang telah dibuat.
+
+    **Claude Code** (`~/.claude/settings.json`):
+    ```json JSON icon="file-code"
+    {
+      "env": {
+        "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
+        "ANTHROPIC_AUTH_TOKEN": "nsk_code_KEY_ANDA",
+        "ANTHROPIC_MODEL": "claude-4.5-sonnet"
+      }
+    }
+    ```
+
+    **Cline / OpenCode / Continue** (mode OpenAI):
+    ```text Terminal icon="terminal"
+    Base URL: https://api.neosantara.xyz/coding/v1
+    API Key:  nsk_code_KEY_ANDA
+    Model:    claude-4.5-sonnet
+    ```
+  </Step>
+  <Step title="Gunakan Jelma Runner">
+    Gunakan CLI [Jelma](https://app.neosantara.xyz/jelma) untuk menjalankan coding agent Neosantara secara langsung tanpa konfigurasi manual.
+  </Step>
+</Steps>
+
+## Model & Kuota
+
+Kuota dihitung berdasarkan prompt: **1 prompt = 1 giliran user**, terlepas dari berapa banyak sub-call atau tool call internal yang dijalankan oleh agent.
+
+Untuk rincian perbandingan tier, limit jendela rolling, dan multiplier model saat beban puncak, lihat [Kuota & Limit](/id/coding-plan/quota-and-limits).
+
+## Tanya Jawab Umum
+
+<AccordionGroup>
+  <Accordion title="Apakah Coding Plan diperpanjang otomatis?">
+    Tidak. Pembayaran bersifat invoice sekali bayar per periode 30 hari. Sistem akan mengirimkan notifikasi pengingat perpanjangan 3 hari sebelum paket berakhir.
+  </Accordion>
+  <Accordion title="Apa yang terjadi jika kuota habis?">
+    Request akan dihentikan sementara (*hard-stop*) hingga jendela 5 jam atau mingguan melakukan reset otomatis. Saldo deposit PAYG Anda tidak akan pernah dipotong.
+  </Accordion>
+  <Accordion title="Dapatkah coding key digunakan di endpoint /v1 biasa?">
+    Tidak. Coding key hanya dapat digunakan pada `/coding/v1` dan `/coding/anthropic`. Gunakan key standar berawalan `nsk_` untuk endpoint PAYG biasa.
+  </Accordion>
+  <Accordion title="Model apa saja yang dapat diakses?">
+    Semua model yang tersedia di gateway Neosantara dan masuk dalam daftar model yang diizinkan untuk tier langganan Anda.
+  </Accordion>
+</AccordionGroup>

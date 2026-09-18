@@ -1,0 +1,90 @@
+---
+title: "Data Guardrails & UU PDP"
+description: "Redaksi otomatis data pribadi (PII) dan kepatuhan terhadap UU Perlindungan Data Pribadi No. 27/2022."
+icon: "shield-check"
+related:
+  - /id/gateway/chat-completions
+  - /id/guides/faq
+  - /id/quickstart
+---
+
+Neosantara menyertakan guardrails privasi data terotomatisasi yang dirancang khusus untuk memenuhi standar regulasi Indonesia (UU PDP No. 27/2022). Sistem memindai dan menyensor data pribadi sensitif (*Personally Identifiable Information* / PII) sebelum diteruskan ke model upstream.
+
+## Pengaktifan per Request
+
+Fitur guardrails tersedia eksklusif untuk **pengguna berbayar** (tier berbayar atau akun dengan saldo aktif). Fitur ini bersifat *opt-in* per request menggunakan header `X-Guard`:
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"],
+    default_headers={"X-Guard": "on"}
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Nomor KTP pelanggan adalah 3201234567890001 dan nomor rekening BCA 1234567890."}
+    ]
+)
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST "https://api.neosantara.xyz/v1/chat/completions" \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "X-Guard: on" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {"role": "user", "content": "Nomor KTP saya adalah 3201234567890001."}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Nilai Header yang Didukung
+
+Header `X-Guard` menerima nilai-nilai berikut:
+
+| Nilai Header | Status | Deskripsi |
+| :-- | :-- | :-- |
+| `X-Guard: on` | Aktif | Mengaktifkan sensor data sensitif otomatis pada request terkait. |
+| `X-Guard: enabled` | Aktif | Sinonim dari `on` untuk kompatibilitas integrasi. |
+| `X-Guard: off` | Nonaktif | Melewati proses penyaringan (default jika header tidak disertakan). |
+
+<Warning>
+  **Kebijakan Keamanan & Kepatuhan**:
+  1. **Khusus Pengguna Berbayar**: Akun tier Free tidak mengaktifkan redaksi provider payload meskipun header `X-Guard` dikirimkan.
+  2. **Wajib Header per Request**: Pengaturan preferensi pada profil database tidak mengaktifkan sensor payload secara otomatis. Setiap request yang memerlukan redaksi wajib menyertakan header `X-Guard` secara eksplisit.
+</Warning>
+
+## Pola Data yang Disensor
+
+Penyaringan dilakukan menggunakan regex kontekstual yang disesuaikan dengan format dokumen dan identitas Indonesia:
+
+| Kategori | Entitas yang Disensor | Contoh Pola | Bentuk Redaksi |
+| :-- | :-- | :-- | :-- |
+| **Identitas Resmi** | NIK / Nomor KTP | 16 digit terstruktur wilayah | `[REDACTED_NIK]` |
+| **Pajak & Legal** | NPWP | 15 atau 16 digit format pajak | `[REDACTED_NPWP]` |
+| **Identitas Perjalanan** | Paspor RI | Format paspor Indonesia | `[REDACTED_PASSPORT]` |
+| **Surat Izin** | SIM | Format nomor SIM nasional | `[REDACTED_DRIVING_LICENSE]` |
+| **Telekomunikasi** | Nomor HP Indonesia | Awalan `+62`, `62`, `08` (10-13 digit) | `[REDACTED_PHONE]` |
+| **Korespondensi** | Alamat Email | Pola RFC 5322 email | `[REDACTED_EMAIL]` |
+| **Perbankan** | Rekening Bank Nasional | Digit rekening bank Indonesia | `[REDACTED_BANK_ACCOUNT]` |
+| **Transaksi** | Kartu Kredit / Debit | 16 digit algoritma Luhn | `[REDACTED_CREDIT_CARD]` |
+
+## Langkah Berikutnya
+
+| Kebutuhan | Panduan |
+| :-- | :-- |
+| Tanya jawab billing & deposit | [FAQ & Tanya Jawab](/id/guides/faq) |
+| Batas throughput dan RPM per tier | [Batas Rate & Throughput](/id/guides/rate-limits) |
+| Integrasi Chat Completions | [Chat Completions](/id/gateway/chat-completions) |

@@ -1,0 +1,128 @@
+---
+title: "Structured Outputs"
+description: "Constrain AI model responses to strictly adhere to your supplied JSON Schema."
+icon: "braces"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/chat-completions/tool-calling
+  - /en/integrations/pydantic-ai
+  - /en/gateway/models
+---
+
+Structured Outputs on `/v1/chat/completions` guarantees that model responses match your provided JSON Schema, eliminating runtime JSON parsing errors in production applications.
+
+<CodeGroup>
+
+```python Python (Pydantic / OpenAI SDK) icon="python"
+from openai import OpenAI
+from pydantic import BaseModel, Field
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+class ResearchPaper(BaseModel):
+    title: str = Field(description="Title of the paper")
+    authors: list[str] = Field(description="List of authors")
+    published_year: int = Field(description="Year published")
+    summary: str = Field(description="Two-sentence summary")
+
+completion = client.beta.chat.completions.parse(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Extract data from: 'Attention Is All You Need' by Vaswani et al., published in 2017."}
+    ],
+    response_format=ResearchPaper
+)
+
+paper = completion.choices[0].message.parsed
+print(f"Title: {paper.title}")
+print(f"Year: {paper.published_year}")
+```
+
+```python Python (Raw JSON Schema) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Return sample user details."}],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "user_profile",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "username": {"type": "string"},
+                    "email": {"type": "string"},
+                    "age": {"type": "integer"}
+                },
+                "required": ["username", "email", "age"],
+                "additionalProperties": False
+            }
+        }
+    }
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [{"role": "user", "content": "User sample"}],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "user",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "role": {"type": "string"}
+          },
+          "required": ["name", "role"],
+          "additionalProperties": false
+        }
+      }
+    }
+  }'
+```
+
+</CodeGroup>
+
+## Comparing JSON Mode vs Structured Outputs
+
+| Criteria | JSON Mode (`type: "json_object"`) | Structured Outputs (`type: "json_schema"`) |
+| :--- | :--- | :--- |
+| **Schema Guarantee** | Valid JSON syntax, but keys and fields may drift. | 100% adherence to defined schema, types, and keys. |
+| **Prompt Prerequisite** | Requires explicit mention of "JSON" in the prompt. | No prompt prompting required. |
+| **Strict Enforcement** | Not supported. | Fully supported (`strict: true`). |
+
+## Models Supporting Structured Outputs
+
+| Model | Strict Mode Support | Context Window |
+| :--- | :--- | :--- |
+| `deepseek-v4.1-flash` | Yes | 1,000,000 tokens |
+| `gemini-3.8-flash` | Yes | 1,000,000 tokens |
+| `gpt-5.4-mini` | Yes | 128,000 tokens |
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Invoke External Functions | [Function Calling](/en/gateway/chat-completions/tool-calling) |
+| Token Streaming | [Streaming Responses](/en/gateway/chat-completions/streaming) |

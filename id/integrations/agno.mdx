@@ -1,0 +1,91 @@
+---
+title: "Agno"
+description: "Bangun agen otonom multimodal, sistem multi-agent, dan eksekusi tools dengan Agno."
+icon: "/images/integrations/agno.svg"
+related:
+  - /id/integrations/overview
+  - /id/integrations/crewai
+  - /id/agents/overview
+  - /id/gateway/models
+---
+
+Agno adalah framework open-source untuk membangun agen otonom, sistem multi-agent, dan aplikasi multimodal. Neosantara hadir sebagai provider resmi melalui kelas `agno.models.neosantara.Neosantara` dengan dukungan tool calling, persistent memory, dan inferensi multimodal.
+
+## Instalasi
+
+Pasang Agno dan library pendukung:
+
+```bash
+pip install -U agno ddgs
+```
+
+## Autentikasi
+
+Setel API key Neosantara di environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+Provider native Agno secara otomatis mengarahkan panggilan ke `https://api.neosantara.xyz/v1`.
+
+## Agen Native Pertama
+
+<CodeGroup>
+
+```python Python (Basic Agent) icon="python"
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+
+agent = Agent(
+    model=Neosantara(id="claude-opus-4-6"),
+    markdown=True
+)
+
+agent.print_response("Jelaskan peran gateway AI dalam 2 kalimat.")
+```
+
+```python Python (Streaming Output) icon="python"
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+
+agent = Agent(
+    model=Neosantara(id="gemini-3.8-flash"),
+    markdown=True
+)
+
+agent.print_response(
+    "Buat checklist penanganan insiden sistem terdistribusi.",
+    stream=True
+)
+```
+
+</CodeGroup>
+
+## Agen dengan Tool Calling (Search)
+
+Gabungkan model native Neosantara dengan alat pencarian web:
+
+```python
+from agno.agent import Agent
+from agno.models.neosantara import Neosantara
+from agno.tools.duckduckgo import DuckDuckGoTools
+
+agent = Agent(
+    model=Neosantara(id="gemini-3.8-flash"),
+    tools=[DuckDuckGoTools()],
+    instructions="Selalu sertakan sumber rujukan terverifikasi.",
+    markdown=True
+)
+
+agent.print_response("Berapa valuasi pasar startup AI di Asia Tenggara tahun 2026?")
+```
+
+## Keunggulan Integrasi Agno
+
+| Fitur | Pendekatan Wrapper Generik | Provider Resmi Neosantara |
+| :-- | :-- | :-- |
+| **Impor Modul** | `from agno.models.openai import OpenAIChat` | `from agno.models.neosantara import Neosantara` |
+| **Tool Calling & Agent Memory** | Bergantung pada adapter pihak ketiga | Terintegrasi langsung dengan struktur native Agno |
+| **Dukungan Model** | Terbatas pada konfigurasi manual | Mendukung seluruh katalog model Neosantara |
+| **Streaming & Markdown** | Parsing respons manual | Format output markdown dan streaming bawaan |

@@ -1,0 +1,35 @@
+---
+title: "Integrasi LangChain"
+sidebarTitle: "LangChain"
+description: "Gunakan Neosantara dengan LangChain Python dan LangChain.js."
+icon: "/images/integrations/langchain.svg"
+related:
+  - /id/integrations/overview
+  - /id/integrations/llama-index
+  - /id/integrations/dspy
+  - /id/gateway/chat-completions
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Hubungkan Neosantara ke LangChain melalui kelas `ChatOpenAI`.
+
+## Pengaturan
+
+<SetApiKey />
+
+## Contoh Python
+
+```python
+from langchain_openai import ChatOpenAI
+import os
+
+llm = ChatOpenAI(
+    model="gemini-3.8-flash",
+    openai_api_base="https://api.neosantara.xyz/v1",
+    openai_api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = llm.invoke("Apa saja keunggulan AI Gateway Indonesia?")
+print(response.content)
+```

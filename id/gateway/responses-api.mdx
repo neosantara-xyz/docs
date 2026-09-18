@@ -1,0 +1,84 @@
+---
+title: "OpenResponses API"
+description: "Eksekusi komputasi AI dengan OpenAI SDK, ID respons persisten, dan pelacakan state."
+icon: "bolt"
+related:
+  - /id/gateway/responses-api/conversations
+  - /id/gateway/responses-api/background-jobs
+  - /id/gateway/responses-api/tools
+  - /id/gateway/responses-api/reasoning
+---
+
+Endpoint `/v1/responses` mengimplementasikan spesifikasi OpenResponses menggunakan OpenAI SDK resmi (`client.responses`), dirancang untuk tugas penalaran panjang, pemrosesan latar belakang (_background jobs_), dan percakapan stateful.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.responses.create(
+    model="deepseek-v4.1-flash",
+    input="Analisis dampak perubahan suku bunga acuan terhadap sektor properti di Indonesia.",
+    instructions="Berikan analisis berbasis data dengan gaya profesional dan ringkas.",
+    store=True
+)
+
+print("ID Respons:", response.id)
+print("Hasil:\n", response.output_text)
+```
+
+```javascript TypeScript (Node.js) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.responses.create({
+  model: "deepseek-v4.1-flash",
+  input: "Analisis dampak perubahan suku bunga acuan terhadap sektor properti di Indonesia.",
+  instructions: "Berikan analisis berbasis data dengan gaya profesional dan ringkas.",
+  store: true,
+});
+
+console.log("ID Respons:", response.id);
+console.log("Hasil:\n", response.output_text);
+```
+
+</CodeGroup>
+
+## Parameter Permintaan `client.responses.create`
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Ya | Model target komputasi (contoh: `deepseek-v4.1-flash`). |
+| `input` | `string \| array` | Ya | Teks prompt pengguna, pesan, atau item multimodal. |
+| `instructions` | `string` | Tidak | Instruksi sistem (_system prompt_) yang memandu model. |
+| `store` | `boolean` | Tidak | Jika `true`, menyimpan respons di gateway untuk kelanjutan state berikutnya. |
+| `background` | `boolean` | Tidak | Jika `true`, gateway memproses sebagai asynchronous background job. |
+| `previous_response_id` | `string` | Tidak | Melanjutkan percakapan dari ID respons sebelumnya. |
+| `tools` | `array` | Tidak | Definisi alat fungsi atau server MCP remote. |
+
+## Perbandingan Kapan Menggunakan `/v1/responses`
+
+| Kasus Penggunaan | Endpoint yang Disarankan | Alasan |
+| :-- | :-- | :-- |
+| Chatbot instan & UI pengguna | `/v1/chat/completions` | Latensi streaming rendah dengan SSE. |
+| Riset analitik mendalam | `/v1/responses` | Mencegah putusnya koneksi HTTP saat eksekusi > 60 detik. |
+| Pemrosesan dokumen masif | `/v1/responses` | Pengambilan hasil berbasis polling atau webhook. |
+
+## Fitur Lanjutan
+
+| Fitur | Panduan |
+| :-- | :-- |
+| Tugas Latar Belakang & Webhook | [Background Tasks](/id/gateway/responses-api/background-jobs) |
+| Percakapan & State Server-Side | [Percakapan & State](/id/gateway/responses-api/conversations) |
+| Server Tools & Integrasi MCP | [Server Tools & MCP](/id/gateway/responses-api/tools) |
+| Kontrol Intensitas Penalaran | [Penalaran Responses API](/id/gateway/responses-api/reasoning) |

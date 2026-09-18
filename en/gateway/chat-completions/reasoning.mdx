@@ -1,0 +1,108 @@
+---
+title: "Model Reasoning"
+description: "Access internal chain-of-thought traces from reasoning models via reasoning_content."
+icon: "brain"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/anthropic-messages/thinking
+  - /en/gateway/responses-api/reasoning
+  - /en/gateway/models
+---
+
+import ModelsReasoningTable from '/snippets/models-reasoning-table.mdx';
+
+Reasoning models such as `deepseek-r1` and `deepseek-v4.1-flash` produce an internal chain-of-thought before emitting their final answers. Neosantara surfaces this thinking process in a dedicated `reasoning_content` field on `/v1/chat/completions`.
+
+<CodeGroup>
+
+```python Python (Streaming / OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+stream = client.chat.completions.create(
+    model="deepseek-r1",
+    messages=[
+        {"role": "user", "content": "How many 'r' letters are in the word 'strawberry'?"}
+    ],
+    stream=True
+)
+
+print("=== REASONING PROCESS ===")
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    # Extract reasoning tokens
+    reasoning = getattr(delta, "reasoning_content", None)
+    if reasoning:
+        print(reasoning, end="", flush=True)
+    
+    # Extract final public content
+    content = delta.content or ""
+    if content:
+        print(content, end="", flush=True)
+print()
+```
+
+```python Python (Non-Streaming) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-r1",
+    messages=[
+        {"role": "user", "content": "How many 'r' letters are in the word 'strawberry'?"}
+    ]
+)
+
+message = response.choices[0].message
+
+# Internal thinking trace
+if hasattr(message, "reasoning_content") and message.reasoning_content:
+    print(f"[Thinking]:\n{message.reasoning_content}\n")
+
+# Final public answer
+print(f"[Answer]:\n{message.content}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-r1",
+    "messages": [
+      {"role": "user", "content": "How many r in strawberry?"}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Billing Rules for Reasoning Tokens
+
+Neosantara adheres to strict billing integrity principles:
+
+- **Delivered Output Is Billable:** Reasoning tokens delivered to the client (via `reasoning_content`) are counted as output tokens in `usage.completion_tokens`.
+- **Usage Breakdown:** The usage payload includes `completion_tokens_details.reasoning_tokens` allowing exact analysis of thinking token volume.
+- **Model Integrity:** Billing is calculated at the exact public rate of the model requested.
+
+## Available Reasoning Models
+
+<ModelsReasoningTable />
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Anthropic Extended Thinking | [Extended Thinking](/en/gateway/anthropic-messages/thinking) |
+| Responses API Reasoning | [Responses Reasoning](/en/gateway/responses-api/reasoning) |
+| Streaming Responses | [Streaming Responses](/en/gateway/chat-completions/streaming) |

@@ -1,0 +1,61 @@
+---
+title: "Embeddings"
+description: "Hasilkan representasi vektor teks untuk pencarian semantik dan Retrieval-Augmented Generation."
+icon: "binary"
+related:
+  - /id/gateway/chat-completions
+  - /id/integrations/llama-index
+  - /id/integrations/langchain
+---
+
+import ModelsEmbeddingsTable from '/snippets/models-embeddings-table.mdx';
+
+Endpoint `/v1/embeddings` mengonversi teks menjadi vektor floating-point berdimensi tinggi untuk klasterisasi, pencarian semantik, dan pipeline RAG.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.embeddings.create(
+    model="gemini-embedding-001",
+    input=[
+        "Neosantara adalah AI Gateway Indonesia untuk developer.",
+        "Arsitektur latensi rendah mengoptimalkan inferensi."
+    ]
+)
+
+for item in response.data:
+    print(f"Indeks: {item.index}, Panjang Vektor: {len(item.embedding)}")
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/embeddings \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-embedding-001",
+    "input": "Pencarian semantik data perbankan."
+  }'
+```
+
+</CodeGroup>
+
+## Parameter Permintaan
+
+| Parameter | Tipe | Wajib | Keterangan |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Ya | Pengidentifikasi model embedding (contoh: `gemini-embedding-001`, `text-embedding-3-small`). |
+| `input` | `string \| array` | Ya | Teks tunggal atau daftar teks (array) yang ingin di-embed. |
+| `dimensions` | `integer` | Opsional | Jumlah dimensi vektor keluaran (didukung pada model tertentu). |
+| `encoding_format` | `string` | Opsional | Format vektor: `"float"` atau `"base64"`. Default `"float"`. |
+
+## Model Embedding yang Tersedia
+
+<ModelsEmbeddingsTable />

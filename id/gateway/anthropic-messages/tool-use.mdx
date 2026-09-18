@@ -1,0 +1,122 @@
+---
+title: "Tool Use Anthropic"
+description: "Panggil tools dan fungsi eksternal menggunakan spesifikasi Anthropic input_schema."
+icon: "wrench"
+related:
+  - /id/gateway/anthropic-messages
+  - /id/gateway/chat-completions/tool-calling
+  - /id/agents/claude-code
+---
+
+Endpoint `/anthropic/v1/messages` mendukung spesifikasi Tool Use resmi Anthropic, di mana schema parameter didefinisikan menggunakan format `input_schema`.
+
+<CodeGroup>
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import json
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+tools = [
+    {
+        "name": "get_stock_price",
+        "description": "Ambil harga saham terkini berdasarkan kode ticker.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ticker": {"type": "string", "description": "Kode saham (contoh: BBCA)"}
+            },
+            "required": ["ticker"]
+        }
+    }
+]
+
+# Langkah 1: Kirim permintaan dengan daftar tools
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Berapa harga saham BBCA hari ini?"}]
+)
+
+# Langkah 2: Evaluasi apakah model menghasilkan blok tool_use
+tool_calls = [block for block in response.content if block.type == "tool_use"]
+
+if tool_calls:
+    tool_call = tool_calls[0]
+    print(f"Tool terpilih: {tool_call.name}")
+    print(f"Argumen input: {tool_call.input}")
+
+    # Langkah 3: Eksekusi fungsi lokal
+    tool_result = json.dumps({"ticker": "BBCA", "price": 9850, "currency": "IDR"})
+
+    # Langkah 4: Kirim hasil balik menggunakan blok tool_result
+    final_response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        tools=tools,
+        messages=[
+            {"role": "user", "content": "Berapa harga saham BBCA hari ini?"},
+            {"role": "assistant", "content": response.content},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_call.id,
+                        "content": tool_result
+                    }
+                ]
+            }
+        ]
+    )
+    print("Jawaban final:", final_response.content[0].text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "tools": [
+      {
+        "name": "get_stock_price",
+        "description": "Ambil harga saham",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "ticker": {"type": "string"}
+          },
+          "required": ["ticker"]
+        }
+      }
+    ],
+    "messages": [{"role": "user", "content": "Cek harga BBCA"}]
+  }'
+```
+
+</CodeGroup>
+
+## Opsi `tool_choice` Anthropic
+
+| Konfigurasi | Deskripsi |
+| :--- | :--- |
+| `{"type": "auto"}` | Model memutuskan secara otonom apakah perlu memanggil alat (default). |
+| `{"type": "any"}` | Memaksa model memanggil salah satu alat yang tersedia. |
+| `{"type": "tool", "name": "get_stock_price"}` | Memaksa model memanggil alat tertentu yang Anda tentukan. |
+
+## Langkah Selanjutnya
+
+| Kebutuhan | Panduan |
+| :--- | :--- |
+| Extended Thinking | [Extended Thinking](/id/gateway/anthropic-messages/thinking) |
+| Streaming Token | [Streaming Anthropic](/id/gateway/anthropic-messages/streaming) |
+| OpenAI Function Calling | [OpenAI Tool Calling](/id/gateway/chat-completions/tool-calling) |

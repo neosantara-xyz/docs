@@ -1,0 +1,91 @@
+---
+title: "AutoGen (AG2)"
+description: "Bangun sistem percakapan multi-agent dan eksekusi kode otonom menggunakan Neosantara dan AG2."
+icon: "/images/integrations/autogen.svg"
+related:
+  - /id/integrations/crewai
+  - /id/agents/overview
+  - /id/gateway/models
+  - /id/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+AG2 (sebelumnya AutoGen) adalah framework open source untuk membangun aplikasi AI multi-agent. Framework ini memungkinkan agent berbasis LLM berinteraksi satu sama lain, mengeksekusi kode, dan menyelesaikan tugas kompleks secara kolaboratif.
+
+## Pengaturan
+
+Instal paket `autogen`:
+
+```bash
+pip install -U autogen
+```
+
+<SetApiKey />
+
+## Konfigurasi LLM
+
+AutoGen menggunakan daftar konfigurasi `config_list` untuk menentukan endpoint model. Arahkan `base_url` ke gateway Neosantara dengan `api_type: "openai"`.
+
+```python
+import os
+
+config_list = [
+    {
+        "model": "deepseek-v4.1-flash",
+        "base_url": "https://api.neosantara.xyz/v1",
+        "api_key": os.environ["NEOSANTARA_API_KEY"],
+        "api_type": "openai"
+    }
+]
+```
+
+## Contoh Kolaborasi Dua Agent
+
+Contoh berikut membuat `AssistantAgent` yang menyarankan solusi Python dan `UserProxyAgent` yang memverifikasi atau menjalankan instruksi:
+
+```python
+import os
+from autogen import AssistantAgent, UserProxyAgent
+
+config_list = [
+    {
+        "model": "deepseek-v4.1-flash",
+        "base_url": "https://api.neosantara.xyz/v1",
+        "api_key": os.environ["NEOSANTARA_API_KEY"],
+        "api_type": "openai"
+    }
+]
+
+assistant = AssistantAgent(
+    name="Architect",
+    llm_config={"config_list": config_list},
+    system_message="Anda arsitek backend. Berikan saran arsitektur database terdistribusi ringkas dan akhiri dengan kata 'SELESAI' jika rencana sudah lengkap."
+)
+
+user_proxy = UserProxyAgent(
+    name="Engineer",
+    human_input_mode="NEVER",
+    max_consecutive_auto_reply=2,
+    is_termination_msg=lambda msg: "SELESAI" in msg.get("content", "")
+)
+
+user_proxy.initiate_chat(
+    assistant,
+    message="Bagaimana strategi sharding Postgres untuk tabel transaksi bernilai ratusan juta baris?"
+)
+```
+
+## Pola Kolaborasi AutoGen
+
+| Pola Workflow | Komponen Utama | Skenario Ideal |
+| :-- | :-- | :-- |
+| **Two-Agent Chat** | `AssistantAgent` + `UserProxyAgent` | Tanya jawab terpandu, review kode, atau brainstorming |
+| **GroupChat** | `GroupChat` + `GroupChatManager` | Alur kerja tim dengan 3+ agent (Planner, Coder, Reviewer) |
+| **Code Execution** | `LocalCommandLineCodeExecutor` | Pengujian skrip Python otomatis dalam direktori kerja terisolasi |
+
+## Langkah Berikutnya
+
+- [Panduan CrewAI](/id/integrations/crewai)
+- [Integrasi Model Context Protocol (MCP)](/id/agents/overview)
+- [Pilihan Model dan Harga](/id/gateway/models)

@@ -1,0 +1,91 @@
+---
+title: "Gateway Overview"
+description: "Multi-provider routing architecture, authentication, and unified Neosantara endpoints."
+icon: "compass"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/responses-api
+  - /en/gateway/anthropic-messages
+  - /en/gateway/models
+---
+
+Neosantara is Indonesia's AI Gateway, routing requests to multiple upstream providers (OpenAI, Anthropic, Bedrock, Gemini, Mistral, Ollama) through a single unified interface with optimized low-latency performance.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Explain Indonesia's AI Gateway."}]
+)
+print(response.choices[0].message.content)
+```
+
+```python Python (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain Indonesia's AI Gateway."}]
+)
+print(response.content[0].text)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.8-flash",
+    "messages": [{"role": "user", "content": "Hello Neosantara"}]
+  }'
+```
+
+</CodeGroup>
+
+## Main Endpoints
+
+| Endpoint Path | Protocol | Description |
+| :-- | :-- | :-- |
+| `/v1/chat/completions` | OpenAI | Universal chat, SSE streaming, tool calling, JSON schema. |
+| `/anthropic/v1/messages` | Anthropic | Full Anthropic Messages API parity. |
+| `/v1/responses` | OpenResponses | Persistent asynchronous jobs, status polling, retrieval. |
+| `/v1/models` | OpenAI | Active models list, token limits, IDR token pricing. |
+| `/v1/audio/*` | OpenAI | Whisper speech-to-text and text-to-speech. |
+| `/v1/images/*` | OpenAI | Image synthesis with generative models. |
+| `/v1/embeddings` | OpenAI | Text vector embeddings for semantic search and RAG. |
+| `/v1/ocr` | Specialized | Structured text and table extraction from documents. |
+
+## Request Headers
+
+| Header | Required | Description |
+| :-- | :-- | :-- |
+| `Authorization` | Yes (OpenAI) | Format: `Bearer nsk_...` with your Neosantara API key. |
+| `x-api-key` | Yes (Anthropic) | Format: `nsk_...` on `/anthropic/*` endpoints. |
+| `anthropic-version` | Yes (Anthropic) | Use version `2023-06-01`. |
+| `X-Guard` | Optional | Set to `on` to enable automated UU PDP PII redaction. |
+| `x-request-id` | Optional | Unique request tracking ID for audit and logging. |
+
+## Next Steps
+
+| Task | Guide |
+| :-- | :-- |
+| Chat and streaming | [Chat Completions](/en/gateway/chat-completions) |
+| Anthropic integration | [Anthropic Messages](/en/gateway/anthropic-messages) |
+| Asynchronous jobs | [OpenResponses API](/en/gateway/responses-api) |
+| Model list and pricing | [Model Catalog](/en/gateway/models) |

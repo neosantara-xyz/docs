@@ -1,0 +1,441 @@
+---
+title: "Daytona Sandbox"
+sidebarTitle: "Sandboxes"
+description: "Run shell, manage files, and execute git operations in Daytona sandboxes using Agno, OpenAI, or Anthropic SDK."
+icon: "/images/integrations/daytona.svg"
+related:
+  - /en/integrations/agno
+  - /en/integrations/daytona-code-interpreter
+  - /en/gateway/chat-completions/tool-calling
+  - /en/gateway/models
+---
+
+Daytona provides isolated sandboxes with a dedicated kernel, filesystem, and network stack per instance. Startup is under 90ms. Sandboxes support shell execution, Python/TypeScript code runs, file operations, and git. By connecting Neosantara models as the reasoning engine and Daytona as the execution layer, AI agents can write, test, and deploy code safely.
+
+## Access Credentials
+
+Set Neosantara and Daytona API keys in your environment variables:
+
+```bash icon="terminal"
+export NEOSANTARA_API_KEY="nsk_..."
+export DAYTONA_API_KEY="your_daytona_api_key"
+```
+
+Daytona API keys are available at [app.daytona.io](https://app.daytona.io).
+
+## Framework and SDK Integration
+
+Select your preferred framework or SDK:
+
+<Tabs>
+  <Tab title="Agno" icon="/images/integrations/agno.svg">
+    Agno provides built-in `DaytonaTools` to connect Daytona sandboxes to Neosantara agents. The agent manages sandbox creation, code execution, and resource cleanup automatically.
+
+    ### Library Installation
+
+    ```bash icon="terminal"
+    pip install -U agno daytona
+    ```
+
+    ### Implementation Example
+
+    ```python icon="python"
+    from agno.agent import Agent
+    from agno.models.neosantara import Neosantara
+    from agno.tools.daytona import DaytonaTools
+
+    agent = Agent(
+        model=Neosantara(id="deepseek-v4.1-flash"),
+        tools=[DaytonaTools()],
+        markdown=True,
+        show_tool_calls=True,
+        instructions=[
+            "Use Daytona sandbox to run and verify code.",
+            "Present execution results with clear formatting."
+        ]
+    )
+
+    agent.print_response(
+        "Create a Python file that computes the first 20 Fibonacci numbers, execute it, and show the results."
+    )
+    ```
+
+    ### File and Git Operations
+
+    Daytona sandboxes support filesystem and git operations natively:
+
+    ```python icon="python"
+    agent.print_response(
+        "Clone https://github.com/neosantara-xyz/examples.git, "
+        "read the README.md file, and summarize its contents."
+    )
+    ```
+  </Tab>
+
+  <Tab title="OpenAI SDK" icon="/images/integrations/openai.svg">
+    Use function calling to execute code and shell commands in a Daytona sandbox. Available for Python and Node.js.
+
+    ### Library Installation
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U openai daytona
+    ```
+
+    ```bash npm icon="js"
+    npm install openai @daytona/sdk
+    ```
+
+    </CodeGroup>
+
+    ### Implementation Example
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    import json
+    from openai import OpenAI
+    from daytona import Daytona, DaytonaConfig
+
+    client = OpenAI(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    config = DaytonaConfig(api_key=os.environ["DAYTONA_API_KEY"])
+    daytona = Daytona(config)
+
+    tools = [{
+        "type": "function",
+        "function": {
+            "name": "run_code",
+            "description": "Execute Python code in an isolated Daytona sandbox.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {"type": "string", "description": "Python code to execute."}
+                },
+                "required": ["code"]
+            }
+        }
+    }]
+
+    messages = [{"role": "user", "content": "Calculate the factorial of 12 using Python."}]
+    response = client.chat.completions.create(
+        model="deepseek-v4.1-flash",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        tool_call = message.tool_calls[0]
+        args = json.loads(tool_call.function.arguments)
+
+        sandbox = daytona.create()
+        result = sandbox.process.code_run(args["code"])
+        output_text = result.result
+
+        messages.append(message)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": output_text
+        })
+
+        final_response = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=messages
+        )
+        print(final_response.choices[0].message.content)
+
+        daytona.remove(sandbox)
+    ```
+
+    ```javascript Node.js icon="js"
+    import OpenAI from "openai";
+    import { Daytona } from "@daytona/sdk";
+
+    const client = new OpenAI({
+      baseURL: "https://api.neosantara.xyz/v1",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const daytona = new Daytona({ apiKey: process.env.DAYTONA_API_KEY });
+
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "run_code",
+          description: "Execute Python code in an isolated Daytona sandbox.",
+          parameters: {
+            type: "object",
+            properties: {
+              code: { type: "string", description: "Python code to execute." },
+            },
+            required: ["code"],
+          },
+        },
+      },
+    ];
+
+    const messages = [{ role: "user", content: "Calculate the factorial of 12 using Python." }];
+
+    const response = await client.chat.completions.create({
+      model: "deepseek-v4.1-flash",
+      messages,
+      tools,
+      tool_choice: "auto",
+    });
+
+    const message = response.choices[0].message;
+
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      const toolCall = message.tool_calls[0];
+      const args = JSON.parse(toolCall.function.arguments);
+
+      const sandbox = await daytona.create();
+      const result = await sandbox.process.codeRun(args.code);
+      const outputText = result.result;
+
+      messages.push(message);
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: outputText,
+      });
+
+      const finalResponse = await client.chat.completions.create({
+        model: "deepseek-v4.1-flash",
+        messages,
+      });
+
+      console.log(finalResponse.choices[0].message.content);
+
+      await daytona.remove(sandbox);
+    }
+    ```
+
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Anthropic SDK" icon="/images/integrations/claude.svg">
+    Use the Anthropic tool use interface with the Neosantara endpoint. Available for Python and Node.js.
+
+    ### Library Installation
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U anthropic daytona
+    ```
+
+    ```bash npm icon="js"
+    npm install @anthropic-ai/sdk @daytona/sdk
+    ```
+
+    </CodeGroup>
+
+    ### Implementation Example
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    import os
+    from anthropic import Anthropic
+    from daytona import Daytona, DaytonaConfig
+
+    client = Anthropic(
+        base_url="https://api.neosantara.xyz/anthropic",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    config = DaytonaConfig(api_key=os.environ["DAYTONA_API_KEY"])
+    daytona = Daytona(config)
+
+    tools = [{
+        "name": "run_code",
+        "description": "Execute Python code in an isolated Daytona sandbox.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "code": {"type": "string", "description": "Python code to execute."}
+            },
+            "required": ["code"]
+        }
+    }]
+
+    response = client.messages.create(
+        model="claude-3-7-sonnet",
+        max_tokens=1024,
+        tools=tools,
+        messages=[{"role": "user", "content": "Calculate 2 to the power of 20 using Python."}]
+    )
+
+    sandbox = daytona.create()
+
+    for block in response.content:
+        if block.type == "tool_use":
+            code_to_run = block.input.get("code")
+            result = sandbox.process.code_run(code_to_run)
+            print("Result:", result.result)
+
+    daytona.remove(sandbox)
+    ```
+
+    ```javascript Node.js icon="js"
+    import Anthropic from "@anthropic-ai/sdk";
+    import { Daytona } from "@daytona/sdk";
+
+    const client = new Anthropic({
+      baseURL: "https://api.neosantara.xyz/anthropic",
+      apiKey: process.env.NEOSANTARA_API_KEY,
+    });
+
+    const daytona = new Daytona({ apiKey: process.env.DAYTONA_API_KEY });
+
+    const tools = [
+      {
+        name: "run_code",
+        description: "Execute Python code in an isolated Daytona sandbox.",
+        input_schema: {
+          type: "object",
+          properties: {
+            code: { type: "string", description: "Python code to execute." },
+          },
+          required: ["code"],
+        },
+      },
+    ];
+
+    const response = await client.messages.create({
+      model: "claude-3-7-sonnet",
+      max_tokens: 1024,
+      tools,
+      messages: [{ role: "user", content: "Calculate 2 to the power of 20 using Python." }],
+    });
+
+    const sandbox = await daytona.create();
+
+    for (const block of response.content) {
+      if (block.type === "tool_use") {
+        const codeToRun = block.input.code;
+        const result = await sandbox.process.codeRun(codeToRun);
+        console.log("Result:", result.result);
+      }
+    }
+
+    await daytona.remove(sandbox);
+    ```
+
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Direct SDK" icon="/images/integrations/daytona.svg">
+    Use the Daytona SDK directly for scenarios requiring full control over sandbox lifecycle, filesystem operations, and git.
+
+    ### Library Installation
+
+    <CodeGroup>
+
+    ```bash pip icon="python"
+    pip install -U daytona
+    ```
+
+    ```bash npm icon="js"
+    npm install @daytona/sdk
+    ```
+
+    </CodeGroup>
+
+    ### Usage Example
+
+    <CodeGroup>
+
+    ```python Python icon="python"
+    from daytona import Daytona, DaytonaConfig
+
+    config = DaytonaConfig(api_key="YOUR_DAYTONA_API_KEY")
+    daytona = Daytona(config)
+
+    sandbox = daytona.create()
+
+    # Execute shell commands
+    response = sandbox.process.exec("echo 'Hello from Daytona sandbox!'")
+    print(response.result)
+
+    # Run Python code
+    response = sandbox.process.code_run("print(sum(range(1, 101)))")
+    print(response.result)
+
+    # File operations
+    sandbox.fs.upload_file("workspace/data.txt", b"sample data content")
+    files = sandbox.fs.list_files("workspace")
+    print(files)
+
+    # Git operations
+    sandbox.git.clone({
+        "url": "https://github.com/neosantara-xyz/examples.git",
+        "path": "workspace/repo"
+    })
+
+    daytona.remove(sandbox)
+    ```
+
+    ```javascript Node.js icon="js"
+    import { Daytona } from "@daytona/sdk";
+
+    const daytona = new Daytona({ apiKey: "YOUR_DAYTONA_API_KEY" });
+
+    const sandbox = await daytona.create();
+
+    // Execute shell commands
+    const shellResult = await sandbox.process.exec("echo 'Hello from Daytona sandbox!'");
+    console.log(shellResult.result);
+
+    // Run code
+    const codeResult = await sandbox.process.codeRun("console.log(Array.from({length: 10}, (_, i) => i + 1))");
+    console.log(codeResult.result);
+
+    // File operations
+    const files = await sandbox.fs.listFiles("workspace");
+    console.log(files);
+
+    // Git operations
+    await sandbox.git.clone({
+      url: "https://github.com/neosantara-xyz/examples.git",
+      path: "workspace/repo",
+    });
+
+    await daytona.remove(sandbox);
+    ```
+
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Daytona vs E2B Comparison
+
+| Feature | Daytona | E2B |
+| :-- | :-- | :-- |
+| **Focus** | Dev environment sandbox (file, git, shell, code) | Code interpreter sandbox |
+| **Startup** | &lt;90ms | ~1-2 seconds (Firecracker microVM) |
+| **Built-in git** | `sandbox.git` (clone, commit, push) | Manual via shell |
+| **Filesystem API** | `sandbox.fs` (upload, list, download) | Limited |
+| **Stateful snapshots** | Persistent snapshots across sessions | Limited |
+| **GPU** | Available | Available |
+| **SDKs** | Python, TypeScript, Go, Ruby, Java | Python, TypeScript |
+
+## Next Steps
+
+| Need | Guide |
+| :-- | :-- |
+| E2B code interpreter sandbox | [E2B Documentation](/en/integrations/e2b) |
+| Agno agent framework | [Agno Documentation](/en/integrations/agno) |
+| Tool calling on Gateway | [Tool Calling Chat Completions](/en/gateway/chat-completions/tool-calling) |
+| Supported model catalog | [Models & Pricing](/en/gateway/models) |

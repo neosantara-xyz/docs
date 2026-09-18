@@ -1,0 +1,83 @@
+---
+title: "Claude Code Integration"
+description: "Configure Claude Code CLI using Neosantara Anthropic and MCP endpoints."
+icon: "code"
+related:
+  - /en/agents/overview
+  - /en/agents/cursor
+  - /en/agents/opencode
+  - /en/gateway/anthropic-messages
+---
+
+Claude Code is Anthropic's official terminal-based coding assistant. You can connect it to Neosantara in two ways: as the primary LLM model provider or as a supplemental tool provider via Model Context Protocol (MCP).
+
+## Method 1: Primary Model Provider
+
+Neosantara provides an Anthropic-compatible protocol endpoint at `/anthropic`.
+
+<Steps>
+  <Step title="Install Claude Code CLI">
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+  </Step>
+
+  <Step title="Configure Environment Variables">
+Set the base URL to the Neosantara gateway and export your API key:
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.neosantara.xyz/anthropic"
+export ANTHROPIC_API_KEY="nsk_your_api_key_here"
+```
+
+To persist these across terminal sessions, add them to your shell configuration (`~/.bashrc` or `~/.zshrc`).
+  </Step>
+
+  <Step title="Launch Claude Code">
+Navigate to your project directory and execute:
+
+```bash
+claude
+```
+
+Claude Code connects to Neosantara using the default flagship model `claude-sonnet-4-6`.
+  </Step>
+</Steps>
+
+## Method 2: Adding Neosantara MCP Server
+
+To equip Claude Code with Neosantara tools such as image generation or model catalog queries, attach Neosantara as an MCP server:
+
+```bash
+claude mcp add --transport http neosantara https://api.neosantara.xyz/v1/mcp --header "x-api-key: nsk_mcp_your_key_here"
+```
+
+<Note>
+MCP connections require a dedicated API key with the `nsk_mcp_` prefix. Generate one via the [API Keys Dashboard](https://app.neosantara.xyz/api-keys) or follow the [MCP API Keys guide](/en/agents/mcp-keys).
+</Note>
+
+### Verifying MCP Server Status
+
+Check active configured MCP servers:
+
+```bash
+claude mcp list
+```
+
+The output confirms `neosantara` with active status and listed available tools.
+
+## Testing Interaction
+
+Run a test prompt within the Claude Code session:
+
+```text
+> Create a debounce utility in TypeScript and write test cases for it.
+```
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Configure OpenCode | [OpenCode Integration](/en/agents/opencode) |
+| Configure Cursor IDE | [Cursor Integration](/en/agents/cursor) |
+| Review MCP Keys | [MCP API Keys](/en/agents/mcp-keys) |

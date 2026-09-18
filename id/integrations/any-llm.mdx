@@ -1,0 +1,96 @@
+---
+title: "Any-LLM"
+description: "Antarmuka Python terstandarisasi untuk inferensi multi-provider, streaming, dan portabilitas model."
+icon: "/images/integrations/any-llm.png"
+related:
+  - /id/integrations/overview
+  - /id/integrations/litellm
+  - /id/integrations/langchain
+  - /id/gateway/models
+---
+
+Any-LLM menyediakan satu antarmuka Python terstandarisasi untuk beragam penyedia model AI. Neosantara terintegrasi secara resmi melalui ID penyedia `neosantara`, menghadirkan eksekusi streaming konsisten, penanganan parameter terpadu, dan portabilitas antar model.
+
+## Instalasi
+
+Pasang paket Any-LLM dengan ekstensi native Neosantara:
+
+```bash
+pip install "any-llm-sdk[neosantara]"
+```
+
+## Autentikasi
+
+Ekspor API key Neosantara ke environment:
+
+```bash
+export NEOSANTARA_API_KEY="nsk_..."
+```
+
+Penyedia native Neosantara secara otomatis mengarahkan permintaan ke `https://api.neosantara.xyz/v1`.
+
+## Contoh Penggunaan Native
+
+Gunakan `AnyLLM.create("neosantara")` untuk membuat klien reusable:
+
+<CodeGroup>
+
+```python Python (Reusable Client) icon="python"
+from any_llm import AnyLLM
+
+llm = AnyLLM.create("neosantara")
+
+response = llm.completion(
+    model="gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "Jelaskan keunggulan AI Gateway Indonesia dalam satu kalimat."}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Fungsi Tunggal) icon="python"
+from any_llm import completion
+
+response = completion(
+    model="neosantara/gemini-3.8-flash",
+    messages=[
+        {"role": "user", "content": "Apa itu sistem terdistribusi?"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+</CodeGroup>
+
+## Streaming Respons
+
+Any-LLM mendukung streaming token inkremental secara langsung:
+
+```python
+from any_llm import AnyLLM
+
+llm = AnyLLM.create("neosantara")
+
+stream = llm.completion(
+    model="deepseek-v4.1-flash",
+    messages=[{"role": "user", "content": "Tuliskan panduan singkat."}],
+    stream=True
+)
+
+for chunk in stream:
+    content = chunk.choices[0].delta.content or ""
+    print(content, end="", flush=True)
+print()
+```
+
+## Keunggulan Integrasi Any-LLM
+
+| Fitur | Pendekatan Wrapper Manual | Provider Resmi Neosantara |
+| :-- | :-- | :-- |
+| **Inisialisasi Klien** | Inisialisasi adapter OpenAI kustom per pemanggilan | `AnyLLM.create("neosantara")` instan |
+| **Portabilitas Kode** | Terikat ke SDK vendor spesifik | Satu antarmuka universal untuk rotasi model |
+| **Streaming & Response Shape** | Normalisasi chunks berbeda-beda per upstream | Output stream standar yang seragam |
+| **Manajemen Environment** | Pengaturan endpoint di banyak file konfigurasi | Sentralisasi via `NEOSANTARA_API_KEY` |

@@ -1,0 +1,68 @@
+---
+title: "Document OCR"
+description: "Extract text, tables, and structured data from scanned documents via /v1/ocr."
+icon: "file-search"
+related:
+  - /en/gateway/chat-completions/vision
+  - /en/gateway/operations/files
+  - /en/gateway/models
+---
+
+import ModelsOcrTable from '/snippets/models-ocr-table.mdx';
+
+The `/v1/ocr` endpoint extracts text from invoices, receipts, technical documents, and tables using multimodal OCR foundation models (DeepSeek OCR and GLM OCR).
+
+<CodeGroup>
+
+```python Python icon="python"
+import requests
+import base64
+import os
+
+url = "https://api.neosantara.xyz/v1/ocr"
+headers = {
+    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
+    "Content-Type": "application/json"
+}
+
+with open("invoice.png", "rb") as f:
+    encoded_image = base64.b64encode(f.read()).decode("utf-8")
+
+payload = {
+    "model": "deepseek-ocr",
+    "image": encoded_image,
+    "image_type": "base64",
+    "prompt": "Extract all line items into a Markdown table."
+}
+
+response = requests.post(url, headers=headers, json=payload)
+data = response.json()
+print(data.get("extracted_text"))
+```
+
+```bash cURL (Public URL) icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/ocr \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-ocr",
+    "image": "https://example.com/invoice.jpg",
+    "image_type": "url"
+  }'
+```
+
+</CodeGroup>
+
+## Request Parameters
+
+| Parameter | Type | Required | Description |
+| :-- | :-- | :-- | :-- |
+| `model` | `string` | Yes | `deepseek-ocr`, `glm-ocr`, or `zai-ocr`. |
+| `image` | `string` | Yes | Public HTTPS URL or Base64 encoded image string. |
+| `image_type` | `string` | Yes | Either `"url"` or `"base64"`. |
+| `prompt` | `string` | Optional | Custom extraction instructions (supported on `glm-ocr`). |
+| `return_image` | `boolean` | Optional | Return processed visual bounding data. Default `false`. |
+
+## Available OCR Models
+
+<ModelsOcrTable />

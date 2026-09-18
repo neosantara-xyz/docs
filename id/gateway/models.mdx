@@ -1,0 +1,51 @@
+---
+title: "Katalog Model"
+description: "Daftar model aktif, batas jendela konteks, kapabilitas, dan harga token dalam Rupiah."
+icon: "list"
+related:
+  - /id/gateway/chat-completions
+  - /id/guides/faq
+  - /id/guides/rate-limits
+  - /id/gateway/chat-completions/reasoning
+---
+
+import ModelsTable from '/snippets/models-table.mdx';
+
+Neosantara adalah AI Gateway Indonesia yang menyediakan akses terpadu ke ratusan model foundation. Semua harga dihitung dan ditagihkan secara langsung dalam mata uang Rupiah (IDR).
+
+## Mengambil Daftar Model
+
+<CodeGroup>
+
+```python Python icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+models = client.models.list()
+for model in models.data[:10]:
+    print(f"Model ID: {model.id}")
+```
+
+```bash cURL icon="terminal"
+curl https://api.neosantara.xyz/v1/models \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+```
+
+</CodeGroup>
+
+## Tabel Model Aktif & Harga Rupiah
+
+<ModelsTable />
+
+## Pembaruan Otomatis
+
+Data model dan harga di atas disinkronkan secara langsung dari gateway Neosantara melalui script:
+
+```bash
+python3 scripts/sync_models.py
+```

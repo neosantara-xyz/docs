@@ -1,0 +1,136 @@
+---
+title: "Vercel AI SDK"
+description: "Connect Neosantara language models to Next.js, React, and TypeScript applications with the Vercel AI SDK."
+icon: "/images/integrations/vercel.svg"
+related:
+  - /en/gateway/chat-completions/streaming
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/integrations/overview
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+The Vercel AI SDK is a unified TypeScript library for building reactive AI web applications. It supports token streaming, conversational UI hooks, and structured output extraction.
+
+## Setup
+
+Install the core SDK and the OpenAI-compatible adapter:
+
+<CodeGroup>
+
+```bash npm icon="terminal"
+npm i ai @ai-sdk/openai-compatible
+```
+
+```bash pnpm icon="terminal"
+pnpm add ai @ai-sdk/openai-compatible
+```
+
+```bash bun icon="terminal"
+bun add ai @ai-sdk/openai-compatible
+```
+
+</CodeGroup>
+
+<SetApiKey />
+
+## Provider Initialization
+
+Instantiate the Neosantara provider using `createOpenAICompatible`:
+
+```typescript
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+
+export const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+```
+
+## Text Generation and Streaming
+
+<CodeGroup>
+
+```typescript Single Shot (generateText) icon="js"
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { generateText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+const { text, usage } = await generateText({
+  model: neosantara('gemini-3.8-flash'),
+  prompt: 'Explain microservices architecture in 3 concise sentences.',
+});
+
+console.log(text);
+console.log('Token usage:', usage);
+```
+
+```typescript Terminal Streaming (streamText) icon="js"
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { streamText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+const result = streamText({
+  model: neosantara('deepseek-v4.1-flash'),
+  prompt: 'Provide 3 core clean architecture principles for TypeScript backends.',
+});
+
+for await (const delta of result.textStream) {
+  process.stdout.write(delta);
+}
+console.log();
+```
+
+</CodeGroup>
+
+## Next.js App Router Route (`app/api/chat/route.ts`)
+
+Return a standard data stream response compatible with the frontend `useChat` hook:
+
+```typescript app/api/chat/route.ts
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { streamText } from 'ai';
+
+const neosantara = createOpenAICompatible({
+  name: 'neosantara',
+  apiKey: process.env.NEOSANTARA_API_KEY,
+  baseURL: 'https://api.neosantara.xyz/v1',
+});
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const result = streamText({
+    model: neosantara('deepseek-v4.1-flash'),
+    messages,
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+## Vercel AI SDK Method Comparison
+
+| Method | Return Type | Common Use Cases |
+| :-- | :-- | :-- |
+| `generateText` | Full text Promise | Background processing, batch jobs, webhook workers |
+| `streamText` | Async text stream | Chat completion endpoints, Next.js streaming UIs |
+| `generateObject` | Zod-validated Object | Strict JSON parsing, automated entity extraction |
+
+## Next Steps
+
+- [Streaming Documentation](/en/gateway/chat-completions/streaming)
+- [Example Next.js Projects](https://github.com/neosantara-xyz/examples)
+- [Model Catalog & Pricing](/en/gateway/models)

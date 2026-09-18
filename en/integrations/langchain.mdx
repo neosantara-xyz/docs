@@ -1,0 +1,35 @@
+---
+title: "LangChain Integration"
+sidebarTitle: "LangChain"
+description: "Use Neosantara with LangChain Python and LangChain.js."
+icon: "/images/integrations/langchain.svg"
+related:
+  - /en/integrations/overview
+  - /en/integrations/llama-index
+  - /en/integrations/dspy
+  - /en/gateway/chat-completions
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Connect Neosantara to LangChain via `ChatOpenAI`.
+
+## Setup
+
+<SetApiKey />
+
+## Python Example
+
+```python
+from langchain_openai import ChatOpenAI
+import os
+
+llm = ChatOpenAI(
+    model="gemini-3.8-flash",
+    openai_api_base="https://api.neosantara.xyz/v1",
+    openai_api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = llm.invoke("What are the advantages of Indonesia's AI Gateway?")
+print(response.content)
+```

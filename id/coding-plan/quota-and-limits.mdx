@@ -1,0 +1,63 @@
+---
+title: "Kuota & Batasan Coding Plan"
+description: "Mekanisme perhitungan kuota prompt, jendela rolling 5 jam dan mingguan, batas konkurensi, dan multiplier beban."
+icon: "gauge"
+related:
+  - /id/coding-plan/overview
+  - /id/coding-plan/quick-start
+  - /id/coding-plan/model-routes
+---
+
+Halaman ini merupakan panduan resmi mengenai cara kuota dihitung, dipantau, dan diberlakukan pada Neosantara Coding Plan.
+
+## Definisi 1 Prompt
+
+Kuota Coding Plan dihitung **berdasarkan prompt, bukan jumlah token**. Satu prompt dihitung setara dengan **satu giliran interaksi user** (*turn*) di coding tool, terlepas dari berapa banyak sub-panggilan model yang dipicu oleh agent secara internal.
+
+<Note>
+  Satu instruksi seperti *"refactor modul autentikasi dan jalankan unit test"* dapat memicu 15 hingga 20 panggilan model di balik layar (membaca file, iterasi reasoning, menjalankan command shell). Seluruh siklus interaksi tersebut tetap dihitung sebagai **1 prompt**.
+</Note>
+
+## Jendela Kuota
+
+Sistem menerapkan dua batasan waktu independen:
+
+| Jendela Waktu | Sifat & Perilaku |
+| :-- | :-- |
+| **Rolling 5 Jam** | Reset otomatis secara bertahap 5 jam setelah request pertama dalam siklus dikirim. |
+| **Mingguan** | Reset penuh setiap 7 hari kalender dihitung dari waktu aktivasi paket langganan. |
+
+- **Tanpa Biaya Tambahan (Zero Overage)**: Saat kuota pada salah satu jendela habis, request akan dihentikan sementara (*hard-stop*) sampai siklus reset berikutnya.
+- **Isolasi Saldo Deposit**: Kuota coding plan tidak pernah memotong saldo deposit Pay-As-You-Go akun Anda.
+
+## Perbandingan Tier Paket
+
+| Tier Paket | Limit 5 Jam | Limit Mingguan | Maks Request Bersamaan | Harga Bulanan |
+| :-- | :-- | :-- | :-- | :-- |
+| **Coding Hemat** | ~80 prompt | ~400 prompt | 4 request | Rp 149.000 |
+| **Coding Reguler** | ~400 prompt | ~2.000 prompt | 10 request | Rp 499.000 |
+| **Coding Eksklusif** | ~1.600 prompt | ~8.000 prompt | 20 request | Rp 1.290.000 |
+
+### Batas Konkurensi In-Flight
+
+Batas request bersamaan (*in-flight concurrency*) membatasi berapa banyak proses agent yang dapat berjalan secara simultan pada saat yang sama. Jika batas konkurensi tercapai, request baru akan ditolak sementara hingga proses sebelumnya selesai.
+
+## Multiplier Model Berbasis Beban
+
+Setiap prompt yang dikirimkan menggunakan kuota sesuai dengan koefisien multiplier model yang digunakan. Model kategori flagship menyesuaikan multiplier ketika kapasitas upstream mengalami beban tinggi (*under load*):
+
+| Kategori Model | Contoh Model | Kondisi Normal | Kondisi Under Load |
+| :-- | :-- | :-- | :-- |
+| **Flagship Reasoning** | `claude-4.5-sonnet`, `claude-4.5-opus` | 2× | 3× |
+| **Mid-Tier Standard** | `gpt-4.1-mini`, `qwen-2.5-coder` | 2× | 2× |
+| **Model Ringan / Cepat** | `gemini-3-flash`, `glm-4.7-flash` | 1× | 1× |
+
+<Note>
+  Status beban (*under load*) dideteksi secara dinamis secara real-time berdasarkan tingkat error kapasitas provider upstream, bukan berdasarkan jadwal jam tetap.
+</Note>
+
+## Tips Optimalisasi Kuota
+
+1. **Gunakan Model Ringan untuk Tugas Rutin**: Gunakan model cepat seperti `gemini-3-flash` untuk pencarian file atau penulisan fungsi sederhana (hanya 1× kuota).
+2. **Simpan Model Flagship untuk Refactoring Kompleks**: Alokasikan model flagship untuk perancangan arsitektur multi-file dan debugging mendalam.
+3. **Gabungkan Konteks Relevan**: Satukan beberapa instruksi perbaikan kecil dalam satu giliran prompt untuk menghemat konsumsi kuota.

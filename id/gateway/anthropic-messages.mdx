@@ -1,0 +1,95 @@
+---
+title: "Anthropic Messages API"
+description: "Kirim permintaan pesan Claude menggunakan SDK resmi Anthropic dan cURL."
+icon: "message-circle"
+related:
+  - /id/gateway/anthropic-messages/streaming
+  - /id/gateway/anthropic-messages/thinking
+  - /id/gateway/anthropic-messages/tool-use
+  - /id/gateway/anthropic-messages/vision
+---
+
+Neosantara menyediakan paritas penuh dengan Anthropic Messages API melalui endpoint `/anthropic/v1/messages`. Anda dapat menggunakan SDK resmi `@anthropic-ai/sdk` atau Anthropic Python SDK tanpa mengubah kode aplikasi.
+
+<CodeGroup>
+
+```python Python icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+message = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Jelaskan cara kerja gateway AI dalam satu paragraf."}
+    ]
+)
+
+print(message.content[0].text)
+```
+
+```typescript TypeScript icon="js"
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://api.neosantara.xyz/anthropic",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const message = await client.messages.create({
+  model: "claude-sonnet-4-6",
+  max_tokens=1024,
+  messages: [
+    { role: "user", content: "Jelaskan cara kerja gateway AI dalam satu paragraf." },
+  ],
+});
+
+console.log(message.content[0].text);
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-6",
+    "max_tokens": 1024,
+    "messages": [
+      {"role": "user", "content": "Jelaskan cara kerja gateway AI."}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Header Wajib
+
+| Header | Nilai | Deskripsi |
+| :-- | :-- | :-- |
+| `x-api-key` | `nsk_...` | API key Neosantara Anda. |
+| `anthropic-version` | `2023-06-01` | Versi protokol API Anthropic. |
+| `Content-Type` | `application/json` | Format payload permintaan. |
+
+## Perbedaan Protokol Anthropic vs OpenAI
+
+| Konsep | Anthropic Messages | OpenAI Chat Completions |
+| :-- | :-- | :-- |
+| **System Prompt** | Parameter `system` di tingkat atas request | Objek dengan `role: "system"` di dalam `messages` |
+| **Batas Output** | Parameter `max_tokens` bersifat wajib | Parameter `max_tokens` opsional (ada default model) |
+| **Output Pesan** | Array objek konten: `content[0].text` | Objek pilihan tunggal: `choices[0].message.content` |
+| **Base URL** | `https://api.neosantara.xyz/anthropic` | `https://api.neosantara.xyz/v1` |
+
+## Fitur Lanjutan
+
+| Fitur | Panduan |
+| :-- | :-- |
+| Streaming respons Claude | [Streaming Respons](/id/gateway/anthropic-messages/streaming) |
+| Tool use Anthropic | [Tool Use Anthropic](/id/gateway/anthropic-messages/tool-use) |
+| Model reasoning & extended thinking | [Extended Thinking](/id/gateway/anthropic-messages/thinking) |
+| Input gambar multimodal | [Vision Anthropic](/id/gateway/anthropic-messages/vision) |

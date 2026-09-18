@@ -1,0 +1,127 @@
+---
+title: "MCP Connector"
+description: "Connect Neosantara AI models to your remote MCP servers automatically."
+icon: "puzzle"
+related:
+  - /en/agents/mcp-keys
+  - /en/agents/cursor
+  - /en/gateway/chat-completions/tool-calling
+---
+
+Neosantara MCP Connector allows the gateway to act as an **MCP Client**. You can attach remote MCP servers to your chat requests, and the gateway discovers tools, executes them, and returns final responses within a single inference round.
+
+<CodeGroup>
+
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Check our staging server health status."}
+    ],
+    tools=[
+        {
+            "type": "mcp",
+            "server_label": "infra",
+            "server_url": "https://mcp.internal-tools.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer internal_mcp_token"
+            },
+            "allowed_tools": ["check_health", "list_instances"]
+        }
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+```python Python (Anthropic Format) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "user", "content": "Fetch recent bug tickets in the repository."}
+    ],
+    extra_body={
+        "mcp_servers": [
+            {
+                "type": "url",
+                "name": "github",
+                "url": "https://mcp.github-service.example.com/sse",
+                "authorization_token": "gh_secret_token"
+            }
+        ]
+    }
+)
+
+print(response.choices[0].message.content)
+```
+
+```bash cURL icon="terminal"
+curl -X POST https://api.neosantara.xyz/v1/chat/completions \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {"role": "user", "content": "Check main warehouse inventory."}
+    ],
+    "tools": [
+      {
+        "type": "mcp",
+        "server_label": "inventory",
+        "server_url": "https://mcp.warehouse.example.com/mcp",
+        "headers": {
+          "Authorization": "Bearer wh_token_123"
+        }
+      }
+    ]
+  }'
+```
+
+</CodeGroup>
+
+## Execution Flow
+
+1. **Outbound Connection:** The gateway establishes a connection to your specified MCP servers (Streamable HTTP with SSE fallback).
+2. **Tool Discovery:** The gateway queries `listTools` on the remote server and filters tools based on `allowed_tools` if provided.
+3. **Tool Namespacing:** Remote tools are injected into the model schema using the `server__tool_name` format.
+4. **Agentic Loop:** When the model invokes a remote tool, the gateway executes the call against the remote server, formats the result, and continues the conversation until a final response is generated.
+
+## Payload Specification Formats
+
+Neosantara supports two MCP server specification formats:
+
+| Format | Parameter Location | Required Fields | Notes |
+| :--- | :--- | :--- | :--- |
+| **OpenAI Responses** | `tools` array with `type: "mcp"` | `server_label`, `server_url` | Supports custom authorization headers and `allowed_tools`. |
+| **Anthropic Native** | Root body `mcp_servers` array | `name`, `url`, `type: "url"` | Standard Anthropic MCP format with `authorization_token`. |
+
+## Security & Constraints
+
+- **Mandatory HTTPS:** Remote MCP servers must use `https://`. Requests using `http://` fail with an `invalid_mcp_url` error.
+- **SSRF Guard:** The gateway blocks `localhost`, cloud metadata addresses (`169.254.169.254`), and private RFC 1918 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+- **Server Limit:** Up to 8 remote MCP servers per request.
+- **Connection Timeout:** 15 seconds per remote server.
+
+## Next Steps
+
+| Task | Guide |
+| :--- | :--- |
+| Manage MCP Gateway Keys | [MCP API Keys](/en/agents/mcp-keys) |
+| Connect Coding IDEs | [Cursor Integration](/en/agents/cursor) |
+| Run Claude Code | [Claude Code Guide](/en/agents/claude-code) |

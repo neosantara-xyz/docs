@@ -1,0 +1,33 @@
+---
+title: "Coding Plan Usage Policy"
+description: "Fair-use policies, account rules, and operational guidelines for Neosantara Coding Plan subscribers."
+icon: "shield-check"
+related:
+  - /en/coding-plan/overview
+  - /en/coding-plan/quota-and-limits
+---
+
+Neosantara Coding Plan is designed specifically for individual software developers using AI-assisted workflows. Usage is governed by the following fair-use terms.
+
+## Acceptable Use Guidelines
+
+1. **Dedicated to Software Development**: The plan is restricted to coding workflows routing through `/coding/v1` and `/coding/anthropic` via supported coding clients.
+2. **Single-User Credential**: Coding keys are personal to your account. Sharing keys among multiple developers or proxying requests across an organization is prohibited.
+3. **No Resale or Redistribution**: Reselling access or wrapping coding endpoints inside commercial third-party proxies is strictly prohibited.
+4. **No Abuse Automation**: Automated scripts engineered to bypass prompt quotas or evade rate limits are prohibited.
+
+## Policy Enforcement
+
+| Window | Enforcement Policy |
+| :-- | :-- |
+| **Rolling 5-Hour** | Hard-stop when quota is reached; resets automatically 5 hours later. |
+| **Weekly** | Hard-stop when weekly quota is reached; resets 7 days from plan activation. |
+
+- **No Overdraft**: Accounts are never assessed overage fees. When limits are reached, subsequent requests return informative errors until the next reset window.
+- **Dynamic Load Balancing**: Multipliers for flagship models may scale to 3× during upstream provider strain to preserve throughput stability across all subscribers.
+
+## Data Protection & Privacy
+
+- Prompts and source code are never used to train machine learning models.
+- Operational logs are retained solely for billing verification, error diagnosis, and fraud prevention.
+- Security architecture complies with Indonesian Personal Data Protection standards (UU PDP No. 27/2022).
