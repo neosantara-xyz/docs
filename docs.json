@@ -61,6 +61,12 @@
     },
     "playground": {
       "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        ""
+      ],
+      "prefill": true
     }
   },
   "contextual": {
@@ -69,8 +75,13 @@
       "mcp",
       "cursor",
       "chatgpt",
-      "claude"
-    ]
+      "claude",
+      "download-pdf",
+      "aistudio",
+      "vscode",
+      "assistant"
+    ],
+    "display": "toc"
   },
   "footer": {
     "socials": {
@@ -3718,5 +3729,30 @@
   "banner": {
     "content": "Get a Virtual Private Server for just Rp 20,000 - the perfect fit for your server needs. [Get here](https://bihost.my.id/?utm_source=neosantara_docs&utm_campaign=banner-sale&utm_content=banner-docs)",
     "dismissible": false
+  },
+  "interaction": {
+    "drilldown": false
+  },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "ayu-dark",
+        "dark": "andromeeda"
+      }
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-LTC6L7QF4V"
+    },
+    "gtm": {
+      "tagId": "GTM-MFMNKF36"
+    },
+    "intercom": {
+      "appId": "via3388f"
+    },
+    "telemetry": {
+      "enabled": true
+    }
   }
 }
