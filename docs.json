@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "sequoia",
   "name": "Neosantara",
   "colors": {
     "primary": "#D97706",
@@ -11,7 +11,8 @@
     "color": {
       "light": "#FFFFFF",
       "dark": "#111113"
-    }
+    },
+    "decoration": "grid"
   },
   "fonts": {
     "heading": {
