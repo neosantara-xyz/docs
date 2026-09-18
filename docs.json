@@ -3754,5 +3754,12 @@
     "telemetry": {
       "enabled": true
     }
+  },
+  "errors": {
+    "404": {
+      "redirect": false,
+      "title": "Page Not Found",
+      "description": "Oops! We couldn't find the page you're looking for. You can try searching our documentation or return to the [Dashboard](https://app.neosantara.xyz/dashboard)."
+    }
   }
 }
