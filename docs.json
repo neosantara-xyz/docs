@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "sequoia",
+  "theme": "willow",
   "name": "Neosantara",
   "colors": {
     "primary": "#D97706",
     "light": "#F59E0B",
-    "dark": "#B45309"
+    "dark": "#A34700"
   },
   "background": {
     "color": {
@@ -3714,5 +3714,9 @@
       "source": "/models/longcat-flash-thinking",
       "destination": "/id/gateway/models"
     }
-  ]
+  ],
+  "banner": {
+    "content": "Get a Virtual Private Server for just Rp 20,000 - the perfect fit for your server needs. [Get here](https://bihost.my.id/?utm_source=neosantara_docs&utm_campaign=banner-sale&utm_content=banner-docs)",
+    "dismissible": false
+  }
 }
