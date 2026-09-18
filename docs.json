@@ -404,10 +404,15 @@
           },
           {
             "tab": "FAQ",
-            "pages": [
-              "id/guides/faq"
-            ],
-            "icon": "circle-help"
+            "icon": "circle-help",
+            "groups": [
+              {
+                "group": "FAQ",
+                "pages": [
+                  "id/guides/faq"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -713,10 +718,15 @@
           },
           {
             "tab": "FAQ",
-            "pages": [
-              "en/guides/faq"
-            ],
-            "icon": "circle-help"
+            "icon": "circle-help",
+            "groups": [
+              {
+                "group": "FAQ",
+                "pages": [
+                  "en/guides/faq"
+                ]
+              }
+            ]
           }
         ]
       }
