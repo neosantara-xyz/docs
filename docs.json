@@ -3732,7 +3732,7 @@
     "codeblocks": {
       "theme": {
         "light": "ayu-dark",
-        "dark": "light-plus"
+        "dark": "catppuccin-latte"
       }
     }
   },
