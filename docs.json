@@ -17,7 +17,10 @@
   "icons": {
     "library": "lucide"
   },
-  "favicon": "/favicon.svg",
+  "favicon": {
+    "light": "/images/favicon.ico",
+    "dark": "/images/favicon.ico"
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
@@ -392,35 +395,19 @@
               {
                 "group": "Panduan",
                 "pages": [
-                  "id/guides/overview"
-                ],
-                "icon": "book-open"
-              },
-              {
-                "group": "Operasional & Keamanan",
-                "pages": [
                   "id/guides/rate-limits",
                   "id/guides/guardrails",
-                  "id/guides/webhooks"
+                  "id/guides/webhooks",
+                  "id/guides/rlms"
                 ],
                 "icon": "shield-check"
-              },
-              {
-                "group": "Teknik AI Lanjutan",
-                "pages": [
-                  "id/guides/prompt-caching",
-                  "id/guides/rlms",
-                  "id/guides/rag-chromadb",
-                  "id/guides/rag-cloudflare-vectorize"
-                ],
-                "icon": "brain-circuit"
               }
             ],
             "icon": "book-open"
           },
           {
             "tab": "FAQ",
-            "icon": "circle-help",
+            "icon": "badge-question-mark",
             "groups": [
               {
                 "group": "FAQ",
@@ -722,35 +709,19 @@
               {
                 "group": "Guides",
                 "pages": [
-                  "en/guides/overview"
-                ],
-                "icon": "book-open"
-              },
-              {
-                "group": "Operations & Security",
-                "pages": [
                   "en/guides/rate-limits",
                   "en/guides/guardrails",
-                  "en/guides/webhooks"
+                  "en/guides/webhooks",
+                  "en/guides/rlms"
                 ],
                 "icon": "shield-check"
-              },
-              {
-                "group": "Advanced AI Techniques",
-                "pages": [
-                  "en/guides/prompt-caching",
-                  "en/guides/rlms",
-                  "en/guides/rag-chromadb",
-                  "en/guides/rag-cloudflare-vectorize"
-                ],
-                "icon": "brain-circuit"
               }
             ],
             "icon": "book-open"
           },
           {
             "tab": "FAQ",
-            "icon": "circle-help",
+            "icon": "badge-question-mark",
             "groups": [
               {
                 "group": "FAQ",
@@ -3748,7 +3719,11 @@
   ],
   "banner": {
     "content": "Get a Virtual Private Server for just Rp 20,000 - the perfect fit for your server needs. [Get here](https://bihost.my.id/?utm_source=neosantara_docs&utm_campaign=banner-sale&utm_content=banner-docs)",
-    "dismissible": false
+    "dismissible": false,
+    "color": {
+      "light": "#000000",
+      "dark": "#FFFFFF"
+    }
   },
   "interaction": {
     "drilldown": false
@@ -3757,7 +3732,7 @@
     "codeblocks": {
       "theme": {
         "light": "ayu-dark",
-        "dark": "andromeeda"
+        "dark": "kanagawa-dragon"
       }
     }
   },
