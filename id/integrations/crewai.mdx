@@ -25,16 +25,16 @@ pip install -U crewai
 
 ## Inisialisasi LLM
 
-Gunakan kelas `crewai.LLM` dengan prefix `openai/` untuk menghubungkan model Neosantara ke agent CrewAI.
+Gunakan kelas `crewai.LLM` dengan prefix provider `neosantara/<model>` untuk menghubungkan model Neosantara ke agent CrewAI. Kredensial dapat diteruskan secara eksplisit atau dibaca otomatis dari environment variable `NEOSANTARA_API_KEY`.
 
 ```python
 import os
 from crewai import LLM
 
+# Inisialisasi model dengan prefix neosantara/
 llm = LLM(
-    model="openai/deepseek-v4.1-flash",
-    api_key=os.environ["NEOSANTARA_API_KEY"],
-    base_url="https://api.neosantara.xyz/v1"
+    model="neosantara/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
 )
 ```
 
@@ -47,9 +47,8 @@ import os
 from crewai import Agent, Task, Crew, Process, LLM
 
 llm = LLM(
-    model="openai/deepseek-v4.1-flash",
-    api_key=os.environ["NEOSANTARA_API_KEY"],
-    base_url="https://api.neosantara.xyz/v1"
+    model="neosantara/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
 )
 
 # Definisikan Agent
@@ -98,9 +97,9 @@ print(result)
 
 | Peran Agent | Rekomendasi Model | Alasan Pemilihan |
 | :-- | :-- | :-- |
-| **Orchestrator / Manager** | `claude-4.5-sonnet` | Kepatuhan perencanaan multi-langkah dan pendelegasian tugas |
-| **Researcher & Deep Reasoning** | `deepseek-v4.1-flash` | Analisis mendalam dengan jendela konteks 1M token |
-| **Fast Task Worker & Formatter** | `gemini-3.8-flash` | Kecepatan eksekusi tinggi dan efisiensi biaya untuk tugas parsing |
+| **Orchestrator / Manager** | `neosantara/claude-4.5-sonnet` | Kepatuhan perencanaan multi-langkah dan pendelegasian tugas |
+| **Researcher & Deep Reasoning** | `neosantara/deepseek-v4.1-flash` | Analisis mendalam dengan jendela konteks 1M token |
+| **Fast Task Worker & Formatter** | `neosantara/gemini-3.8-flash` | Kecepatan eksekusi tinggi dan efisiensi biaya untuk tugas parsing |
 
 ## Langkah Berikutnya
 

@@ -25,16 +25,16 @@ pip install -U crewai
 
 ## LLM Initialization
 
-Use the `crewai.LLM` class with the `openai/` model prefix to connect Neosantara models to your CrewAI agents.
+Use the `crewai.LLM` class with the `neosantara/<model>` provider prefix to connect Neosantara models to your CrewAI agents. Credentials can be passed explicitly or automatically loaded from the `NEOSANTARA_API_KEY` environment variable.
 
 ```python
 import os
 from crewai import LLM
 
+# Initialize model using neosantara/ prefix
 llm = LLM(
-    model="openai/deepseek-v4.1-flash",
-    api_key=os.environ["NEOSANTARA_API_KEY"],
-    base_url="https://api.neosantara.xyz/v1"
+    model="neosantara/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
 )
 ```
 
@@ -47,9 +47,8 @@ import os
 from crewai import Agent, Task, Crew, Process, LLM
 
 llm = LLM(
-    model="openai/deepseek-v4.1-flash",
-    api_key=os.environ["NEOSANTARA_API_KEY"],
-    base_url="https://api.neosantara.xyz/v1"
+    model="neosantara/gemini-3.8-flash",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
 )
 
 # Define Agents
@@ -98,9 +97,9 @@ print(result)
 
 | Agent Role | Recommended Model | Rationale |
 | :-- | :-- | :-- |
-| **Orchestrator / Manager** | `claude-4.5-sonnet` | Reliable multi-step planning and structured task delegation |
-| **Researcher & Deep Reasoning** | `deepseek-v4.1-flash` | Thorough analytical output with a 1M token context window |
-| **Fast Worker & Formatter** | `gemini-3.8-flash` | High throughput and cost efficiency for formatting and quick lookups |
+| **Orchestrator / Manager** | `neosantara/claude-4.5-sonnet` | Reliable multi-step planning and structured task delegation |
+| **Researcher & Deep Reasoning** | `neosantara/deepseek-v4.1-flash` | Thorough analytical output with a 1M token context window |
+| **Fast Worker & Formatter** | `neosantara/gemini-3.8-flash` | High throughput and cost efficiency for formatting and quick lookups |
 
 ## Next Steps
 

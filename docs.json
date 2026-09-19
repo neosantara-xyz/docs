@@ -395,19 +395,35 @@
               {
                 "group": "Panduan",
                 "pages": [
+                  "id/guides/overview"
+                ],
+                "icon": "book-open"
+              },
+              {
+                "group": "Operasional & Keamanan",
+                "pages": [
                   "id/guides/rate-limits",
                   "id/guides/guardrails",
-                  "id/guides/webhooks",
-                  "id/guides/rlms"
+                  "id/guides/webhooks"
                 ],
                 "icon": "shield-check"
+              },
+              {
+                "group": "Teknik AI Lanjutan",
+                "pages": [
+                  "id/guides/prompt-caching",
+                  "id/guides/rlms",
+                  "id/guides/rag-chromadb",
+                  "id/guides/rag-cloudflare-vectorize"
+                ],
+                "icon": "brain-circuit"
               }
             ],
             "icon": "book-open"
           },
           {
             "tab": "FAQ",
-            "icon": "badge-question-mark",
+            "icon": "badge-help",
             "groups": [
               {
                 "group": "FAQ",
@@ -709,19 +725,35 @@
               {
                 "group": "Guides",
                 "pages": [
+                  "en/guides/overview"
+                ],
+                "icon": "book-open"
+              },
+              {
+                "group": "Operations & Security",
+                "pages": [
                   "en/guides/rate-limits",
                   "en/guides/guardrails",
-                  "en/guides/webhooks",
-                  "en/guides/rlms"
+                  "en/guides/webhooks"
                 ],
                 "icon": "shield-check"
+              },
+              {
+                "group": "Advanced AI Techniques",
+                "pages": [
+                  "en/guides/prompt-caching",
+                  "en/guides/rlms",
+                  "en/guides/rag-chromadb",
+                  "en/guides/rag-cloudflare-vectorize"
+                ],
+                "icon": "brain-circuit"
               }
             ],
             "icon": "book-open"
           },
           {
             "tab": "FAQ",
-            "icon": "badge-question-mark",
+            "icon": "badge-help",
             "groups": [
               {
                 "group": "FAQ",
