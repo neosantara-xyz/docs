@@ -1,0 +1,37 @@
+---
+title: "Guides"
+description: "Operational, security, prompt optimization, RLM, and RAG pipeline guides for Neosantara."
+---
+
+Choose a guide based on your application's operational needs or the AI technique you want to implement.
+
+## Operations & Security
+
+<CardGroup cols={3}>
+  <Card title="Rate Limits" icon="gauge" href="/en/guides/rate-limits">
+    Review RPM, ITPM, and OTPM limits for each tier and handle HTTP 429 responses.
+  </Card>
+  <Card title="Guardrails" icon="shield-check" href="/en/guides/guardrails">
+    Enable automated PII redaction to protect personal data in model requests.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/en/guides/webhooks">
+    Verify signatures and process asynchronous events from Neosantara.
+  </Card>
+</CardGroup>
+
+## Advanced AI Techniques
+
+<CardGroup cols={2}>
+  <Card title="Prompt Caching" icon="bolt" href="/en/guides/prompt-caching">
+    Reuse static context to reduce latency and input token costs.
+  </Card>
+  <Card title="Recursive Language Models" icon="code" href="/en/guides/rlms">
+    Process long contexts recursively with [DSPy](https://dspy.ai/?utm_source=neosantara-docs&utm_medium=referral) and an isolated Python REPL.
+  </Card>
+  <Card title="RAG with ChromaDB" icon="database" href="/en/guides/rag-chromadb">
+    Build a local RAG pipeline with Neosantara embeddings and [ChromaDB](https://www.trychroma.com/?utm_source=neosantara-docs&utm_medium=referral).
+  </Card>
+  <Card title="RAG with Cloudflare Vectorize" icon="cloud" href="/en/guides/rag-cloudflare-vectorize">
+    Run vector search and RAG pipelines on [Cloudflare](https://www.cloudflare.com/?utm_source=neosantara-docs&utm_medium=referral)'s edge network.
+  </Card>
+</CardGroup>

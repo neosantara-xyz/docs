@@ -1,0 +1,197 @@
+---
+title: "Prompt Caching & Optimasi Biaya"
+sidebarTitle: "Prompt Caching"
+description: "Strategi pemotongan biaya token hingga 90% menggunakan automatic prefix caching dan explicit cache control di gateway Neosantara."
+icon: "database"
+related:
+  - /id/gateway/chat-completions
+  - /id/gateway/anthropic-messages
+  - /id/gateway/models
+  - /id/guides/rate-limits
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Prompt caching menyimpan prefix token yang sering digunakan (seperti system prompt panjang, spesifikasi API tools, atau basis dokumen referensi) di memori gateway upstream. Permintaan berikutnya dengan prefix yang sama mendapatkan diskon biaya input token hingga 90% dan penurunan latensi waktu-ke-token-pertama (TTFT).
+
+Gateway Neosantara mendukung dua mekanisme caching: **Automatic Prefix Caching** pada model [OpenAI](https://openai.com/?utm_source=neosantara-docs&utm_medium=referral)/[DeepSeek](https://www.deepseek.com/?utm_source=neosantara-docs&utm_medium=referral)/[Gemini](https://ai.google.dev/gemini-api/docs?utm_source=neosantara-docs&utm_medium=referral), dan **Explicit Ephemeral Caching** pada model [Anthropic](https://www.anthropic.com/?utm_source=neosantara-docs&utm_medium=referral) [Claude](https://www.anthropic.com/claude?utm_source=neosantara-docs&utm_medium=referral).
+
+## Contoh Implementasi
+
+<CodeGroup>
+
+```python Automatic Caching (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Prefix statis panjang (>1.024 token) otomatis disimpan ke cache oleh model
+system_prompt = "Anda adalah auditor kepatuhan hukum Indonesia. " + ("Referensi pasal UU PDP... " * 120)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": "Apakah penyimpanan NIK tanpa enkripsi melanggar UU PDP?"}
+    ]
+)
+
+usage = response.usage
+cached = getattr(usage.prompt_tokens_details, "cached_tokens", 0) if usage.prompt_tokens_details else 0
+
+print(f"Total Input Tokens  : {usage.prompt_tokens}")
+print(f"Tokens dari Cache   : {cached}")
+print(f"Tokens Tidak Dicache: {usage.prompt_tokens - cached}")
+```
+
+```python Explicit Caching (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Tambahkan cache_control ephemeral pada blok teks statis
+long_knowledge_base = "Dokumen SOP Perusahaan 2026...\n" + ("Pasal operasional standar... " * 150)
+
+response = client.messages.create(
+    model="claude-fable-5.1",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "Anda adalah asisten operasional internal.",
+        },
+        {
+            "type": "text",
+            "text": long_knowledge_base,
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[
+        {"role": "user", "content": "Berapa batas pengajuan reimbursement bulanan?"}
+    ]
+)
+
+usage = response.usage
+print(f"Tokens Input Baru   : {usage.input_tokens}")
+print(f"Tokens Cache Creation: {getattr(usage, 'cache_creation_input_tokens', 0)}")
+print(f"Tokens Cache Read    : {getattr(usage, 'cache_read_input_tokens', 0)}")
+```
+
+```bash cURL (Anthropic Endpoint) icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-fable-5.1",
+    "max_tokens": 1024,
+    "system": [
+      {
+        "type": "text",
+        "text": "Basis data referensi statis panjang...",
+        "cache_control": {"type": "ephemeral"}
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "Ringkas poin utama dokumen di atas."}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+<CardGroup cols={2}>
+  <Card title="Katalog Model & Harga" icon="list" href="/id/gateway/models">
+    Daftar harga input, output, dan diskon cache per 1 juta token dalam Rupiah.
+  </Card>
+  <Card title="Batas Rate & ITPM" icon="gauge" href="/id/guides/rate-limits">
+    Pengaruh estimasi token pre-flight terhadap limit Input Tokens Per Minute.
+  </Card>
+</CardGroup>
+
+## Perbandingan Mekanisme Caching
+
+| Dimensi | Automatic Prefix Caching | Explicit Ephemeral Caching |
+| :--- | :--- | :--- |
+| **Pemicu Cache** | Deteksi otomatis kesamaan urutan token dari index awal | Penandaan blok secara eksplisit via atribut `cache_control` |
+| **Konfigurasi Klien** | Nol (tanpa header atau parameter khusus) | Objek `cache_control: {"type": "ephemeral"}` pada array pesan/sistem |
+| **Panjang Minimum Prefix** | $\ge 1.024$ token | $\ge 1.024$ token |
+| **Format Metrik Respons** | `usage.prompt_tokens_details.cached_tokens` | `usage.cache_read_input_tokens` (pada event `message_delta` saat streaming) |
+| **Masa Retensi (TTL)** | 5 menit sejak pemanggilan terakhir | 5 menit sejak pemanggilan terakhir |
+
+## Struktur Biaya & Tagihan Rupiah
+
+Neosantara menagih token secara presisi dalam mata uang Rupiah (`NUMERIC(20,6)`). Caching membedakan tarif input ke dalam tiga kategori:
+
+1. **Uncached Input (Base Rate)**: Tarif token input standar ketika prompt pertama kali diproses.
+2. **Cache Write (Creation)**: Biaya penulisan awal prefix ke cache saat pertama kali disimpan di memori upstream.
+3. **Cache Read (Hit)**: Tarif diskon besar (antara 50% hingga 90% lebih murah dari tarif input dasar) setiap kali prefix yang sama terbaca kembali.
+
+### Simulasi Penghematan Biaya (1.000 Request)
+
+Skenario: Aplikasi customer support memuat 3.000 token SOP perusahaan pada setiap request, ditambah 200 token pesan user baru.
+
+| Metrik | Tanpa Prompt Caching | Dengan Prompt Caching | Penghematan |
+| :--- | :--- | :--- | :--- |
+| **Total Input Diproses** | 3.200.000 token | 3.200.000 token | - |
+| **Input Dikenakan Tarif Penuh** | 3.200.000 token | 203.000 token (request awal + user prompt) | **-93,6%** |
+| **Input Dikenakan Tarif Cache Read** | 0 token | 2.997.000 token (diskon s.d. 90%) | - |
+| **Estimasi Tagihan Input** | 100% biaya normal | ~16% - 25% biaya normal | **~75% - 84% lebih hemat** |
+
+## Strategi Memaksimalkan Cache Hit Rate
+
+Agar gateway dapat mendeteksi prefix yang cocok dan mengaplikasikan diskon cache, ikuti kaidah struktur prompt berikut:
+
+### 1. Letakkan Konten Statis di Awal (Static Prefix First)
+
+Cache bekerja dengan mencocokkan urutan token dari awal secara persis (*exact prefix match*). Perubahan satu karakter saja di awal prompt akan membatalkan seluruh cache setelahnya.
+
+```text
+[Urutan yang Benar - Cache HIT]
+1. Instruksi Sistem Statis        (Sama persis)  --> CACHED
+2. Definisi Tools / Schema JSON    (Sama persis)  --> CACHED
+3. Dokumen Referensi / SOP         (Sama persis)  --> CACHED
+4. Input Pesan User Terbaru        (Berubah-ubah) --> UNCACHED
+
+[Urutan yang Salah - Cache MISS]
+1. Waktu Sistem Dinamis (08:40:15) (Berubah tiap detik) --> MISS
+2. Instruksi Sistem Statis         (Tidak dicache karena prefix berubah)
+```
+
+<Tip>
+Jangan menyisipkan timestamp dinamis, ID sesi acak, atau tanggal real-time di baris pertama system prompt. Masukkan variabel yang sering berubah di bagian paling akhir pesan user.
+</Tip>
+
+### 2. Pertahankan Panjang di Atas Ambang Batas 1.024 Token
+
+Provider upstream menetapkan batas minimum 1.024 token untuk membentuk cache block. Prefix di bawah batas ini tetap diproses sebagai token input biasa tanpa diskon.
+
+### 3. Jaga Frekuensi Request di Bawah 5 Menit (Keep-Alive)
+
+Masa aktif cache adalah 5 menit sejak pemanggilan terakhir. Setiap request yang mengenai cache (*cache hit*) akan memperpanjang umur cache untuk 5 menit berikutnya. Untuk pipeline batch, kirimkan antrean pekerjaan secara berurutan agar cache tetap hangat.
+
+## Dampak terhadap Limit ITPM & Reservasi Saldo
+
+Sistem keamanan Neosantara memvalidasi batas kapasitas sebelum meneruskan panggilan ke model upstream:
+
+- **Estimasi ITPM Pre-flight**: Limit Input Tokens Per Minute dihitung secara *pre-flight* berdasarkan total token masukan. Jika kuota ITPM tier Anda mencukupi, panggilan diteruskan.
+- **Siklus Reservasi Saldo (`reserve` -> `settle` -> `refund`)**: Gateway mencadangkan saldo Rupiah di awal request berdasarkan perkiraan tarif reguler. Setelah model mengembalikan jumlah token cache hit aktual (`cache_read_input_tokens` atau `cached_tokens`), tagihan diselesaikan dengan tarif diskon dan kelebihan dana otomatis dikembalikan ke saldo akun Anda.
+
+<Note>
+Pantau rincian pengembalian dana reservasi secara transparan pada header respons `X-Neosantara-Billed-IDR` dan payload metadata transaksi di dashboard Neosantara.
+</Note>
+
+## Referensi Lanjutan
+
+- [Panduan Chat Completions](/id/gateway/chat-completions)
+- [Anthropic Messages API](/id/gateway/anthropic-messages)
+- [Batas Throughput & Rate Limits](/id/guides/rate-limits)
+- [Katalog Model & Token Pricing](/id/gateway/models)

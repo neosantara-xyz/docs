@@ -1,0 +1,271 @@
+---
+title: "RAG with ChromaDB"
+sidebarTitle: "RAG ChromaDB"
+description: "Build a local Retrieval-Augmented Generation (RAG) pipeline using Neosantara Embeddings and ChromaDB."
+icon: "database"
+related:
+  - /en/gateway/capabilities/embeddings
+  - /en/gateway/chat-completions
+  - /en/gateway/models
+  - /en/guides/prompt-caching
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Retrieval-Augmented Generation (RAG) connects semantic vector search with generative language models. External documents are converted into dense floating-point vector representations, indexed in a vector store, and retrieved to inject factual context into the model's prompt.
+
+![RAG Workflow](/images/alur-rag.webp)
+
+## Quickstart
+
+```python
+import os
+import chromadb
+from chromadb import Documents, EmbeddingFunction, Embeddings
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+class NeosantaraEmbeddingFunction(EmbeddingFunction):
+    def __call__(self, input: Documents) -> Embeddings:
+        response = client.embeddings.create(
+            model="nusa-embedding-0001",
+            input=input
+        )
+        return [d.embedding for d in response.data]
+
+# Initialize local in-memory ChromaDB vector store
+chroma_client = chromadb.Client()
+collection = chroma_client.create_collection(
+    name="vehicle_manual",
+    embedding_function=NeosantaraEmbeddingFunction()
+)
+
+# Populate reference documents
+collection.add(
+    documents=[
+        "Cabin temperature is adjusted via the center knob. Turn clockwise to raise heat.",
+        "Automatic transmission: P for park, R for reverse, N for neutral, D for drive.",
+        "The 12-inch touchscreen controls GPS navigation, media playback, and diagnostics."
+    ],
+    ids=["doc1", "doc2", "doc3"]
+)
+
+# Retrieve top matching passage and synthesize answer
+query = "How do I change the cabin temperature?"
+results = collection.query(query_texts=[query], n_results=1)
+relevant_context = results["documents"][0][0]
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": f"Answer based strictly on this reference context:\n\n{relevant_context}"},
+        {"role": "user", "content": query}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+<CardGroup cols={2}>
+  <Card title="Embeddings Capability" icon="binary" href="/en/gateway/capabilities/embeddings">
+    Specifications for /v1/embeddings parameters and vector formatting.
+  </Card>
+  <Card title="Model Catalog" icon="list" href="/en/gateway/models">
+    Browse available embedding models including nusa-embedding-0001 and nv-embed-v1.
+  </Card>
+</CardGroup>
+
+## Step-by-Step Implementation
+
+<Steps>
+  <Step title="Install Dependencies">
+    Install required Python libraries for [OpenAI](https://openai.com/?utm_source=neosantara-docs&utm_medium=referral) SDK and [ChromaDB](https://www.trychroma.com/?utm_source=neosantara-docs&utm_medium=referral):
+
+    ```bash
+    pip install -U openai chromadb numpy pandas
+    ```
+
+    <SetApiKey />
+  </Step>
+
+  <Step title="Define Custom Embedding Function">
+    ChromaDB allows custom embedding wrappers to direct vectorization requests to Neosantara's `/v1/embeddings` endpoint:
+
+    ```python
+    import chromadb
+    from chromadb import Documents, EmbeddingFunction, Embeddings
+    from openai import OpenAI
+    import os
+
+    client = OpenAI(
+        base_url="https://api.neosantara.xyz/v1",
+        api_key=os.environ["NEOSANTARA_API_KEY"]
+    )
+
+    EMBEDDING_MODEL = "nusa-embedding-0001"
+    CHAT_MODEL = "deepseek-v4.1-flash"
+
+    class NeosantaraEmbeddingFunction(EmbeddingFunction):
+        def __call__(self, input: Documents) -> Embeddings:
+            response = client.embeddings.create(
+                model=EMBEDDING_MODEL,
+                input=input
+            )
+            return [d.embedding for d in response.data]
+    ```
+  </Step>
+
+  <Step title="Index Knowledge Base in ChromaDB">
+    Populate documents into a Chroma collection. The embedding function automatically projects each passage into a 768-dimensional vector space:
+
+    ```python
+    def setup_knowledge_base(docs, collection_name="company_sop"):
+        chroma_client = chromadb.Client()
+        try:
+            chroma_client.delete_collection(name=collection_name)
+        except Exception:
+            pass
+
+        db = chroma_client.create_collection(
+            name=collection_name,
+            embedding_function=NeosantaraEmbeddingFunction()
+        )
+
+        for i, text in enumerate(docs):
+            db.add(
+                documents=[text],
+                ids=[f"id_{i}"]
+            )
+        return db
+    ```
+  </Step>
+
+  <Step title="Vector Retrieval & Grounded Generation">
+    Retrieve the closest matching passages using cosine similarity and prompt the chat completion model with grounded context:
+
+    ```python
+    def generate_grounded_answer(query: str, db, n_results: int = 2):
+        # 1. Retrieval
+        results = db.query(query_texts=[query], n_results=n_results)
+        matched_docs = results["documents"][0] if results and results["documents"] else []
+        
+        if not matched_docs:
+            return "No relevant information found in the knowledge base."
+
+        context_text = "\n---\n".join(matched_docs)
+
+        # 2. Augmented Generation
+        prompt = (
+            "You are a grounded assistant. Answer the user query using only the "
+            "provided reference passages. If the information is not contained within "
+            "the context, state clearly that it is not available.\n\n"
+            f"REFERENCE CONTEXT:\n{context_text}\n\n"
+            f"USER QUERY: {query}\n\n"
+            "ANSWER:"
+        )
+
+        response = client.chat.completions.create(
+            model=CHAT_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        return response.choices[0].message.content
+    ```
+  </Step>
+</Steps>
+
+## Complete Production Script
+
+```python rag_chroma_complete.py
+import os
+import chromadb
+from chromadb import Documents, EmbeddingFunction, Embeddings
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+EMBEDDING_MODEL = "nusa-embedding-0001"
+CHAT_MODEL = "deepseek-v4.1-flash"
+
+class NeosantaraEmbeddingFunction(EmbeddingFunction):
+    def __call__(self, input: Documents) -> Embeddings:
+        response = client.embeddings.create(
+            model=EMBEDDING_MODEL,
+            input=input
+        )
+        return [d.embedding for d in response.data]
+
+documents = [
+    (
+        "Climate Control: Cabin temperature is adjusted via the center console knob. "
+        "Turn clockwise to increase heat and counter-clockwise to cool. "
+        "Defrost mode directs heated airflow directly onto the windshield to clear fog."
+    ),
+    (
+        "Touchscreen Navigation: The 12-inch display provides live GPS routing, "
+        "Bluetooth connectivity, and vehicle profiles. "
+        "Press the gear icon on the top right to open diagnostic settings."
+    ),
+    (
+        "Powertrain & Braking: The electric single-speed drive engages instantly. "
+        "Depress the brake pedal fully before pressing the Start/Stop button."
+    )
+]
+
+chroma_client = chromadb.Client()
+collection = chroma_client.create_collection(
+    name="car_manual",
+    embedding_function=NeosantaraEmbeddingFunction()
+)
+
+for idx, doc in enumerate(documents):
+    collection.add(documents=[doc], ids=[f"doc_{idx}"])
+
+def ask_rag(question: str):
+    print(f"\nQuery: {question}")
+    results = collection.query(query_texts=[question], n_results=1)
+    passage = results["documents"][0][0]
+
+    response = client.chat.completions.create(
+        model=CHAT_MODEL,
+        messages=[
+            {
+                "role": "system",
+                "content": "Provide concise, grounded answers strictly derived from the reference context."
+            },
+            {
+                "role": "user",
+                "content": f"Reference Context:\n{passage}\n\nQuestion: {question}"
+            }
+        ],
+        temperature=0.1
+    )
+    print(f"AI Answer: {response.choices[0].message.content}")
+
+if __name__ == "__main__":
+    ask_rag("How do I clear fog from the windshield?")
+    ask_rag("What is the touchscreen display size?")
+    ask_rag("Does the vehicle have a coffee maker?")
+```
+
+<Tip>
+Set `temperature=0` or `0.1` during the generation stage to minimize hallucinations and enforce strict adherence to retrieved text.
+</Tip>
+
+<Note>
+The `nusa-embedding-0001` model yields 768-dimensional vector embeddings and is included in Neosantara's tier quota without separate vector charges.
+</Note>
+
+## Related Resources
+
+- [RAG with Cloudflare Vectorize](/en/guides/rag-cloudflare-vectorize)
+- [Prompt Caching & Cost Optimization](/en/guides/prompt-caching)
+- [Embeddings Endpoint](/en/gateway/capabilities/embeddings)
+- [Model Catalog & Token Pricing](/en/gateway/models)

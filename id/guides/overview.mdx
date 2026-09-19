@@ -1,0 +1,37 @@
+---
+title: "Panduan"
+description: "Panduan operasional, keamanan, optimasi prompt, RLMs, dan pipeline RAG dengan Neosantara."
+---
+
+Pilih panduan berdasarkan kebutuhan operasional aplikasi atau teknik AI yang ingin Anda implementasikan.
+
+## Operasional & Keamanan
+
+<CardGroup cols={3}>
+  <Card title="Rate Limits" icon="gauge" href="/id/guides/rate-limits">
+    Cek batas RPM, ITPM, dan OTPM untuk setiap tier serta cara menangani respons HTTP 429.
+  </Card>
+  <Card title="Guardrails" icon="shield-check" href="/id/guides/guardrails">
+    Aktifkan redaksi PII otomatis untuk melindungi data pribadi pada request model.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/id/guides/webhooks">
+    Verifikasi signature dan proses event asynchronous dari Neosantara.
+  </Card>
+</CardGroup>
+
+## Teknik AI Lanjutan
+
+<CardGroup cols={2}>
+  <Card title="Prompt Caching" icon="bolt" href="/id/guides/prompt-caching">
+    Gunakan ulang konteks statis untuk menekan latensi dan biaya input token.
+  </Card>
+  <Card title="Recursive Language Models" icon="code" href="/id/guides/rlms">
+    Proses konteks panjang secara rekursif dengan [DSPy](https://dspy.ai/?utm_source=neosantara-docs&utm_medium=referral) dan Python REPL terisolasi.
+  </Card>
+  <Card title="RAG dengan ChromaDB" icon="database" href="/id/guides/rag-chromadb">
+    Bangun pipeline RAG lokal dengan embedding Neosantara dan [ChromaDB](https://www.trychroma.com/?utm_source=neosantara-docs&utm_medium=referral).
+  </Card>
+  <Card title="RAG dengan Cloudflare Vectorize" icon="cloud" href="/id/guides/rag-cloudflare-vectorize">
+    Jalankan pencarian vektor dan pipeline RAG pada jaringan edge [Cloudflare](https://www.cloudflare.com/?utm_source=neosantara-docs&utm_medium=referral).
+  </Card>
+</CardGroup>

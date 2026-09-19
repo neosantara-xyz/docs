@@ -1,0 +1,197 @@
+---
+title: "Prompt Caching & Cost Optimization"
+sidebarTitle: "Prompt Caching"
+description: "Cut token costs by up to 90% using automatic prefix caching and explicit cache control in the Neosantara gateway."
+icon: "database"
+related:
+  - /en/gateway/chat-completions
+  - /en/gateway/anthropic-messages
+  - /en/gateway/models
+  - /en/guides/rate-limits
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Prompt caching retains frequently reused token prefixes, such as system instructions, tool schemas, or reference documentation, in upstream model memory. Subsequent requests sharing the identical prefix receive up to a 90% discount on input token costs along with substantial reductions in time-to-first-token (TTFT) latency.
+
+The Neosantara gateway supports two caching mechanisms: **Automatic Prefix Caching** for [OpenAI](https://openai.com/?utm_source=neosantara-docs&utm_medium=referral), [DeepSeek](https://www.deepseek.com/?utm_source=neosantara-docs&utm_medium=referral), and [Gemini](https://ai.google.dev/gemini-api/docs?utm_source=neosantara-docs&utm_medium=referral) models, and **Explicit Ephemeral Caching** for [Anthropic](https://www.anthropic.com/?utm_source=neosantara-docs&utm_medium=referral) [Claude](https://www.anthropic.com/claude?utm_source=neosantara-docs&utm_medium=referral) models.
+
+## Implementation Patterns
+
+<CodeGroup>
+
+```python Automatic Caching (OpenAI SDK) icon="python"
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Long static prefixes (>1,024 tokens) are automatically cached by upstream providers
+system_prompt = "You are a legal compliance auditor. " + ("Relevant statutory text... " * 120)
+
+response = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": "Does unencrypted personal data storage violate statutory privacy rules?"}
+    ]
+)
+
+usage = response.usage
+cached = getattr(usage.prompt_tokens_details, "cached_tokens", 0) if usage.prompt_tokens_details else 0
+
+print(f"Total Input Tokens  : {usage.prompt_tokens}")
+print(f"Cached Input Tokens : {cached}")
+print(f"Uncached Tokens     : {usage.prompt_tokens - cached}")
+```
+
+```python Explicit Caching (Anthropic SDK) icon="python"
+from anthropic import Anthropic
+import os
+
+client = Anthropic(
+    base_url="https://api.neosantara.xyz/anthropic",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# Attach ephemeral cache control to large static blocks
+long_knowledge_base = "Corporate Operating Manual 2026...\n" + ("Standard operating protocols... " * 150)
+
+response = client.messages.create(
+    model="claude-fable-5.1",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "You are an internal operations assistant.",
+        },
+        {
+            "type": "text",
+            "text": long_knowledge_base,
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[
+        {"role": "user", "content": "What is the monthly reimbursement threshold?"}
+    ]
+)
+
+usage = response.usage
+print(f"Uncached Input Tokens: {usage.input_tokens}")
+print(f"Cache Creation Tokens: {getattr(usage, 'cache_creation_input_tokens', 0)}")
+print(f"Cache Read Tokens    : {getattr(usage, 'cache_read_input_tokens', 0)}")
+```
+
+```bash cURL (Anthropic Endpoint) icon="terminal"
+curl -X POST https://api.neosantara.xyz/anthropic/v1/messages \
+  -H "x-api-key: $NEOSANTARA_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-fable-5.1",
+    "max_tokens": 1024,
+    "system": [
+      {
+        "type": "text",
+        "text": "Long static reference documentation...",
+        "cache_control": {"type": "ephemeral"}
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "Summarize the key compliance checkpoints."}
+    ]
+  }'
+```
+
+</CodeGroup>
+
+<CardGroup cols={2}>
+  <Card title="Model Catalog & Pricing" icon="list" href="/en/gateway/models">
+    Per-token rates for input, output, and cache reads across all supported models.
+  </Card>
+  <Card title="Throughput & Rate Limits" icon="gauge" href="/en/guides/rate-limits">
+    Understand how pre-flight token estimation interacts with ITPM boundaries.
+  </Card>
+</CardGroup>
+
+## Architecture Comparison
+
+| Dimension | Automatic Prefix Caching | Explicit Ephemeral Caching |
+| :--- | :--- | :--- |
+| **Cache Trigger** | Automatic exact sequence matching from index zero | Explicit block declaration via `cache_control` |
+| **Client Configuration** | None (no extra headers or attributes needed) | `cache_control: {"type": "ephemeral"}` on message or system blocks |
+| **Minimum Prefix Length** | $\ge 1,024$ tokens | $\ge 1,024$ tokens |
+| **Returned Usage Metric** | `usage.prompt_tokens_details.cached_tokens` | `usage.cache_read_input_tokens` (on `message_delta` event during streaming) |
+| **Retention Window (TTL)** | 5 minutes from last request | 5 minutes from last request |
+
+## Billing Structure & Token Economics
+
+Neosantara meters usage in Rupiah with sub-cent precision (`NUMERIC(20,6)`). Caching partitions input volume into three operational tiers:
+
+1. **Uncached Input (Base Rate)**: Standard rate applied to new tokens during initial ingestion.
+2. **Cache Write (Creation)**: Rate applied during initial cache allocation in upstream memory.
+3. **Cache Read (Hit)**: Heavily discounted rate (50% to 90% below base input pricing) for all subsequent prefix matches.
+
+### Cost Savings Benchmark (1,000 Requests)
+
+Scenario: A production support agent ingests 3,000 tokens of internal policy documentation per call along with 200 tokens of novel user query.
+
+| Metric | Without Prompt Caching | With Prompt Caching | Net Reduction |
+| :--- | :--- | :--- | :--- |
+| **Total Ingested Input** | 3,200,000 tokens | 3,200,000 tokens | - |
+| **Full-Price Tokens** | 3,200,000 tokens | 203,000 tokens (initial call + user queries) | **-93.6%** |
+| **Discounted Cache Reads** | 0 tokens | 2,997,000 tokens (up to 90% discount) | - |
+| **Estimated Input Charges** | 100% standard cost | ~16% - 25% standard cost | **~75% - 84% reduction** |
+
+## Best Practices for Cache Hit Optimization
+
+Follow these deterministic structural patterns to maximize your application's cache hit ratio:
+
+### 1. Position Static Content First (Static Prefix Order)
+
+Prefix caching evaluates token sequences sequentially from index zero. Modifying a single character at the start of a prompt invalidates all downstream tokens in the cache.
+
+```text
+[Valid Sequence - Cache HIT]
+1. Static System Directives     (Exact match) --> CACHED
+2. Tool Schemas & Signatures    (Exact match) --> CACHED
+3. Long Reference Documentation (Exact match) --> CACHED
+4. Recent User Query            (Dynamic)     --> UNCACHED
+
+[Invalid Sequence - Cache MISS]
+1. Dynamic Timestamp (08:40:15) (Changes each second) --> MISS
+2. Static Directives            (Cache missed due to prefix drift)
+```
+
+<Tip>
+Avoid prepending timestamps, random session IDs, or request counters at the beginning of system prompts. Place all volatile variables at the end of the user prompt block.
+</Tip>
+
+### 2. Meet the 1,024 Token Threshold
+
+Upstream foundation models enforce a strict minimum prefix boundary (1,024 tokens) to allocate cache memory. Requests shorter than this threshold are billed at standard uncached input rates.
+
+### 3. Maintain Request Cadence Within 5 Minutes
+
+Cached prefixes persist in upstream memory for 5 minutes after their last invocation. Each successful cache hit resets this 5-minute timer. For batch workloads, dispatch tasks in sequential pipelines to keep the cache warm.
+
+## Rate Limiting & Balance Reservation Lifecycle
+
+Neosantara evaluates capacity before dispatching calls upstream:
+
+- **Pre-flight ITPM Metering**: Input Tokens Per Minute limits are evaluated pre-flight against estimated total tokens. Calls proceed only if your subscription tier retains adequate capacity.
+- **Reservation Lifecycle (`reserve` -> `settle` -> `refund`)**: The gateway reserves credits upfront using standard input estimates to prevent overdrafts. Once the upstream provider returns authoritative cache read metrics (`cache_read_input_tokens` or `cached_tokens`), the final ledger entry settles at the discounted rate and unused reserved credits return to your balance immediately.
+
+<Note>
+Inspect per-request billing settlement details via the `X-Neosantara-Billed-IDR` response header or inside the usage audit log on your dashboard.
+</Note>
+
+## Related Resources
+
+- [Chat Completions Guide](/en/gateway/chat-completions)
+- [Anthropic Messages API](/en/gateway/anthropic-messages)
+- [Throughput & Rate Limits](/en/guides/rate-limits)
+- [Model Catalog & Token Pricing](/en/gateway/models)

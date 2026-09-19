@@ -1,0 +1,270 @@
+---
+title: "RAG with Cloudflare Vectorize"
+sidebarTitle: "RAG Cloudflare Vectorize"
+description: "Build a serverless, edge-native Retrieval-Augmented Generation (RAG) pipeline using Neosantara and Cloudflare Vectorize."
+icon: "cloud"
+related:
+  - /en/guides/rag-chromadb
+  - /en/gateway/capabilities/embeddings
+  - /en/gateway/chat-completions
+  - /en/guides/prompt-caching
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+[Cloudflare Vectorize](https://developers.cloudflare.com/vectorize/?utm_source=neosantara-docs&utm_medium=referral) is a globally distributed vector database running directly at the edge. Combining Neosantara embeddings (`nusa-embedding-0001`) with Cloudflare Vectorize enables ultra-low-latency RAG architectures without maintaining self-hosted vector infrastructure.
+
+## Quickstart
+
+```python
+import os
+import requests
+from openai import OpenAI
+
+# Initialize Neosantara client
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+CF_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CF_API_TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
+INDEX_NAME = "vehicle-manual"
+
+cf_headers = {
+    "Authorization": f"Bearer {CF_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+# 1. Embed user query
+query_text = "What is the emergency braking procedure?"
+emb_res = client.embeddings.create(
+    model="nusa-embedding-0001",
+    input=query_text
+)
+query_vector = emb_res.data[0].embedding
+
+# 2. Query Cloudflare Vectorize v2 API
+query_url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+query_payload = {
+    "vector": query_vector,
+    "topK": 1,
+    "returnValues": False,
+    "returnMetadata": "all"
+}
+res = requests.post(query_url, headers=cf_headers, json=query_payload).json()
+matched_passage = res["result"]["matches"][0]["metadata"]["text"]
+
+# 3. Grounded generation via chat completion
+completion = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": f"Answer based strictly on this reference:\n\n{matched_passage}"},
+        {"role": "user", "content": query_text}
+    ]
+)
+
+print(completion.choices[0].message.content)
+```
+
+<CardGroup cols={2}>
+  <Card title="RAG with ChromaDB" icon="database" href="/en/guides/rag-chromadb">
+    Local and in-memory RAG setup using [ChromaDB](https://www.trychroma.com/?utm_source=neosantara-docs&utm_medium=referral).
+  </Card>
+  <Card title="Embeddings Endpoint" icon="binary" href="/en/gateway/capabilities/embeddings">
+    Specifications for vector dimensions and input parameters.
+  </Card>
+</CardGroup>
+
+## Implementation Workflow
+
+<Steps>
+  <Step title="Environment Prerequisites">
+    Install required Python packages:
+
+    ```bash
+    pip install -U openai requests
+    ```
+
+    Export necessary credentials:
+
+    ```bash
+    export NEOSANTARA_API_KEY="nsk_your_api_key"
+    export CLOUDFLARE_ACCOUNT_ID="your_cloudflare_account_id"
+    export CLOUDFLARE_API_TOKEN="your_cloudflare_api_token"
+    ```
+  </Step>
+
+  <Step title="Create Vectorize v2 Index">
+    The `nusa-embedding-0001` model outputs 768-dimensional vectors. Initialize the index using `cosine` distance:
+
+    ```python
+    def create_vectorize_index(account_id, token, index_name, dimension=768):
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/vectorize/v2/indexes"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "name": index_name,
+            "config": {
+                "dimensions": dimension,
+                "metric": "cosine"
+            }
+        }
+        r = requests.post(url, headers=headers, json=data)
+        if r.status_code in [200, 201]:
+            print(f"Index '{index_name}' created successfully.")
+        elif r.status_code == 409:
+            print(f"Index '{index_name}' already exists.")
+        else:
+            r.raise_for_status()
+    ```
+  </Step>
+
+  <Step title="Vectorize & Ingest (NDJSON)">
+    Cloudflare Vectorize v2 accepts batch ingestion via Newline Delimited JSON (NDJSON). Each record contains an ID, values array, and metadata payload:
+
+    ```python
+    def insert_documents(account_id, token, index_name, documents):
+        # 1. Generate embeddings via Neosantara
+        emb_res = client.embeddings.create(
+            model="nusa-embedding-0001",
+            input=documents
+        )
+        
+        # 2. Build NDJSON payload
+        ndjson_lines = []
+        for i, doc_text in enumerate(documents):
+            record = {
+                "id": f"doc_{i}",
+                "values": emb_res.data[i].embedding,
+                "metadata": {"text": doc_text}
+            }
+            ndjson_lines.append(json.dumps(record))
+        
+        ndjson_payload = "\n".join(ndjson_lines)
+
+        # 3. Stream to Cloudflare insert endpoint
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/vectorize/v2/indexes/{index_name}/insert"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/x-ndjson"
+        }
+        res = requests.post(url, headers=headers, data=ndjson_payload)
+        res.raise_for_status()
+        print(f"Indexed {len(documents)} documents into Vectorize.")
+    ```
+  </Step>
+
+  <Step title="Query & Grounded Generation">
+    Retrieve semantic matches from Vectorize and pass them into Neosantara's chat completions API:
+
+    ```python
+    def query_rag(query_text: str):
+        # 1. Embed query
+        q_emb = client.embeddings.create(
+            model="nusa-embedding-0001",
+            input=query_text
+        ).data[0].embedding
+
+        # 2. Query Vectorize
+        url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+        r = requests.post(url, headers=cf_headers, json={
+            "vector": q_emb,
+            "topK": 2,
+            "returnMetadata": "all"
+        }).json()
+
+        matches = r.get("result", {}).get("matches", [])
+        if not matches:
+            return "No relevant context found."
+
+        context = "\n---\n".join([m["metadata"]["text"] for m in matches])
+
+        # 3. Chat completion
+        ans = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=[
+                {"role": "system", "content": "Provide factual answers strictly derived from the reference context."},
+                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query_text}"}
+            ],
+            temperature=0.1
+        )
+        return ans.choices[0].message.content
+    ```
+  </Step>
+</Steps>
+
+## Complete Production Script
+
+```python rag_vectorize_complete.py
+import os
+import json
+import requests
+from openai import OpenAI
+
+NEOSANTARA_API_KEY = os.environ["NEOSANTARA_API_KEY"]
+CF_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CF_API_TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
+INDEX_NAME = "neosantara-rag-kb"
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=NEOSANTARA_API_KEY
+)
+
+docs = [
+    "SLA Guidelines: Neosantara maintains 99.95% availability across regional Jakarta clusters.",
+    "Rate Limits: Free tier defaults to 10 RPM, 30,000 ITPM, and 8,000 OTPM.",
+    "Billing: Credit top-ups are processed via Mayar QRIS and Virtual Accounts in Indonesian Rupiah."
+]
+
+def main():
+    # 1. Create Index
+    url_create = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes"
+    headers = {"Authorization": f"Bearer {CF_API_TOKEN}", "Content-Type": "application/json"}
+    requests.post(url_create, headers=headers, json={
+        "name": INDEX_NAME,
+        "config": {"dimensions": 768, "metric": "cosine"}
+    })
+
+    # 2. Ingest Data
+    emb_res = client.embeddings.create(model="nusa-embedding-0001", input=docs)
+    ndjson = "\n".join([
+        json.dumps({"id": f"doc_{i}", "values": emb_res.data[i].embedding, "metadata": {"text": t}})
+        for i, t in enumerate(docs)
+    ])
+    url_insert = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/insert"
+    requests.post(url_insert, headers={"Authorization": f"Bearer {CF_API_TOKEN}", "Content-Type": "application/x-ndjson"}, data=ndjson)
+
+    # 3. Query
+    question = "What are the Free tier rate limits on Neosantara?"
+    q_vec = client.embeddings.create(model="nusa-embedding-0001", input=question).data[0].embedding
+    url_query = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+    matches = requests.post(url_query, headers=headers, json={"vector": q_vec, "topK": 1, "returnMetadata": "all"}).json()["result"]["matches"]
+    
+    passage = matches[0]["metadata"]["text"]
+    response = client.chat.completions.create(
+        model="deepseek-v4.1-flash",
+        messages=[
+            {"role": "system", "content": "Provide a concise answer based strictly on the reference."},
+            {"role": "user", "content": f"Reference:\n{passage}\n\nQuestion: {question}"}
+        ]
+    )
+    print("AI Answer:", response.choices[0].message.content)
+
+if __name__ == "__main__":
+    main()
+```
+
+<Tip>
+Because Cloudflare Vectorize stores metadata payloads alongside each vector record (`"metadata": {"text": doc_text}`), you do not need an external relational database to resolve vector IDs back to raw document strings.
+</Tip>
+
+## Related Resources
+
+- [RAG with ChromaDB](/en/guides/rag-chromadb)
+- [Throughput & Rate Limits](/en/guides/rate-limits)
+- [Prompt Caching & Cost Optimization](/en/guides/prompt-caching)
+- [Model Catalog & Token Pricing](/en/gateway/models)

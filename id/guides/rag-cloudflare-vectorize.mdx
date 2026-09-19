@@ -1,0 +1,270 @@
+---
+title: "RAG dengan Cloudflare Vectorize"
+sidebarTitle: "RAG Cloudflare Vectorize"
+description: "Bangun pipeline Retrieval-Augmented Generation (RAG) serverless berskala global menggunakan Neosantara dan Cloudflare Vectorize."
+icon: "cloud"
+related:
+  - /id/guides/rag-chromadb
+  - /id/gateway/capabilities/embeddings
+  - /id/gateway/chat-completions
+  - /id/guides/prompt-caching
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+[Cloudflare Vectorize](https://developers.cloudflare.com/vectorize/?utm_source=neosantara-docs&utm_medium=referral) adalah basis data vektor terkelola yang beroperasi di jaringan edge serverless global. Menggabungkan model embedding Neosantara (`nusa-embedding-0001`) dengan Cloudflare Vectorize memungkinkan eksekusi RAG berlatensi rendah tanpa perlu mengelola server basis data mandiri.
+
+## Alur Eksekusi Cepat
+
+```python
+import os
+import requests
+from openai import OpenAI
+
+# Inisialisasi Klien Neosantara
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+CF_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CF_API_TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
+INDEX_NAME = "manual-kendaraan"
+
+cf_headers = {
+    "Authorization": f"Bearer {CF_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+# 1. Hasilkan embedding kueri pengguna
+query_text = "Bagaimana prosedur pengereman darurat?"
+emb_res = client.embeddings.create(
+    model="nusa-embedding-0001",
+    input=query_text
+)
+query_vector = emb_res.data[0].embedding
+
+# 2. Query ke Cloudflare Vectorize v2 API
+query_url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+query_payload = {
+    "vector": query_vector,
+    "topK": 1,
+    "returnValues": False,
+    "returnMetadata": "all"
+}
+res = requests.post(query_url, headers=cf_headers, json=query_payload).json()
+matched_passage = res["result"]["matches"][0]["metadata"]["text"]
+
+# 3. Grounded generation dengan model chat
+completion = client.chat.completions.create(
+    model="deepseek-v4.1-flash",
+    messages=[
+        {"role": "system", "content": f"Jawab berdasarkan data referensi:\n\n{matched_passage}"},
+        {"role": "user", "content": query_text}
+    ]
+)
+
+print(completion.choices[0].message.content)
+```
+
+<CardGroup cols={2}>
+  <Card title="RAG dengan ChromaDB" icon="database" href="/id/guides/rag-chromadb">
+    Alternatif implementasi RAG lokal dan in-memory menggunakan [ChromaDB](https://www.trychroma.com/?utm_source=neosantara-docs&utm_medium=referral).
+  </Card>
+  <Card title="Endpoint Embeddings" icon="binary" href="/id/gateway/capabilities/embeddings">
+    Format input dan dimensi vektor model embedding Neosantara.
+  </Card>
+</CardGroup>
+
+## Langkah Implementasi
+
+<Steps>
+  <Step title="Prasyarat Lingkungan">
+    Instal library Python yang dibutuhkan:
+
+    ```bash
+    pip install -U openai requests
+    ```
+
+    Siapkan variabel lingkungan kredensial:
+
+    ```bash
+    export NEOSANTARA_API_KEY="nsk_your_api_key"
+    export CLOUDFLARE_ACCOUNT_ID="your_cloudflare_account_id"
+    export CLOUDFLARE_API_TOKEN="your_cloudflare_api_token"
+    ```
+  </Step>
+
+  <Step title="Membuat Indeks Vectorize v2">
+    Model `nusa-embedding-0001` menghasilkan vektor 768 dimensi. Buat indeks dengan metric `cosine`:
+
+    ```python
+    def create_vectorize_index(account_id, token, index_name, dimension=768):
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/vectorize/v2/indexes"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "name": index_name,
+            "config": {
+                "dimensions": dimension,
+                "metric": "cosine"
+            }
+        }
+        r = requests.post(url, headers=headers, json=data)
+        if r.status_code in [200, 201]:
+            print(f"Indeks '{index_name}' berhasil dibuat.")
+        elif r.status_code == 409:
+            print(f"Indeks '{index_name}' sudah ada.")
+        else:
+            r.raise_for_status()
+    ```
+  </Step>
+
+  <Step title="Vektorisasi & Ingest Dokumen (NDJSON)">
+    Cloudflare Vectorize v2 menerima data upload dalam format NDJSON (*Newline Delimited JSON*). Setiap baris memuat ID, vektor floating-point, dan metadata:
+
+    ```python
+    def insert_documents(account_id, token, index_name, documents):
+        # 1. Hasilkan embedding via Neosantara
+        emb_res = client.embeddings.create(
+            model="nusa-embedding-0001",
+            input=documents
+        )
+        
+        # 2. Bangun payload NDJSON
+        ndjson_lines = []
+        for i, doc_text in enumerate(documents):
+            record = {
+                "id": f"doc_{i}",
+                "values": emb_res.data[i].embedding,
+                "metadata": {"text": doc_text}
+            }
+            ndjson_lines.append(json.dumps(record))
+        
+        ndjson_payload = "\n".join(ndjson_lines)
+
+        # 3. Kirim ke endpoint insert Cloudflare
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/vectorize/v2/indexes/{index_name}/insert"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/x-ndjson"
+        }
+        res = requests.post(url, headers=headers, data=ndjson_payload)
+        res.raise_for_status()
+        print(f"Berhasil mengindeks {len(documents)} dokumen ke Vectorize.")
+    ```
+  </Step>
+
+  <Step title="Pengambilan & Sintesis Respons">
+    Cari kecocokan semantik tertinggi di Vectorize dan gunakan model chat Neosantara untuk menyusun jawaban akhir:
+
+    ```python
+    def query_rag(query_text: str):
+        # 1. Embed query
+        q_emb = client.embeddings.create(
+            model="nusa-embedding-0001",
+            input=query_text
+        ).data[0].embedding
+
+        # 2. Vectorize query
+        url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+        r = requests.post(url, headers=cf_headers, json={
+            "vector": q_emb,
+            "topK": 2,
+            "returnMetadata": "all"
+        }).json()
+
+        matches = r.get("result", {}).get("matches", [])
+        if not matches:
+            return "Informasi tidak ditemukan."
+
+        context = "\n---\n".join([m["metadata"]["text"] for m in matches])
+
+        # 3. Chat completion
+        ans = client.chat.completions.create(
+            model="deepseek-v4.1-flash",
+            messages=[
+                {"role": "system", "content": "Jawab pertanyaan secara faktual hanya berdasarkan konteks referensi."},
+                {"role": "user", "content": f"Konteks:\n{context}\n\nPertanyaan: {query_text}"}
+            ],
+            temperature=0.1
+        )
+        return ans.choices[0].message.content
+    ```
+  </Step>
+</Steps>
+
+## Contoh Script Produksi Lengkap
+
+```python rag_vectorize_complete.py
+import os
+import json
+import requests
+from openai import OpenAI
+
+NEOSANTARA_API_KEY = os.environ["NEOSANTARA_API_KEY"]
+CF_ACCOUNT_ID = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+CF_API_TOKEN = os.environ["CLOUDFLARE_API_TOKEN"]
+INDEX_NAME = "neosantara-rag-kb"
+
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=NEOSANTARA_API_KEY
+)
+
+docs = [
+    "Ketentuan SLA Layanan: Neosantara menjamin ketersediaan gateway regional Jakarta sebesar 99.95%.",
+    "Batas Kuota: Batas rate limit tier Free adalah 10 RPM, 30.000 ITPM, dan 8.000 OTPM.",
+    "Pembayaran: Deposit saldo kredit dapat dilakukan melalui QRIS dan Virtual Account Mayar."
+]
+
+def main():
+    # Buat indeks
+    url_create = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes"
+    headers = {"Authorization": f"Bearer {CF_API_TOKEN}", "Content-Type": "application/json"}
+    requests.post(url_create, headers=headers, json={
+        "name": INDEX_NAME,
+        "config": {"dimensions": 768, "metric": "cosine"}
+    })
+
+    # Ingest data
+    emb_res = client.embeddings.create(model="nusa-embedding-0001", input=docs)
+    ndjson = "\n".join([
+        json.dumps({"id": f"doc_{i}", "values": emb_res.data[i].embedding, "metadata": {"text": t}})
+        for i, t in enumerate(docs)
+    ])
+    url_insert = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/insert"
+    requests.post(url_insert, headers={"Authorization": f"Bearer {CF_API_TOKEN}", "Content-Type": "application/x-ndjson"}, data=ndjson)
+
+    # Query
+    pertanyaan = "Berapa batas rate limit untuk tier Free di Neosantara?"
+    q_vec = client.embeddings.create(model="nusa-embedding-0001", input=pertanyaan).data[0].embedding
+    url_query = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/v2/indexes/{INDEX_NAME}/query"
+    matches = requests.post(url_query, headers=headers, json={"vector": q_vec, "topK": 1, "returnMetadata": "all"}).json()["result"]["matches"]
+    
+    passage = matches[0]["metadata"]["text"]
+    response = client.chat.completions.create(
+        model="deepseek-v4.1-flash",
+        messages=[
+            {"role": "system", "content": "Jawab pertanyaan secara ringkas berdasarkan referensi."},
+            {"role": "user", "content": f"Referensi:\n{passage}\n\nPertanyaan: {pertanyaan}"}
+        ]
+    )
+    print("Jawaban AI:", response.choices[0].message.content)
+
+if __name__ == "__main__":
+    main()
+```
+
+<Tip>
+Karena Cloudflare Vectorize menyimpan metadata dokumen di dalam setiap vektor record (`"metadata": {"text": doc_text}`), Anda tidak memerlukan database relasional tambahan untuk memetakan ID vektor ke teks asli dokumen.
+</Tip>
+
+## Referensi Terkait
+
+- [RAG dengan ChromaDB](/id/guides/rag-chromadb)
+- [Batas Rate & Throughput](/id/guides/rate-limits)
+- [Prompt Caching & Optimasi Biaya](/id/guides/prompt-caching)
+- [Katalog Model & Token Pricing](/id/gateway/models)
