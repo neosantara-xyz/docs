@@ -1,0 +1,152 @@
+---
+title: "Google ADK"
+description: "Build and coordinate autonomous AI agents using Google Agent Development Kit (ADK) and Neosantara via LiteLLM."
+icon: "/images/integrations/google-adk.svg"
+related:
+  - /en/integrations/litellm
+  - /en/integrations/crewai
+  - /en/integrations/agno
+  - /en/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+[Google Agent Development Kit (ADK)](https://adk.dev/?utm_source=neosantara-docs&utm_medium=referral) is an open-source, code-first framework designed for building, evaluating, and deploying autonomous AI agents. ADK includes a built-in `LiteLlm` model wrapper, enabling ADK agents to execute any Neosantara model using the `neosantara/<model>` prefix.
+
+## Setup
+
+Install the Google ADK and LiteLLM packages:
+
+```bash
+pip install -U google-adk litellm
+```
+
+<SetApiKey />
+
+## Basic Agent Initialization
+
+Use the `google.adk.models.lite_llm.LiteLlm` class with the `neosantara/` provider prefix to connect Neosantara models to your ADK agent. Credentials are automatically loaded from the `NEOSANTARA_API_KEY` environment variable.
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+# Initialize an agent with a Neosantara model
+researcher = Agent(
+    name="researcher_agent",
+    model=LiteLlm(model="neosantara/gemini-3.8-flash"),
+    instruction="You are a technology research assistant that presents data concisely and objectively."
+)
+
+runner = InMemoryRunner(agent=researcher)
+
+async def main():
+    events = await runner.run_debug(
+        "Explain the benefits of a regional AI gateway for developers in Indonesia.",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Function and Tool Calling
+
+Google ADK supports standard Python functions as agent tools. Pass `allowed_openai_params=["tools"]` to your `LiteLlm` instance to propagate tool schema declarations:
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+def calculate_token_estimate(text: str) -> str:
+    """Calculate token and compute estimation based on character length."""
+    estimated_tokens = len(text) // 4
+    return f"Text length: {len(text)} characters. Estimated tokens: {estimated_tokens}."
+
+analyst = Agent(
+    name="token_analyst",
+    model=LiteLlm(
+        model="neosantara/gemini-3.8-flash",
+        allowed_openai_params=["tools"]
+    ),
+    instruction="Use calculate_token_estimate when the user asks about text payload sizing.",
+    tools=[calculate_token_estimate]
+)
+
+runner = InMemoryRunner(agent=analyst)
+
+async def main():
+    events = await runner.run_debug(
+        "What is the token estimate for a 1000-character payload?",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Multi-Agent Hierarchies (Sub-Agents)
+
+ADK coordinates multi-agent workflows using the `sub_agents` parameter. A root agent orchestrates and delegates specialized queries to sub-agents:
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+# Specialized analytical reasoning sub-agent
+analyst_agent = Agent(
+    name="analyst",
+    model=LiteLlm(model="neosantara/deepseek-v4.1-flash"),
+    instruction="Perform rigorous quantitative reasoning and throughput latency analysis."
+)
+
+# Root orchestrator delegating domain queries
+lead_orchestrator = Agent(
+    name="coordinator",
+    model=LiteLlm(model="neosantara/gemini-3.8-flash"),
+    instruction="Coordinate technical questions. Delegate in-depth calculations to the analyst sub-agent.",
+    sub_agents=[analyst_agent]
+)
+
+runner = InMemoryRunner(agent=lead_orchestrator)
+
+async def main():
+    events = await runner.run_debug(
+        "Calculate concurrency efficiency for 1000 RPM on the Basic tier.",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Next Steps
+
+- [Model Context Protocol (MCP) Guide](/en/agents/overview)
+- [Model Catalog & Pricing](/en/gateway/models)
+- [LiteLLM Native Integration](/en/integrations/litellm)
+- [CrewAI Multi-Agent Integration](/en/integrations/crewai)

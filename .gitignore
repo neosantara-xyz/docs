@@ -3,3 +3,6 @@ node_modules/
 Thumbs.db
 .mintlify/
 *.log
+__pycache__/
+*.pyc
+

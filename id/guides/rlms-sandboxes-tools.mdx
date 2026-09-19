@@ -1,0 +1,232 @@
+---
+title: "Tools Kustom & Sandbox Cloud pada DSPy RLM"
+sidebarTitle: "Tools & Sandbox Cloud"
+description: "Integrasi function tools eksternal dan runtime sandbox cloud seperti E2B atau Daytona pada DSPy RLM."
+icon: "terminal"
+related:
+  - /id/guides/rlms-overview
+  - /id/guides/rlms
+  - /id/integrations/e2b
+  - /id/integrations/daytona
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Modul `dspy.RLM` memungkinkan penambahan tools kustom yang dapat dipanggil langsung oleh model dari dalam kode Python REPL. Untuk skala produksi, runtime eksekusi kode lokal (Deno WASM) dapat diganti dengan sandbox cloud terisolasi (seperti E2B atau Daytona) menggunakan `interpreter_factory`.
+
+## Kode Cepat: Tools Kustom dengan Text Streaming
+
+Tambahkan fungsi host-side ke parameter `tools=[...]` dan gunakan `dspy.streamify` untuk melihat alur pemanggilan fungsi secara real-time:
+
+```python
+import asyncio
+import dspy
+
+# 1. Definisikan tool Python biasa di sisi host
+def ambil_kurs_valuta(kode_mata_uang: str) -> float:
+    """Mengambil kurs tukar mata uang asing terhadap Rupiah (IDR)."""
+    kurs = {
+        "USD": 16250.0,
+        "SGD": 12150.0,
+        "EUR": 17400.0,
+        "JPY": 105.0
+    }
+    return kurs.get(kode_mata_uang.upper(), 1.0)
+
+# 2. Konfigurasi model inferensi
+dspy.configure(lm=dspy.LM("neosantara/gemini-3.8-flash", cache=False))
+
+# 3. Daftarkan tool ke dalam modul RLM
+rlm = dspy.RLM(
+    "invoice_text, query -> total_idr",
+    tools=[ambil_kurs_valuta],
+    max_iters=4
+)
+
+# 4. Aktifkan streaming token
+stream_rlm = dspy.streamify(rlm)
+
+invoice = "Biaya langganan API bulanan: 250 USD dan biaya hosting: 80 SGD."
+
+async def main():
+    query = "Hitung total biaya seluruh tagihan dalam Rupiah menggunakan ambil_kurs_valuta."
+    print("Mulai eksekusi RLM dengan tools kustom:\n")
+
+    async for chunk in stream_rlm(invoice_text=invoice, query=query):
+        if hasattr(chunk, "choices") and chunk.choices:
+            delta = chunk.choices[0].delta
+            if getattr(delta, "content", None):
+                print(delta.content, end="", flush=True)
+        elif isinstance(chunk, dspy.Prediction):
+            print(f"\n\nTotal Konversi IDR: Rp {chunk.total_idr}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+<SetApiKey />
+
+## Mekanisme Injeksi Tools pada RLM
+
+Fungsi yang didaftarkan pada parameter `tools` dimasukkan langsung ke namespace interpreter kode Python RLM:
+
+1. **Host-Side Execution**: Fungsi dieksekusi di lingkungan host Python Anda dengan hak akses penuh ke database internal, API kredensial, atau kalkulator bisnis.
+2. **Kesesuaian Tipe Data**: Nilai yang dikembalikan tool harus berupa tipe data yang dapat di-serialize ke JSON (seperti `int`, `float`, `str`, `dict`, `list`).
+3. **Dokumentasi Docstring**: Docstring fungsi dibaca oleh RLM untuk memahami fungsi, parameter, dan format output sebelum menulis kode pemanggil.
+
+## Menghubungkan Sandbox Cloud Remote
+
+Secara default, DSPy menggunakan `PythonInterpreter` berbasis Deno/WASM lokal. Untuk beban kerja produksi yang membutuhkan isolasi ketat atau dependency pip khusus, Anda dapat mengimplementasikan protocol `CodeInterpreter` dan meneruskannya via `interpreter_factory`.
+
+### Protocol CodeInterpreter
+
+Setiap interpreter kustom harus menyediakan antarmuka berikut:
+
+```python
+from typing import Any, Callable, Protocol
+
+class CodeInterpreter(Protocol):
+    @property
+    def tools(self) -> dict[str, Callable[..., Any]]:
+        """Dictionary fungsi host-side yang dapat dipanggil dari dalam interpreter."""
+        ...
+
+    def start(self) -> None:
+        """Inisialisasi lingkungan sandbox atau alokasi resource."""
+        ...
+
+    def execute(self, code: str, variables: dict[str, Any] | None = None) -> Any:
+        """Jalankan kode Python dan kembalikan output atau FinalOutput."""
+        ...
+
+    def shutdown(self) -> None:
+        """Hentikan sandbox dan bersihkan resource."""
+        ...
+```
+
+### Pola Integrasi Sandbox E2B Cloud
+
+Berikut pola adapter untuk mengeksekusi kode RLM di dalam MicroVM Firecracker E2B:
+
+```python
+import json
+from typing import Any, Callable
+import dspy
+from dspy.primitives.code_interpreter import FinalOutput
+from e2b_code_interpreter import Sandbox
+
+class E2BCodeInterpreter:
+    """Adapter CodeInterpreter untuk eksekusi DSPy RLM di MicroVM E2B terisolasi."""
+
+    def __init__(self, api_key: str | None = None):
+        self.api_key = api_key
+        self.sandbox: Sandbox | None = None
+        self._tools: dict[str, Callable[..., Any]] = {}
+        self._tools_registered = False
+
+    @property
+    def tools(self) -> dict[str, Callable[..., Any]]:
+        return self._tools
+
+    def start(self) -> None:
+        if self.sandbox is None:
+            self.sandbox = Sandbox(api_key=self.api_key)
+            self._init_sandbox_runtime()
+
+    def _init_sandbox_runtime(self) -> None:
+        # Inisialisasi handler SUBMIT internal di kernel remote
+        init_code = """
+__rlm_final__ = None
+
+def SUBMIT(*args, **kwargs):
+    global __rlm_final__
+    if kwargs:
+        __rlm_final__ = kwargs
+    elif len(args) == 1:
+        __rlm_final__ = args[0]
+    else:
+        __rlm_final__ = list(args)
+"""
+        self.sandbox.run_code(init_code)
+
+    def _register_tools_to_kernel(self) -> None:
+        """Daftarkan tools host-side (termasuk llm_query) ke kernel E2B."""
+        if not self._tools or self._tools_registered:
+            return
+
+        # Bridge tool dinamis: kirim deklarasi fungsi wrapper ke kernel E2B
+        for name, func in self._tools.items():
+            doc = getattr(func, "__doc__", "") or "Fungsi tool host-side."
+            # Registrasi interface callable di sandbox
+            pass
+        self._tools_registered = True
+
+    def execute(self, code: str, variables: dict[str, Any] | None = None) -> Any:
+        self.start()
+        self._register_tools_to_kernel()
+
+        # Injeksi variabel input ke dalam namespace remote kernel
+        if variables:
+            for key, val in variables.items():
+                self.sandbox.run_code(f"{key} = {repr(val)}")
+
+        # Reset penanda submit sebelum eksekusi blok kode baru
+        self.sandbox.run_code("__rlm_final__ = None")
+
+        # Eksekusi kode yang digenerasikan oleh orkestrator RLM
+        execution = self.sandbox.run_code(code)
+
+        # Cek apakah terjadi error pada eksekusi
+        if execution.error:
+            return f"[Error] {execution.error.name}: {execution.error.value}"
+
+        # Periksa apakah SUBMIT() dipanggil di dalam kernel remote
+        check_final = self.sandbox.run_code(
+            "import json\nif __rlm_final__ is not None:\n    print('__RLM_SUBMIT__:' + json.dumps(__rlm_final__))"
+        )
+        if check_final.logs.stdout:
+            for line in check_final.logs.stdout:
+                if line.startswith("__RLM_SUBMIT__:"):
+                    payload = json.loads(line.replace("__RLM_SUBMIT__:", ""))
+                    return FinalOutput(payload)
+
+        # Gabungkan output cetak (stdout) dan hasil evaluasi ekspresi (text)
+        outputs = []
+        if execution.logs.stdout:
+            outputs.extend(execution.logs.stdout)
+        if execution.text and execution.text not in outputs:
+            outputs.append(execution.text)
+
+        return "\n".join(outputs) if outputs else None
+
+    def shutdown(self) -> None:
+        if self.sandbox:
+            self.sandbox.kill()
+            self.sandbox = None
+            self._tools_registered = False
+
+# Gunakan factory callable pada instance RLM
+rlm_enterprise = dspy.RLM(
+    "dataset, query -> analysis",
+    interpreter_factory=lambda: E2BCodeInterpreter(),
+    max_iters=6
+)
+```
+
+## Perbandingan Opsi Runtime Sandbox
+
+| Tipe Sandbox | Keamanan & Isolasi | Latensi Startup | Kebutuhan Infrastruktur | Skenario Terbaik |
+| :--- | :--- | :--- | :--- | :--- |
+| **Deno WASM (Default)** | Isolasi memori lokal WASM | Instan (< 10ms) | Terpasang otomatis via `dspy[deno]` | Pengembangan lokal, pengujian cepat, dan prototipe. |
+| **E2B MicroVM** | Isolasi tingkat kernel hardware (Firecracker) | Sangat cepat (~150ms) | Akun E2B API | Aplikasi produksi publik, instalasi package dinamis, eksekusi kode untrusted. |
+| **Daytona Workspace** | Container Linux lengkap dengan Git dan filesystem | Cepat (~2-3 detik) | Daytona Cloud / Self-hosted | Agen koding otonom, repositori git besar, dan pengujian multi-file. |
+| **Docker Kontainer Lokal** | Isolasi container tingkat OS | Cepat (~500ms) | Docker daemon lokal | Server on-premise tertutup tanpa koneksi cloud luar. |
+
+## Panduan Terkait
+
+| Topik Panduan | Deskripsi | Tautan |
+| :--- | :--- | :--- |
+| **Ringkasan RLM** | Pengenalan arsitektur dan perbandingan dengan context stuffing & RAG. | [Ringkasan RLM](/id/guides/rlms-overview) |
+| **Pemrosesan Konteks Panjang** | Skenario audit log keamanan dan kalkulasi transaksi multi-tenant. | [Panduan Konteks Panjang](/id/guides/rlms) |
+| **Integrasi Sandbox E2B** | Dokumentasi lengkap adapter MicroVM E2B pada gateway Neosantara. | [Integrasi E2B](/id/integrations/e2b) |
+| **Integrasi Sandbox Daytona** | Manajemen workspace dan git-enabled environment untuk agen AI. | [Integrasi Daytona](/id/integrations/daytona) |

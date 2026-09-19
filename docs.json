@@ -267,6 +267,8 @@
                   "id/integrations/langchain",
                   "id/integrations/dspy",
                   "id/integrations/crewai",
+                  "id/integrations/google-adk",
+                  "id/integrations/openai-agents",
                   "id/integrations/llama-index",
                   "id/integrations/pydantic-ai",
                   "id/integrations/autogen",
@@ -409,10 +411,18 @@
                 "icon": "shield-check"
               },
               {
+                "group": "Recursive Language Models (RLM)",
+                "icon": "microchip",
+                "pages": [
+                  "id/guides/rlms-overview",
+                  "id/guides/rlms",
+                  "id/guides/rlms-sandboxes-tools"
+                ]
+              },
+              {
                 "group": "Teknik AI Lanjutan",
                 "pages": [
                   "id/guides/prompt-caching",
-                  "id/guides/rlms",
                   "id/guides/rag-chromadb",
                   "id/guides/rag-cloudflare-vectorize"
                 ],
@@ -597,6 +607,8 @@
                   "en/integrations/langchain",
                   "en/integrations/dspy",
                   "en/integrations/crewai",
+                  "en/integrations/google-adk",
+                  "en/integrations/openai-agents",
                   "en/integrations/llama-index",
                   "en/integrations/pydantic-ai",
                   "en/integrations/autogen",
@@ -739,10 +751,18 @@
                 "icon": "shield-check"
               },
               {
+                "group": "Recursive Language Models (RLM)",
+                "icon": "microchip",
+                "pages": [
+                  "en/guides/rlms-overview",
+                  "en/guides/rlms",
+                  "en/guides/rlms-sandboxes-tools"
+                ]
+              },
+              {
                 "group": "Advanced AI Techniques",
                 "pages": [
                   "en/guides/prompt-caching",
-                  "en/guides/rlms",
                   "en/guides/rag-chromadb",
                   "en/guides/rag-cloudflare-vectorize"
                 ],
@@ -1779,6 +1799,54 @@
     {
       "source": "/en/crewai",
       "destination": "/en/integrations/crewai"
+    },
+    {
+      "source": "/google-adk",
+      "destination": "/id/integrations/google-adk"
+    },
+    {
+      "source": "/id/google-adk",
+      "destination": "/id/integrations/google-adk"
+    },
+    {
+      "source": "/en/google-adk",
+      "destination": "/en/integrations/google-adk"
+    },
+    {
+      "source": "/openai-agents",
+      "destination": "/id/integrations/openai-agents"
+    },
+    {
+      "source": "/id/openai-agents",
+      "destination": "/id/integrations/openai-agents"
+    },
+    {
+      "source": "/en/openai-agents",
+      "destination": "/en/integrations/openai-agents"
+    },
+    {
+      "source": "/rlms-overview",
+      "destination": "/id/guides/rlms-overview"
+    },
+    {
+      "source": "/id/rlms-overview",
+      "destination": "/id/guides/rlms-overview"
+    },
+    {
+      "source": "/en/rlms-overview",
+      "destination": "/en/guides/rlms-overview"
+    },
+    {
+      "source": "/rlms-sandboxes-tools",
+      "destination": "/id/guides/rlms-sandboxes-tools"
+    },
+    {
+      "source": "/id/rlms-sandboxes-tools",
+      "destination": "/id/guides/rlms-sandboxes-tools"
+    },
+    {
+      "source": "/en/rlms-sandboxes-tools",
+      "destination": "/en/guides/rlms-sandboxes-tools"
     },
     {
       "source": "/dspy",

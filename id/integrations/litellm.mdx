@@ -60,6 +60,23 @@ print()
 
 </CodeGroup>
 
+## Eksekusi Responses API
+
+Neosantara mendukung endpoint OpenResponses (`/v1/responses`) untuk eksekusi persisten dan pelacakan state. Anda dapat memanggil fungsi `litellm.responses`:
+
+```python
+import litellm
+import os
+
+response = litellm.responses(
+    model="neosantara/gemini-3.8-flash",
+    input="Tuliskan ringkasan keunggulan regional AI gateway dalam 2 poin."
+)
+
+print(response.output[0].content[0].text)
+print(f"Response ID: {response.id}")
+```
+
 ## Konfigurasi Proxy LiteLLM (`config.yaml`)
 
 Jika Anda menjalankan LiteLLM Proxy Server untuk organisasi:

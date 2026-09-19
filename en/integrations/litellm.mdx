@@ -60,6 +60,23 @@ print()
 
 </CodeGroup>
 
+## Responses API Execution
+
+Neosantara supports the OpenResponses endpoint (`/v1/responses`) for persistent execution and stateful job tracking. Call the `litellm.responses` function directly:
+
+```python
+import litellm
+import os
+
+response = litellm.responses(
+    model="neosantara/gemini-3.8-flash",
+    input="Summarize the core benefits of a regional AI gateway in 2 bullet points."
+)
+
+print(response.output[0].content[0].text)
+print(f"Response ID: {response.id}")
+```
+
 ## LiteLLM Proxy Configuration (`config.yaml`)
 
 If running a centralized LiteLLM Proxy Server:

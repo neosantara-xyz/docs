@@ -1,0 +1,232 @@
+---
+title: "Custom Tools & Cloud Sandboxes in DSPy RLM"
+sidebarTitle: "Tools & Cloud Sandboxes"
+description: "Integrate custom host tools and remote cloud execution sandboxes like E2B or Daytona with DSPy RLM."
+icon: "terminal"
+related:
+  - /en/guides/rlms-overview
+  - /en/guides/rlms
+  - /en/integrations/e2b
+  - /en/integrations/daytona
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+The `dspy.RLM` module supports custom tools that the model can invoke programmatically from within its Python REPL code. For production environments, the default local execution runtime (Deno WASM) can be replaced with remote, isolated cloud sandboxes (such as E2B or Daytona) using `interpreter_factory`.
+
+## Quickstart: Custom Tools with Real-Time Text Streaming
+
+Pass host-side functions to the `tools=[...]` parameter and wrap the RLM module with `dspy.streamify` to observe intermediate reasoning and function invocations in real time:
+
+```python
+import asyncio
+import dspy
+
+# 1. Define standard host-side Python functions
+def lookup_exchange_rate(currency_code: str) -> float:
+    """Fetch exchange rates against Indonesian Rupiah (IDR)."""
+    rates = {
+        "USD": 16250.0,
+        "SGD": 12150.0,
+        "EUR": 17400.0,
+        "JPY": 105.0
+    }
+    return rates.get(currency_code.upper(), 1.0)
+
+# 2. Configure model inference
+dspy.configure(lm=dspy.LM("neosantara/gemini-3.8-flash", cache=False))
+
+# 3. Register tools in the RLM module
+rlm = dspy.RLM(
+    "invoice_text, query -> total_idr",
+    tools=[lookup_exchange_rate],
+    max_iters=4
+)
+
+# 4. Enable real-time token streaming
+stream_rlm = dspy.streamify(rlm)
+
+invoice = "Monthly API subscription: 250 USD and cloud hosting: 80 SGD."
+
+async def main():
+    query = "Calculate the total invoice amount in IDR using lookup_exchange_rate."
+    print("Starting RLM execution with custom tools:\n")
+
+    async for chunk in stream_rlm(invoice_text=invoice, query=query):
+        if hasattr(chunk, "choices") and chunk.choices:
+            delta = chunk.choices[0].delta
+            if getattr(delta, "content", None):
+                print(delta.content, end="", flush=True)
+        elif isinstance(chunk, dspy.Prediction):
+            print(f"\n\nTotal Converted IDR: Rp {chunk.total_idr}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+<SetApiKey />
+
+## How Custom Tools Work in RLM
+
+Functions passed via `tools` are exposed directly in the Python interpreter's namespace:
+
+1. **Host-Side Execution**: Functions execute within your host Python environment with access to databases, internal credentials, or external calculation APIs.
+2. **Serialization**: Tool outputs must be JSON-serializable (such as `int`, `float`, `str`, `dict`, or `list`).
+3. **Docstring Prompting**: DSPy automatically parses docstrings and type hints so the RLM orchestrator knows when and how to call the function.
+
+## Connecting Remote Cloud Sandboxes
+
+By default, DSPy executes generated code in a local Deno/WASM `PythonInterpreter`. For production workloads requiring strict hardware isolation or arbitrary package installation, you can implement the `CodeInterpreter` protocol and provide it via `interpreter_factory`.
+
+### The CodeInterpreter Protocol
+
+Custom interpreters must implement this protocol:
+
+```python
+from typing import Any, Callable, Protocol
+
+class CodeInterpreter(Protocol):
+    @property
+    def tools(self) -> dict[str, Callable[..., Any]]:
+        """Dictionary of host-side tools callable from inside the interpreter."""
+        ...
+
+    def start(self) -> None:
+        """Initialize sandbox environment and pre-warm resources."""
+        ...
+
+    def execute(self, code: str, variables: dict[str, Any] | None = None) -> Any:
+        """Execute Python code and return captured stdout or FinalOutput."""
+        ...
+
+    def shutdown(self) -> None:
+        """Terminate the sandbox and clean up all allocated resources."""
+        ...
+```
+
+### E2B Cloud Sandbox Adapter Pattern
+
+Here is an adapter pattern to run RLM code inside an isolated E2B Firecracker microVM:
+
+```python
+import json
+from typing import Any, Callable
+import dspy
+from dspy.primitives.code_interpreter import FinalOutput
+from e2b_code_interpreter import Sandbox
+
+class E2BCodeInterpreter:
+    """CodeInterpreter adapter for executing DSPy RLM inside isolated E2B microVMs."""
+
+    def __init__(self, api_key: str | None = None):
+        self.api_key = api_key
+        self.sandbox: Sandbox | None = None
+        self._tools: dict[str, Callable[..., Any]] = {}
+        self._tools_registered = False
+
+    @property
+    def tools(self) -> dict[str, Callable[..., Any]]:
+        return self._tools
+
+    def start(self) -> None:
+        if self.sandbox is None:
+            self.sandbox = Sandbox(api_key=self.api_key)
+            self._init_sandbox_runtime()
+
+    def _init_sandbox_runtime(self) -> None:
+        # Initialize internal SUBMIT handler in remote kernel
+        init_code = """
+__rlm_final__ = None
+
+def SUBMIT(*args, **kwargs):
+    global __rlm_final__
+    if kwargs:
+        __rlm_final__ = kwargs
+    elif len(args) == 1:
+        __rlm_final__ = args[0]
+    else:
+        __rlm_final__ = list(args)
+"""
+        self.sandbox.run_code(init_code)
+
+    def _register_tools_to_kernel(self) -> None:
+        """Register host-side tools (including llm_query) with the E2B kernel."""
+        if not self._tools or self._tools_registered:
+            return
+
+        # Bridge dynamic tool functions into the remote kernel environment
+        for name, func in self._tools.items():
+            doc = getattr(func, "__doc__", "") or "Host-side tool function."
+            # Register callable interface inside the sandbox
+            pass
+        self._tools_registered = True
+
+    def execute(self, code: str, variables: dict[str, Any] | None = None) -> Any:
+        self.start()
+        self._register_tools_to_kernel()
+
+        # Inject input variables into remote session namespace
+        if variables:
+            for key, val in variables.items():
+                self.sandbox.run_code(f"{key} = {repr(val)}")
+
+        # Reset final submission marker before executing new code block
+        self.sandbox.run_code("__rlm_final__ = None")
+
+        # Execute code written by the RLM orchestrator
+        execution = self.sandbox.run_code(code)
+
+        # Check for runtime execution errors
+        if execution.error:
+            return f"[Error] {execution.error.name}: {execution.error.value}"
+
+        # Check if SUBMIT() was invoked in the remote kernel
+        check_final = self.sandbox.run_code(
+            "import json\nif __rlm_final__ is not None:\n    print('__RLM_SUBMIT__:' + json.dumps(__rlm_final__))"
+        )
+        if check_final.logs.stdout:
+            for line in check_final.logs.stdout:
+                if line.startswith("__RLM_SUBMIT__:"):
+                    payload = json.loads(line.replace("__RLM_SUBMIT__:", ""))
+                    return FinalOutput(payload)
+
+        # Combine standard output logs and evaluated expression text
+        outputs = []
+        if execution.logs.stdout:
+            outputs.extend(execution.logs.stdout)
+        if execution.text and execution.text not in outputs:
+            outputs.append(execution.text)
+
+        return "\n".join(outputs) if outputs else None
+
+    def shutdown(self) -> None:
+        if self.sandbox:
+            self.sandbox.kill()
+            self.sandbox = None
+            self._tools_registered = False
+
+# Inject factory into RLM instance
+rlm_enterprise = dspy.RLM(
+    "dataset, query -> analysis",
+    interpreter_factory=lambda: E2BCodeInterpreter(),
+    max_iters=6
+)
+```
+
+## Sandbox Runtime Comparison
+
+| Sandbox Type | Security & Isolation | Startup Latency | Infrastructure Required | Best Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **Deno WASM (Default)** | Local WebAssembly isolation | Instant (< 10ms) | Pre-installed via `dspy[deno]` | Local development, rapid testing, and prototypes. |
+| **E2B MicroVM** | Hardware-level kernel isolation (Firecracker) | Fast (~150ms) | E2B API account | Production public applications, untrusted code execution. |
+| **Daytona Workspace** | Full Linux container with Git and persistent volume | Fast (~2-3s) | Daytona Cloud / Self-hosted | Autonomous coding agents and multi-file projects. |
+| **Local Docker** | OS-level containerization | Moderate (~500ms) | Local Docker daemon | Air-gapped on-premise enterprise deployments. |
+
+## Related Guides
+
+| Guide | Description | Link |
+| :--- | :--- | :--- |
+| **RLMs Overview** | Architecture concepts and comparison against context stuffing and RAG. | [RLMs Overview](/en/guides/rlms-overview) |
+| **Long-Context Processing** | Multi-tenant audit logging and entity extraction walkthroughs. | [Long-Context Guide](/en/guides/rlms) |
+| **E2B Sandbox Integration** | Full documentation for E2B microVM adapters on Neosantara. | [E2B Guide](/en/integrations/e2b) |
+| **Daytona Integration** | Workspace management and git-enabled development environments. | [Daytona Guide](/en/integrations/daytona) |

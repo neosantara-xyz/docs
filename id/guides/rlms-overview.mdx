@@ -1,0 +1,98 @@
+---
+title: "Ringkasan Recursive Language Models (RLM)"
+sidebarTitle: "Ringkasan RLM"
+description: "Arsitektur Recursive Language Models (RLM) pada DSPy untuk pemrosesan konteks panjang tanpa context rot."
+icon: "microchip"
+related:
+  - /id/guides/rlms
+  - /id/guides/rlms-sandboxes-tools
+  - /id/integrations/dspy
+  - /id/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Recursive Language Models (RLM) adalah paradigma inferensi yang diperkenalkan oleh peneliti MIT CSAIL (Alex L. Zhang, Tim Kraska, dan Omar Khattab, 2025). Alih-alih menjejalkan seluruh dokumen besar ke dalam context window model, RLM memperlakukan data input sebagai variabel lingkungan di dalam sandbox REPL Python yang terisolasi.
+
+Model orkestrator menulis dan menjalankan kode Python secara terarah untuk menginspeksi data, memanggil sub-model bahasa (`sub_lm`) untuk penalaran semantik lokal, dan menyerahkan hasil akhir melalui `SUBMIT()`.
+
+## Kode Cepat dengan Text Streaming
+
+Gunakan `dspy.streamify` agar token penalaran dan eksekusi kode langsung mengalir secara real-time ke terminal tanpa menunggu seluruh iterasi selesai:
+
+```python
+import asyncio
+import dspy
+
+# Konfigurasi model inferensi via gateway Neosantara
+dspy.configure(lm=dspy.LM("neosantara/gemini-3.8-flash", cache=False))
+
+# Inisialisasi modul RLM dengan signature input-output
+rlm = dspy.RLM("context, query -> answer", max_iters=5)
+
+# Bungkus dengan streamify untuk streaming token real-time
+stream_rlm = dspy.streamify(rlm)
+
+context_data = """
+Node Alpha: 10.0.0.1, status=Active, region=Jakarta
+Node Beta: 10.0.0.2, status=Standby, region=Singapore
+Node Gamma: 10.0.0.3, status=Active, region=Jakarta
+Kunci otentikasi deployment Jakarta: NAI-SEC-998811
+"""
+
+async def main():
+    query_text = "Berapa kunci otentikasi untuk deployment Jakarta?"
+    print("Mulai eksekusi streaming RLM:\n")
+
+    async for chunk in stream_rlm(context=context_data, query=query_text):
+        if hasattr(chunk, "choices") and chunk.choices:
+            delta = chunk.choices[0].delta
+            if getattr(delta, "content", None):
+                print(delta.content, end="", flush=True)
+        elif isinstance(chunk, dspy.Prediction):
+            print(f"\n\nHasil Akhir: {chunk.answer}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+<SetApiKey />
+
+## Mengapa Menggunakan RLM?
+
+Model bahasa standar mengalami degradasi performa (*context rot*) saat membaca dokumen berskala ratusan ribu hingga jutaan token. Selain itu, biaya inferensi meningkat drastis jika seluruh konteks harus diproses ulang pada setiap turn.
+
+RLM memecahkan masalah ini dengan memisahkan penyimpanan data dari context window aktif LLM:
+
+1. **Konteks sebagai Objek Eksternal**: Dokumen atau dataset disimpan di memori Python REPL (variabel `context`), bukan di dalam prompt LLM.
+2. **Pencarian Terprogram**: Model menulis skrip Python (regex, slicing, filter data, kalkulasi numerik) untuk memeriksa bagian yang relevan.
+3. **Pendelegasian Sub-Model (`llm_query`)**: Jika potongan teks membutuhkan pemahaman bahasa alami, model menjalankan fungsi `llm_query(chunk)` ke model pekerja yang lebih cepat atau lebih hemat biaya.
+4. **Iterasi Terarah**: Output dari kode Python dimasukkan kembali ke percakapan berikutnya sampai model memanggil `SUBMIT(answer=...)`.
+
+## Perbandingan Pendekatan Pemrosesan Konteks
+
+| Karakteristik | In-Context Stuffing | Vector RAG | DSPy RLM |
+| :--- | :--- | :--- | :--- |
+| **Batas Ukuran Data** | Dibatasi kapasitas context window (misal 128k - 1M token) | Skala besar via vektor database | Kapasitas memori runtime sandbox Python (skala gigabyte) |
+| **Akurasi Recall** | Menurun seiring bertambahnya token (*needle-in-a-haystack problem*) | Bergantung pada kualitas embedding dan chunking | Tinggi, model mengeksplorasi struktur data secara rekursif |
+| **Komputasi Numerik** | Probabilistik (rawan halusinasi angka) | Tidak ada (hanya pencarian teks) | Deterministik 100% via runtime Python |
+| **Visibilitas Proses** | Black-box inferensi tunggal | Peringkat kemiripan chunk | Trajectory transparan: penalaran, kode eksekusi, dan output REPL |
+| **Biaya Token Input** | Tinggi (seluruh data dikirim berulang) | Rendah (hanya chunk teratas) | Efisien (hanya potongan terpilih yang dianalisis oleh `sub_lm`) |
+
+## Kapan Menggunakan RLM vs Alternatif
+
+| Kebutuhan Proyek | Pendekatan Terbaik | Alasan |
+| :--- | :--- | :--- |
+| Pertanyaan tunggal pada dokumen kecil (< 50 halaman) | In-Context Prompting | Cepat, implementasi minimal, dan latensi satu kali request. |
+| Pencarian informasi dari jutaan dokumen tidak terstruktur | Vector RAG | Waktu respons sub-detik untuk mengambil chunk teratas dari corpus besar. |
+| Audit log sistem, kalkulasi finansial, dan data tabular terstruktur | DSPy RLM | Membutuhkan kalkulasi presisi deterministik dan inspeksi terprogram. |
+| Dokumen hukum atau teknis kompleks dengan relasi silang | DSPy RLM | Model dapat menelusuri referensi silang berulang kali tanpa batas window. |
+
+## Panduan Terkait
+
+| Topik Panduan | Deskripsi | Tautan |
+| :--- | :--- | :--- |
+| **Pemrosesan Konteks Panjang** | Audit log multi-tenant dan ekstraksi entitas menggunakan dual-model setup. | [Panduan Konteks Panjang](/id/guides/rlms) |
+| **Tools Kustom & Sandbox Cloud** | Menambahkan function tools host dan runtime sandbox remote (E2B / Daytona). | [Panduan Tools & Sandbox](/id/guides/rlms-sandboxes-tools) |
+| **Integrasi DSPy Lengkap** | Konfigurasi dasar DSPy dengan provider native Neosantara. | [Integrasi DSPy](/id/integrations/dspy) |
+| **Katalog Model & Harga** | Daftar model penalaran dan token pricing IDR untuk orchestrator dan worker. | [Katalog Model](/id/gateway/models) |

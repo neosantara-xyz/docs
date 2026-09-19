@@ -1,0 +1,152 @@
+---
+title: "Google ADK"
+description: "Bangun dan koordinasikan agen AI otonom menggunakan Google Agent Development Kit (ADK) dan Neosantara via LiteLLM."
+icon: "/images/integrations/google-adk.svg"
+related:
+  - /id/integrations/litellm
+  - /id/integrations/crewai
+  - /id/integrations/agno
+  - /id/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+[Google Agent Development Kit (ADK)](https://adk.dev/?utm_source=neosantara-docs&utm_medium=referral) adalah framework open-source berbasis code-first untuk membangun, menguji, dan mengevaluasi agen AI otonom. ADK menyediakan wrapper model `LiteLlm` bawaan, memungkinkan agen ADK mengeksekusi model Neosantara menggunakan prefix `neosantara/<model>`.
+
+## Pengaturan
+
+Instal library Google ADK dan LiteLLM:
+
+```bash
+pip install -U google-adk litellm
+```
+
+<SetApiKey />
+
+## Inisialisasi Agen Dasar
+
+Gunakan kelas `google.adk.models.lite_llm.LiteLlm` dengan prefix provider `neosantara/` untuk menghubungkan model Neosantara ke agen ADK. Kredensial dibaca otomatis dari environment variable `NEOSANTARA_API_KEY`.
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+# Inisialisasi agen dengan model Neosantara
+researcher = Agent(
+    name="researcher_agent",
+    model=LiteLlm(model="neosantara/gemini-3.8-flash"),
+    instruction="Anda adalah asisten riset teknologi yang menyajikan data secara ringkas dan objektif."
+)
+
+runner = InMemoryRunner(agent=researcher)
+
+async def main():
+    events = await runner.run_debug(
+        "Jelaskan keunggulan AI Gateway regional bagi developer di Indonesia.",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Eksekusi Tool Calling
+
+Google ADK mendukung pemanggilan fungsi Python biasa sebagai tool agen. Tambahkan parameter `allowed_openai_params=["tools"]` pada instance `LiteLlm` untuk meneruskan skema fungsi:
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+def hitung_estimasi_token(teks: str) -> str:
+    """Menghitung estimasi token dan biaya komputasi berdasarkan panjang teks."""
+    estimasi_token = len(teks) // 4
+    return f"Panjang teks: {len(teks)} karakter. Estimasi: {estimasi_token} token."
+
+analyst = Agent(
+    name="token_analyst",
+    model=LiteLlm(
+        model="neosantara/gemini-3.8-flash",
+        allowed_openai_params=["tools"]
+    ),
+    instruction="Gunakan tool hitung_estimasi_token jika pengguna menanyakan kalkulasi ukuran teks.",
+    tools=[hitung_estimasi_token]
+)
+
+runner = InMemoryRunner(agent=analyst)
+
+async def main():
+    events = await runner.run_debug(
+        "Berapa estimasi token untuk teks sepanjang 1000 karakter?",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Alur Kerja Multi-Agent (Sub-Agents)
+
+ADK mengorkestrasi hierarki multi-agent menggunakan parameter `sub_agents`. Agen utama mengarahkan pertanyaan ke sub-agent terspesialisasi:
+
+```python
+import os
+import asyncio
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
+
+# Sub-agent untuk penalaran analitis
+analyst_agent = Agent(
+    name="analyst",
+    model=LiteLlm(model="neosantara/deepseek-v4.1-flash"),
+    instruction="Lakukan penalaran komputasi dan analisis throughput sistem."
+)
+
+# Root agent pengatur alur
+lead_orchestrator = Agent(
+    name="coordinator",
+    model=LiteLlm(model="neosantara/gemini-3.8-flash"),
+    instruction="Koordinasikan pertanyaan teknis. Delegasikan analisis mendalam ke sub-agent analyst.",
+    sub_agents=[analyst_agent]
+)
+
+runner = InMemoryRunner(agent=lead_orchestrator)
+
+async def main():
+    events = await runner.run_debug(
+        "Hitung efisiensi konkurensi 1000 RPM pada tier Basic.",
+        quiet=True
+    )
+    for event in events:
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    print(part.text)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Langkah Berikutnya
+
+- [Panduan Model Context Protocol (MCP)](/id/agents/overview)
+- [Pilihan Model dan Harga](/id/gateway/models)
+- [Integrasi LiteLLM Native](/id/integrations/litellm)
+- [Integrasi CrewAI Multi-Agent](/id/integrations/crewai)

@@ -17,16 +17,11 @@ Berdasarkan paper [Recursive Language Models](https://arxiv.org/abs/2512.24601) 
 Model orkestrator menulis kode Python secara iteratif untuk memfilter, menghitung, dan mendelegasikan sub-tugas semantik ke sub-agent via `llm_query()`. Setiap langkah penalaran, eksekusi kode, dan output sub-agent dapat dipantau secara real-time.
 
 ```python
-import logging
-import sys
+import asyncio
 import dspy
 
-logger = logging.getLogger("dspy.predict.rlm")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-
-dspy.configure(lm=dspy.LM("neosantara/deepseek-v4.1-flash"))
-sub_worker = dspy.LM("neosantara/gemini-3.8-flash")
+dspy.configure(lm=dspy.LM("neosantara/deepseek-v4.1-flash", cache=False))
+sub_worker = dspy.LM("neosantara/gemini-3.8-flash", cache=False)
 
 audit_data = """
 [LOG 01:10] Inisialisasi node-jkt-01 selesai. Memori 64GB.
@@ -35,9 +30,21 @@ audit_data = """
 [LOG 04:00] Status sistem: NORMAL.
 """
 
-rlm = dspy.RLM("audit_data, query -> answer", sub_lm=sub_worker, max_iters=5, verbose=True)
-result = rlm(audit_data=audit_data, query="Temukan token rahasia dan pelaku anomali.")
-print("\nJawaban:", result.answer)
+rlm = dspy.RLM("audit_data, query -> answer", sub_lm=sub_worker, max_iters=5)
+stream_rlm = dspy.streamify(rlm)
+
+async def main():
+    print("Mulai streaming audit RLM:\n")
+    async for chunk in stream_rlm(audit_data=audit_data, query="Temukan token rahasia dan pelaku anomali."):
+        if hasattr(chunk, "choices") and chunk.choices:
+            delta = chunk.choices[0].delta
+            if getattr(delta, "content", None):
+                print(delta.content, end="", flush=True)
+        elif isinstance(chunk, dspy.Prediction):
+            print(f"\n\nJawaban Akhir: {chunk.answer}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 <CardGroup cols={2}>

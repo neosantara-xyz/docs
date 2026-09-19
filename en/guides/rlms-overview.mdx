@@ -1,0 +1,98 @@
+---
+title: "Recursive Language Models (RLMs) Overview"
+sidebarTitle: "RLMs Overview"
+description: "Architecture overview of Recursive Language Models (RLMs) in DSPy for long-context execution without context rot."
+icon: "microchip"
+related:
+  - /en/guides/rlms
+  - /en/guides/rlms-sandboxes-tools
+  - /en/integrations/dspy
+  - /en/gateway/models
+---
+
+import SetApiKey from '/snippets/set-api-key.mdx';
+
+Recursive Language Models (RLMs) are an inference-time paradigm introduced by MIT CSAIL researchers (Alex L. Zhang, Tim Kraska, and Omar Khattab, 2025). Instead of stuffing massive documents directly into a model's prompt window, RLMs store input context as an external variable within an isolated Python REPL sandbox.
+
+The orchestrator model writes and runs Python code iteratively to inspect data, delegates semantic sub-tasks to sub-language models (`sub_lm`), and submits structured results via `SUBMIT()`.
+
+## Quickstart with Real-Time Text Streaming
+
+Wrap your RLM module with `dspy.streamify` to stream reasoning tokens and intermediate actions directly to your terminal without waiting for the full multi-iteration execution loop to complete:
+
+```python
+import asyncio
+import dspy
+
+# Configure primary model via Neosantara gateway
+dspy.configure(lm=dspy.LM("neosantara/gemini-3.8-flash", cache=False))
+
+# Initialize RLM module with input and output fields
+rlm = dspy.RLM("context, query -> answer", max_iters=5)
+
+# Wrap with streamify for incremental token output
+stream_rlm = dspy.streamify(rlm)
+
+context_data = """
+Node Alpha: 10.0.0.1, status=Active, region=Jakarta
+Node Beta: 10.0.0.2, status=Standby, region=Singapore
+Node Gamma: 10.0.0.3, status=Active, region=Jakarta
+Authentication key for Jakarta deployment: NAI-SEC-998811
+"""
+
+async def main():
+    query_text = "What is the authentication key for the Jakarta deployment?"
+    print("Starting RLM streaming execution:\n")
+
+    async for chunk in stream_rlm(context=context_data, query=query_text):
+        if hasattr(chunk, "choices") and chunk.choices:
+            delta = chunk.choices[0].delta
+            if getattr(delta, "content", None):
+                print(delta.content, end="", flush=True)
+        elif isinstance(chunk, dspy.Prediction):
+            print(f"\n\nFinal Output: {chunk.answer}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+<SetApiKey />
+
+## Why Use RLMs?
+
+Standard large language models suffer from performance degradation (*context rot*) when processing inputs that span hundreds of thousands or millions of tokens. In addition, prompt-stuffing incurs high token costs because the entire document must be resent with every turn.
+
+RLMs eliminate these constraints by separating memory storage from the active LLM context window:
+
+1. **Context as an External Object**: Documents or datasets live in the Python REPL memory as the `context` variable rather than inside the LLM prompt.
+2. **Programmatic Data Filtering**: The model writes Python scripts (regex, slicing, data structures, arithmetic) to inspect only relevant subsets.
+3. **Sub-Model Delegation (`llm_query`)**: When semantic comprehension of a chunk is required, the model calls `llm_query(chunk)` to delegate to a cost-effective, low-latency worker model.
+4. **Iterative Convergence**: REPL output is fed back into the next iteration until the model satisfies its task and calls `SUBMIT(answer=...)`.
+
+## Architecture Comparison
+
+| Characteristic | In-Context Stuffing | Vector RAG | DSPy RLM |
+| :--- | :--- | :--- | :--- |
+| **Data Volume Limit** | Capped by model context window (e.g., 128k - 1M tokens) | Large scale via vector databases | Bounded only by Python runtime memory (gigabyte scale) |
+| **Recall Accuracy** | Degrades over long sequences (*needle-in-a-haystack* degradation) | Dependent on embedding similarity and chunk quality | High, model explores structure programmatically and recursively |
+| **Numerical Precision** | Probabilistic (prone to arithmetic errors) | Not supported (retrieves text only) | 100% deterministic via Python execution |
+| **Execution Transparency** | Single opaque black-box response | Ranked similarity score list | Full audit trajectory: reasoning, code, and REPL output |
+| **Token Efficiency** | Expensive (full context resent repeatedly) | Cheap (top-k chunks only) | Highly efficient (only targeted chunks sent to `sub_lm`) |
+
+## Decision Matrix: When to Use RLMs
+
+| Requirement | Recommended Approach | Rationale |
+| :--- | :--- | :--- |
+| Single questions on short documents (< 50 pages) | In-Context Prompting | Minimal latency and single-turn simplicity. |
+| Broad knowledge retrieval across millions of docs | Vector RAG | Fast sub-second search across massive enterprise corpuses. |
+| Audit log analysis, financial math, and structured data | DSPy RLM | Requires deterministic calculations and code-driven data inspection. |
+| Complex legal or technical documents with cross-references | DSPy RLM | The model navigates dependencies recursively without context degradation. |
+
+## Related Guides
+
+| Guide | Description | Link |
+| :--- | :--- | :--- |
+| **Long-Context Processing** | Multi-tenant security audit logs and entity extraction with dual-model setups. | [Long-Context Guide](/en/guides/rlms) |
+| **Custom Tools & Sandboxes** | Adding host-side tools and connecting remote execution sandboxes (E2B / Daytona). | [Tools & Sandboxes Guide](/en/guides/rlms-sandboxes-tools) |
+| **DSPy Integration Guide** | Basic configuration of DSPy with native Neosantara models. | [DSPy Integration](/en/integrations/dspy) |
+| **Model Catalog & Pricing** | Token pricing and context limits for orchestrator and worker models. | [Model Catalog](/en/gateway/models) |
