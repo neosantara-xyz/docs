@@ -8,69 +8,97 @@ related:
   - /en/guides/faq
 ---
 
-Neosantara Gateway supports generative video creation via OpenAI Sora-compatible endpoints (`/v1/videos`). Video rendering runs asynchronously with progress polling.
+Neosantara Gateway supports generative video creation via OpenAI Sora-compatible endpoints (`/v1/videos`). You can use the official OpenAI SDK (`openai` in Python or Node.js) directly by configuring `base_url` to the Neosantara gateway.
 
 <CodeGroup>
 
-```python Python icon="python"
-import requests
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
 import time
 import os
 
-headers = {
-    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
-    "Content-Type": "application/json"
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# 1. Dispatch video creation job (OpenAI Sora Compatible)
+video = client.videos.create(
+    model="luma-ray2-720p",
+    prompt="Drone sweep over Uluwatu coastal waves at golden hour, cinematic slow motion.",
+    seconds=5,
+    size="1280x720"
+)
+
+print(f"Video job created: {video.id}")
+
+# 2. Poll job status until completion
+while True:
+    job = client.videos.retrieve(video.id)
+    progress = getattr(job, "progress", 0)
+    print(f"Status: {job.status} ({progress}%)")
+    
+    if job.status == "completed":
+        print(f"Video ready! Download URL: https://api.neosantara.xyz/v1/videos/{video.id}/content")
+        break
+    elif job.status == "failed":
+        print("Failed:", getattr(job, "error", "Unknown error"))
+        break
+    time.sleep(10)
+```
+
+```javascript Node.js (OpenAI SDK) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+// 1. Dispatch video job
+const video = await client.videos.create({
+  model: "luma-ray2-720p",
+  prompt: "Drone sweep over Uluwatu coastal waves at golden hour, cinematic slow motion.",
+  seconds: 5,
+  size: "1280x720",
+});
+
+console.log("Job Created:", video.id);
+
+// 2. Poll completion status
+let status = video.status;
+while (status !== "completed" && status !== "failed") {
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  const job = await client.videos.retrieve(video.id);
+  status = job.status;
+  console.log(`Status: ${status}`);
 }
 
-# 1. Dispatch video creation job
-init_res = requests.post(
-    "https://api.neosantara.xyz/v1/videos",
-    headers=headers,
-    json={
-        "model": "luma-ray2-720p",
-        "prompt": "Drone sweep over Uluwatu coastal waves at golden hour, cinematic slow motion.",
-        "seconds": 5,
-        "size": "1280x720"
-    }
-).json()
-
-job_id = init_res["id"]
-print(f"Video job created: {job_id}")
-
-# 2. Poll job progress until completion
-while True:
-    job = requests.get(
-        f"https://api.neosantara.xyz/v1/videos/{job_id}",
-        headers=headers
-    ).json()
-    status = job.get("status")
-    progress = job.get("progress", 0)
-    print(f"Status: {status} ({progress}%)")
-    
-    if status == "completed":
-        print("Video URL:", job.get("url"))
-        break
-    elif status == "failed":
-        print("Failed:", job.get("error"))
-        break
-    time.sleep(5)
+if (status === "completed") {
+  console.log(`Video URL: https://api.neosantara.xyz/v1/videos/${video.id}/content`);
+}
 ```
 
 ```bash cURL icon="terminal"
-# Create video job
+# 1. Create video job
 curl -X POST https://api.neosantara.xyz/v1/videos \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "luma-ray2-720p",
-    "prompt": "Drone sweep over Uluwatu coastal waves.",
+    "prompt": "Drone sweep over Uluwatu coastal waves at golden hour.",
     "seconds": 5,
     "size": "1280x720"
   }'
 
-# Poll video job status
+# 2. Poll job status
 curl https://api.neosantara.xyz/v1/videos/vid_123456 \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+
+# 3. Download final video content
+curl -L https://api.neosantara.xyz/v1/videos/vid_123456/content \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -o generated_video.mp4
 ```
 
 </CodeGroup>

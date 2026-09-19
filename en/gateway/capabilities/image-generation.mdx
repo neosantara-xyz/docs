@@ -34,6 +34,24 @@ image_url = response.data[0].url
 print(f"Image URL: {image_url}")
 ```
 
+```javascript Node.js (OpenAI SDK) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.images.generate({
+  model: "imagen-4.0-fast",
+  prompt: "Terraced rice fields in Ubud Bali at sunrise, photorealistic.",
+  size: "1024x1024",
+  n: 1,
+});
+
+console.log("Image URL:", response.data[0].url);
+```
+
 ```bash cURL icon="terminal"
 curl -X POST https://api.neosantara.xyz/v1/images/generations \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
@@ -58,9 +76,12 @@ curl -X POST https://api.neosantara.xyz/v1/images/generations \
 | `n` | `integer` | Optional | Number of image variations to generate (1 to 4). Default `1`. |
 | `response_format` | `string` | Optional | Output format: `"url"` or `"b64_json"`. Default `"url"`. |
 
-## Billing Details
+## Technical Architecture & Caching
 
-Image generation is settled on a per-image unit basis rather than token volume. Settled costs are deducted from your Rupiah deposit balance.
+- **Synchronous vs Asynchronous**: The standard `/v1/images/generations` endpoint operates synchronously for real-time applications. For high-resolution generation or batch pipelines, use the [Responses API](/en/gateway/responses-api) with `background: true` to prevent HTTP timeouts.
+- **Ephemeral CDN & TTL Caching**: Generated images are delivered through high-speed edge CDN storage via signed URLs. Links remain valid for **5 minutes** (TTL). Ingest assets into permanent cloud storage (S3/GCS/R2) if long-term persistence is required.
+- **SSRF Mitigation**: When providing input image URLs for variations or inpainting, the gateway security bridge validates public IP ranges and blocks loopback or private addresses to prevent Server-Side Request Forgery.
+- **Rupiah Metering**: Image generation is billed on a per-image unit basis rather than token count. Costs are deducted directly from your prepaid Rupiah balance.
 
 ## Visual Showcase
 

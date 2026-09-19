@@ -8,69 +8,97 @@ related:
   - /id/guides/faq
 ---
 
-Gateway Neosantara mendukung pembuatan video generatif melalui protokol OpenAI Sora (`/v1/videos`). Proses pembuatan video berjalan secara asinkron dengan pelacakan progres berkala.
+Gateway Neosantara mendukung pembuatan video generatif melalui protokol OpenAI Sora (`/v1/videos`). Anda dapat menggunakan SDK resmi OpenAI (`openai` di Python atau Node.js) secara langsung dengan mengarahkan `base_url` ke gateway Neosantara.
 
 <CodeGroup>
 
-```python Python icon="python"
-import requests
+```python Python (OpenAI SDK) icon="python"
+from openai import OpenAI
 import time
 import os
 
-headers = {
-    "Authorization": f"Bearer {os.environ['NEOSANTARA_API_KEY']}",
-    "Content-Type": "application/json"
+client = OpenAI(
+    base_url="https://api.neosantara.xyz/v1",
+    api_key=os.environ["NEOSANTARA_API_KEY"]
+)
+
+# 1. Kirim tugas pembuatan video (OpenAI Sora Compatible)
+video = client.videos.create(
+    model="luma-ray2-720p",
+    prompt="Drone meluncur di atas ombak pantai Uluwatu saat senja, gerak lambat sinematik.",
+    seconds=5,
+    size="1280x720"
+)
+
+print(f"Tugas video dibuat: {video.id}")
+
+# 2. Polling status hingga selesai
+while True:
+    job = client.videos.retrieve(video.id)
+    progress = getattr(job, "progress", 0)
+    print(f"Status: {job.status} ({progress}%)")
+    
+    if job.status == "completed":
+        print(f"Video siap! URL Unduhan: https://api.neosantara.xyz/v1/videos/{video.id}/content")
+        break
+    elif job.status == "failed":
+        print("Gagal:", getattr(job, "error", "Unknown error"))
+        break
+    time.sleep(10)
+```
+
+```javascript Node.js (OpenAI SDK) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+// 1. Buat tugas video
+const video = await client.videos.create({
+  model: "luma-ray2-720p",
+  prompt: "Drone meluncur di atas ombak pantai Uluwatu saat senja, gerak lambat.",
+  seconds: 5,
+  size: "1280x720",
+});
+
+console.log("Job Dibuat:", video.id);
+
+// 2. Poll status penyelesaian
+let status = video.status;
+while (status !== "completed" && status !== "failed") {
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  const job = await client.videos.retrieve(video.id);
+  status = job.status;
+  console.log(`Status: ${status}`);
 }
 
-# 1. Kirim permintaan pembuatan video
-init_res = requests.post(
-    "https://api.neosantara.xyz/v1/videos",
-    headers=headers,
-    json={
-        "model": "luma-ray2-720p",
-        "prompt": "Drone meluncur di atas ombak pantai Uluwatu saat senja, gerak lambat.",
-        "seconds": 5,
-        "size": "1280x720"
-    }
-).json()
-
-job_id = init_res["id"]
-print(f"Tugas video dibuat: {job_id}")
-
-# 2. Pantau status dan progres hingga selesai
-while True:
-    job = requests.get(
-        f"https://api.neosantara.xyz/v1/videos/{job_id}",
-        headers=headers
-    ).json()
-    status = job.get("status")
-    progress = job.get("progress", 0)
-    print(f"Status: {status} ({progress}%)")
-    
-    if status == "completed":
-        print("URL Video:", job.get("url"))
-        break
-    elif status == "failed":
-        print("Gagal:", job.get("error"))
-        break
-    time.sleep(5)
+if (status === "completed") {
+  console.log(`Video URL: https://api.neosantara.xyz/v1/videos/${video.id}/content`);
+}
 ```
 
 ```bash cURL icon="terminal"
-# Membuat tugas video
+# 1. Membuat tugas video
 curl -X POST https://api.neosantara.xyz/v1/videos \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "luma-ray2-720p",
-    "prompt": "Drone meluncur di atas ombak pantai Uluwatu.",
+    "prompt": "Drone meluncur di atas ombak pantai Uluwatu saat senja.",
     "seconds": 5,
     "size": "1280x720"
   }'
 
-# Mengecek status tugas
+# 2. Mengecek status tugas
 curl https://api.neosantara.xyz/v1/videos/vid_123456 \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY"
+
+# 3. Mengunduh konten video final
+curl -L https://api.neosantara.xyz/v1/videos/vid_123456/content \
+  -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
+  -o hasil_video.mp4
 ```
 
 </CodeGroup>

@@ -34,6 +34,24 @@ image_url = response.data[0].url
 print(f"URL Gambar: {image_url}")
 ```
 
+```javascript Node.js (OpenAI SDK) icon="js"
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.neosantara.xyz/v1",
+  apiKey: process.env.NEOSANTARA_API_KEY,
+});
+
+const response = await client.images.generate({
+  model: "imagen-4.0-fast",
+  prompt: "Pemandangan sawah terasering di Ubud Bali saat matahari terbit, fotorealistik.",
+  size: "1024x1024",
+  n: 1,
+});
+
+console.log("URL Gambar:", response.data[0].url);
+```
+
 ```bash cURL icon="terminal"
 curl -X POST https://api.neosantara.xyz/v1/images/generations \
   -H "Authorization: Bearer $NEOSANTARA_API_KEY" \
@@ -58,9 +76,12 @@ curl -X POST https://api.neosantara.xyz/v1/images/generations \
 | `n` | `integer` | Opsional | Jumlah variasi gambar yang dihasilkan (1 sampai 4). Default `1`. |
 | `response_format` | `string` | Opsional | Format keluaran: `"url"` atau `"b64_json"`. Default `"url"`. |
 
-## Penagihan Generasi Gambar
+## Arsitektur Teknis & Caching
 
-Biaya generasi gambar dihitung per unit gambar yang berhasil dibuat (_per-image pricing_), bukan berdasarkan token. Biaya langsung didebet dari saldo deposit Rupiah Anda.
+- **Sinkron vs Asinkron**: Endpoint standar `/v1/images/generations` dirancang untuk integrasi langsung waktu nyata. Untuk proses batch atau model resolusi tinggi, gunakan [Responses API](/id/gateway/responses-api) dengan parameter `background: true` untuk menghindari HTTP timeout.
+- **CDN Ephemeral & TTL Caching**: Gambar yang dihasilkan disajikan melalui CDN berkecepatan tinggi dengan URL bertanda tangan sementara. Tautan berlaku selama **5 menit** (TTL). Unduh gambar ke storage permanen (S3/GCS/R2) jika membutuhkan retensi jangka panjang.
+- **Perlindungan SSRF**: Saat menyediakan URL gambar input untuk tugas manipulasi/inpainting, gateway memvalidasi rentang IP publik dan memblokir alamat loopback serta jaringan privat untuk mencegah *Server-Side Request Forgery* (SSRF).
+- **Penagihan Rupiah**: Biaya generasi gambar dihitung per unit gambar yang berhasil dibuat (_per-image pricing_), bukan berdasarkan token. Biaya langsung didebet dari saldo deposit Rupiah Anda.
 
 ## Galeri Hasil Gambar
 
