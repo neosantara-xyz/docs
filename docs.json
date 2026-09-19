@@ -3722,7 +3722,7 @@
     "dismissible": false,
     "color": {
       "light": "#000000",
-      "dark": "#FFFFFF"
+      "dark": "#F1520C"
     }
   },
   "interaction": {
@@ -3732,7 +3732,7 @@
     "codeblocks": {
       "theme": {
         "light": "ayu-dark",
-        "dark": "kanagawa-dragon"
+        "dark": "red"
       }
     }
   },
