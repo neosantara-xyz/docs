@@ -387,6 +387,15 @@
                   "POST /v1/moderations"
                 ],
                 "icon": "shield-check"
+              },
+              {
+                "group": "Evaluasi & Decision (Jev)",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/systemone",
+                  "POST /v1/evaluate"
+                ],
+                "icon": "split"
               }
             ],
             "icon": "code"
@@ -424,7 +433,8 @@
                 "pages": [
                   "id/guides/prompt-caching",
                   "id/guides/rag-chromadb",
-                  "id/guides/rag-cloudflare-vectorize"
+                  "id/guides/rag-cloudflare-vectorize",
+                  "id/guides/dspy-decision-programs"
                 ],
                 "icon": "brain-circuit"
               }
@@ -727,6 +737,15 @@
                   "POST /v1/moderations"
                 ],
                 "icon": "shield-check"
+              },
+              {
+                "group": "Evaluation & Decisions (Jev)",
+                "openapi": "api-reference/openapi.json",
+                "pages": [
+                  "POST /v1/systemone",
+                  "POST /v1/evaluate"
+                ],
+                "icon": "split"
               }
             ],
             "icon": "code"
@@ -764,7 +783,8 @@
                 "pages": [
                   "en/guides/prompt-caching",
                   "en/guides/rag-chromadb",
-                  "en/guides/rag-cloudflare-vectorize"
+                  "en/guides/rag-cloudflare-vectorize",
+                  "en/guides/dspy-decision-programs"
                 ],
                 "icon": "brain-circuit"
               }

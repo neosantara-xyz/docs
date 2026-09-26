@@ -26,11 +26,11 @@ import BaseUrlConfig from '/snippets/base-url-config.mdx';
   </Step>
 
   <Step title="Jalankan Permintaan">
-    Kirim panggilan API pertama Anda ke model unggulan berkecepatan tinggi:
+    Kirim panggilan API pertama Anda ke model `muse-spark-1.3-contributor`:
 
 ```python
 response = client.chat.completions.create(
-    model="deepseek-v4.1-flash",
+    model="muse-spark-1.3-contributor",
     messages=[
         {"role": "system", "content": "Anda adalah asisten yang membantu."},
         {"role": "user", "content": "Jelaskan AI Gateway Indonesia dalam satu kalimat."}

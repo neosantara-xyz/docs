@@ -1,0 +1,66 @@
+name: Sync Models & OpenAPI
+
+on:
+  schedule:
+    # Daily at 01:00 UTC: refresh model catalog and OpenAPI spec
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-models
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Sync model snippets from live API
+        env:
+          NEOSANTARA_BASE_URL: ${{ secrets.NEOSANTARA_BASE_URL }}
+          NEOSANTARA_API_KEY: ${{ secrets.NEOSANTARA_API_KEY }}
+        run: python3 scripts/sync_models.py --all
+
+      - name: Sync OpenAPI spec from live endpoint
+        run: python3 scripts/sync_openapi.py
+
+      - name: Validate docs
+        run: |
+          python3 scripts/validate_docs.py
+          python3 scripts/check_snippets.py
+
+      - name: Create pull request if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- snippets/ api-reference/openapi.json; then
+            echo "No model or spec changes."
+            exit 0
+          fi
+          BRANCH="chore/sync-models-$(date +%Y%m%d-%H%M)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add snippets/models-*.mdx api-reference/openapi.json
+          git commit -m "chore: sync model catalog and OpenAPI spec"
+          git push -u origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: sync model catalog and OpenAPI spec" \
+            --body "Automated sync from live API (https://api.neosantara.xyz/v1/models and /openapi.json). Review model table diffs, then merge." \
+            --label automated
