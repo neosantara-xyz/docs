@@ -68,6 +68,13 @@ print(handle("Min, saldo udah kepotong pas bayar QRIS tapi status order masih me
 
 [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) from TypeSafe is a System One model. It returns typed decisions with probabilities and gives up free-form text generation. DSPy models Jev's three decision shapes with the `Noul` (yes/no), `Score` (ordered levels), and `Choice` (pick from fixed options) types in `dspy.experimental`. The same signature runs on a JSON-capable LLM such as `gemini-3.8-flash` through Neosantara today and moves to Jev without changing the task definition.
 
+## Run in Colab
+
+| Notebook | Contents | Open |
+| :--- | :--- | :--- |
+| DSPy Decision Types | The triage agent on this page, `ReAnchor` calibration, then the switch to Jev | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neosantara-xyz/examples/blob/main/cookbook/advanced/dspy-decision-types.ipynb) |
+| Jev Decision Models | Call Jev directly through `/v1/systemone` and `/v1/evaluate` without DSPy | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neosantara-xyz/examples/blob/main/cookbook/advanced/jev-decision-models.ipynb) |
+
 ## Setup
 
 ```bash
