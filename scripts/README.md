@@ -48,7 +48,7 @@ python3 scripts/sync_models.py --list-capabilities
 ```
 
 ### `sync_openapi.py`
-Syncs the authoritative OpenAPI contract from `/root/nusantaraai/openapi.json` into `api-reference/openapi.json` for interactive API reference generation.
+Syncs the authoritative OpenAPI contract from local gateway codebase (`../openapi.json`) or live endpoint (`https://api.neosantara.xyz/openapi.json`) into `api-reference/openapi.json` for interactive API reference generation.
 
 ```bash
 python3 scripts/sync_openapi.py
