@@ -43,7 +43,7 @@ jobs:
           python3 scripts/validate_docs.py
           python3 scripts/check_snippets.py
 
-      - name: Create pull request if changed
+      - name: Create or update rolling PR and auto-merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -51,16 +51,25 @@ jobs:
             echo "No model or spec changes."
             exit 0
           fi
-          BRANCH="chore/sync-models-$(date +%Y%m%d-%H%M)"
+
+          BRANCH="chore/sync-models"
+          git fetch origin "$BRANCH" 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
+          git checkout -B "$BRANCH"
           git add snippets/models-*.mdx api-reference/openapi.json
           git commit -m "chore: sync model catalog and OpenAPI spec"
-          git push -u origin "$BRANCH"
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "chore: sync model catalog and OpenAPI spec" \
-            --body "Automated sync from live API (https://api.neosantara.xyz/v1/models and /openapi.json). Review model table diffs, then merge." \
-            --label automated
+          git push --force-with-lease -u origin "$BRANCH"
+
+          PR_URL=$(gh pr list --base main --head "$BRANCH" --state open --json url --jq '.[0].url // empty')
+          if [ -z "$PR_URL" ]; then
+            PR_URL=$(gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore: sync model catalog and OpenAPI spec" \
+              --body "Automated sync from live API (https://api.neosantara.xyz/v1/models and /openapi.json). Validated automatically via validate_docs.py and check_snippets.py." \
+              --label automated)
+          fi
+
+          # Merge immediately when main has no blocking checks; fall back to --auto if rules apply.
+          gh pr merge "$PR_URL" --squash --delete-branch || gh pr merge "$PR_URL" --squash --auto --delete-branch
