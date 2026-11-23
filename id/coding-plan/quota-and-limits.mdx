@@ -56,7 +56,7 @@ Setiap pemakaian model pada kuota paket dikalikan dengan **bobot multiplier stat
 | **1.6×** | Model berat upstream berbayar | `deepseek-v4-pro`, `kimi-k3`, `glm-5.3`, `gpt-6.1-sol` |
 
 <Note>
-  Daftar model aktif per tier dan multiplier terkininya bisa langsung dicek di dashboard Coding Plan atau via `GET /v1/coding/plans`.
+  Daftar model aktif per tier dan multiplier terkininya bisa langsung dicek di [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan).
 </Note>
 
 ## Limit Harian Model Gratis
@@ -78,4 +78,4 @@ Model yang terdaftar sebagai **Add-on** (misalnya `gemini-4-argon` atau `claude-
 
 1. **Gunakan Model Hemat Token & 1× untuk Iterasi Cepat**: manfaatkan `mimo-v2.6-flash-free` (maks 100 req/hari) atau model berbiaya ringan seperti `gemini-3.1-flash-lite` / `deepseek-v4.1-flash` untuk pencarian kode dan unit test ringan.
 2. **Manfaatkan Prompt Caching**: jaga prefix `system` dan definisi `tools` tetap konsisten agar token cache hit mengurangi pemotongan kredit per request.
-3. **Pantau Sisa Jendela**: cek sisa kredit 5 jam, mingguan, dan 30 hari melalui [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan) atau `GET /v1/coding/status`.
+3. **Pantau Sisa Jendela**: cek sisa kredit 5 jam, mingguan, dan 30 hari melalui [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan).

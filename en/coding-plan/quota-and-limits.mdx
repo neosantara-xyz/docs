@@ -56,7 +56,7 @@ Each covered model deducts credit with a **fixed static multiplier** (multiplier
 | **1.6×** | Heavy paid-upstream models | `deepseek-v4-pro`, `kimi-k3`, `glm-5.3`, `gpt-6.1-sol` |
 
 <Note>
-  You can inspect the live tier allowlists and multipliers in the Coding Plan dashboard or via `GET /v1/coding/plans`.
+  You can inspect the live tier allowlists and multipliers directly in the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan).
 </Note>
 
 ## Free-Model Daily Request Cap
@@ -78,4 +78,4 @@ Models designated as **Add-on** (for example `gemini-4-argon` or `claude-fable-5
 
 1. **Use Lighter Models for Routine Work**: use free-tier quota models like `mimo-v2.6-flash-free` (up to 100 req/day) or lower-cost models such as `gemini-3.1-flash-lite` or `deepseek-v4.1-flash` for file search and boilerplate edits.
 2. **Preserve Prompt Prefixes**: keep system instructions and tool schemas stable so upstream prefix caching cuts input token charges.
-3. **Track Active Windows**: monitor your remaining 5-hour, 7-day, and 30-day credit in the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan) or `GET /v1/coding/status`.
+3. **Track Active Windows**: monitor your remaining 5-hour, 7-day, and 30-day credit in the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan).

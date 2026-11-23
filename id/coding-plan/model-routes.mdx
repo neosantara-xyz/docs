@@ -26,7 +26,7 @@ Nama Virtual: my-coder
 2. Model Cadangan: deepseek-v4.1-flash
 ```
 
-1. Anda membuat nama virtual (contoh: `my-coder`) di dashboard atau `POST /v1/coding/model-routes` dengan urutan model (contoh: `["claude-4.5-sonnet", "deepseek-v4.1-flash"]`).
+1. Anda membuat nama virtual (contoh: `my-coder`) di [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan) dengan urutan model (contoh: `["claude-4.5-sonnet", "deepseek-v4.1-flash"]`).
 2. Saat mengirim request dengan `model: "my-coder"` ke endpoint coding, gateway mengeksekusi model pertama.
 3. Jika model pertama gagal karena kapasitas upstream, gateway langsung mencoba model berikutnya dalam rantai.
 
