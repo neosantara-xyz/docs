@@ -15,7 +15,7 @@ python3 scripts/validate_docs.py
 ```
 
 ### `check_snippets.py`
-Verifies that all snippet imports (`import X from '/_snippets/...'`) in `.mdx` files point to existing files in `_snippets/`.
+Verifies that all snippet imports (`import X from '/snippets/...'`) in `.mdx` files point to existing files in `snippets/`.
 
 ```bash
 python3 scripts/check_snippets.py

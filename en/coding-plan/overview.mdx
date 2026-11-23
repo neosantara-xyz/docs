@@ -1,6 +1,6 @@
 ---
 title: "Coding Plan Overview"
-description: "Flat-fee subscription designed for AI coding agents with prompt-based quotas and zero overages."
+description: "Flat-fee monthly subscription built for AI coding agents with Rupiah credit pools and zero automatic overages."
 icon: "terminal"
 related:
   - /en/coding-plan/quick-start
@@ -8,88 +8,90 @@ related:
   - /en/coding-plan/tool-integration
 ---
 
-**Neosantara Coding Plan** is a flat-fee subscription designed specifically for AI-assisted coding workflows. It works across tools such as Claude Code, Cline, OpenCode, and Jelma.
+**Neosantara Coding Plan** is a flat-fee subscription designed for AI-assisted coding workflows, granting a monthly **Rupiah credit pool equal to 1.4× the plan price**. It works with Claude Code, Codex CLI, OpenCode, Kilo Code, Cline, Continue, Cursor, Aider, and Jelma.
 
 <Note>
-  Coding Plan routes through **dedicated base URLs** (`/coding/v1` and `/coding/anthropic`). Coding keys (`nsk_code_*`) cannot be used on standard PAYG endpoints (`/v1` and `/anthropic`) and will return HTTP `403`. Standard PAYG keys sent to coding endpoints remain billed as regular PAYG requests and do not consume coding plan quota.
+  Coding keys (`nsk_code_*`) only work on dedicated coding URLs (**`/coding/paas/v1`** and **`/coding/paas/anthropic`**) and only from recognized coding tools. Sending a coding key to standard PAYG endpoints (`/v1` or `/anthropic`) fails with HTTP `403`. Standard PAYG keys sent to coding URLs are billed from your regular PAYG balance and do not touch Coding Plan credits.
 </Note>
 
 ## How It Works
 
 | Concept | Detail |
 | :-- | :-- |
-| **1 Prompt** | 1 user turn in your coding tool. A single prompt can trigger 15 to 20 background model calls (agent loop). |
-| **Quota Windows** | Rolling 5-hour window and weekly window. Both reset automatically. |
-| **Overage** | Zero overage charges. Requests hard-stop when quota is exhausted until the next window reset. |
-| **Auto-Renewal** | No automated recurring charges. You receive a reminder 3 days before expiration and can renew via the dashboard. |
+| **Rupiah Credit Pool (1.4×)** | Every plan provides monthly coding credit equal to 1.4× the subscription price for a 30-day cycle. |
+| **Credit Deduction** | Completed requests deduct the PAYG list cost of the requested model scaled by that model's static multiplier. Failed requests cost Rp 0. |
+| **Three Spend Windows** | Independent rolling 5-hour (20%), rolling 7-day (50%), and 30-day cycle (100%) spending caps. |
+| **Hard-Stop, Zero Overage** | When any window is depleted, requests pause with an error until the next reset. Your PAYG balance is never charged automatically. |
+| **3-Day Free Trial** | One-time 3-day trial on Coding Hemat with IDR 25,000 in coding credit (`POST /v1/coding/trial`). |
+| **Renewal** | One-time 30-day invoice without auto-renewal. Reminder emails are sent 3 days before expiry. |
 
 ## Dedicated Base URLs
 
-Coding keys (`nsk_code_*`) are only valid on dedicated coding paths:
+Coding keys (`nsk_code_*`) are accepted on the canonical coding endpoints below:
 
-| Protocol | Base URL |
+| Protocol | Canonical Base URL |
 | :-- | :-- |
-| OpenAI-compatible | `https://api.neosantara.xyz/coding/v1` |
-| Anthropic-compatible | `https://api.neosantara.xyz/coding/anthropic` |
+| OpenAI Chat & Responses | `https://api.neosantara.xyz/coding/paas/v1` |
+| Anthropic Messages | `https://api.neosantara.xyz/coding/paas/anthropic` |
 
 <Warning>
-  Sending a coding key to regular endpoints (`/v1` or `/anthropic`) produces a `403 coding_key_requires_coding_endpoint` error.
+  Legacy `/coding/v1` and `/coding/anthropic` paths are deprecated and return a `Warning: 299` header. Sending coding keys to regular endpoints (`/v1` or `/anthropic`) returns `403 coding_key_requires_coding_endpoint`.
 </Warning>
 
 ## Quick Start Steps
 
 <Steps>
-  <Step title="Create a Coding Key">
-    Navigate to the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys) and generate a key prefixed with `[CODE]`.
+  <Step title="Activate a Plan or Trial">
+    Open the [Coding Plan Dashboard](https://app.neosantara.xyz/coding-plan), select **Hemat**, **Reguler**, or **Eksklusif**, and complete payment via Mayar (or claim your one-time 3-day IDR 25,000 trial).
   </Step>
-  <Step title="Subscribe to a Tier">
-    Select your desired plan tier (Hemat, Reguler, or Eksklusif) and complete invoice payment via Mayar.
+  <Step title="Create a Coding Key">
+    Once active, create a key on [Coding Plan](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys). Coding keys start with `nsk_code_` and carry the `[CODE]` name prefix.
   </Step>
   <Step title="Configure Your Tool">
-    Point your coding agent to the coding base URL with your new coding key.
+    Point your coding client to the canonical `/coding/paas/*` base URLs with your coding key.
 
     **Claude Code** (`~/.claude/settings.json`):
     ```json JSON icon="file-code"
     {
       "env": {
-        "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
-        "ANTHROPIC_AUTH_TOKEN": "nsk_code_YOUR_KEY",
-        "ANTHROPIC_MODEL": "claude-4.5-sonnet"
+        "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/paas/anthropic",
+        "ANTHROPIC_API_KEY": "nsk_code_YOUR_KEY",
+        "ANTHROPIC_MODEL": "deepseek-v4.1-flash"
       }
     }
     ```
 
     **Cline / OpenCode / Continue** (OpenAI mode):
     ```text Terminal icon="terminal"
-    Base URL: https://api.neosantara.xyz/coding/v1
+    Base URL: https://api.neosantara.xyz/coding/paas/v1
     API Key:  nsk_code_YOUR_KEY
-    Model:    claude-4.5-sonnet
+    Model:    deepseek-v4.1-flash
     ```
   </Step>
-  <Step title="Launch via Jelma">
-    Use the [Jelma](https://app.neosantara.xyz/jelma) CLI to spawn Neosantara coding agents instantly without manual configuration.
+  <Step title="Or Launch via Jelma">
+    Use the [Jelma](https://app.neosantara.xyz/jelma) CLI to launch local agents without editing config files (`jelma claude local`, `jelma opencode local`).
   </Step>
 </Steps>
 
-## Quotas & Models
+## Quotas, Multipliers, and Add-ons
 
-Quotas are calculated per prompt turn: **1 prompt = 1 user turn**, regardless of the number of internal sub-queries or tool calls executed by the agent.
+Each subscription tier sets its own model allowlist (`Hemat`, `Reguler`, `Eksklusif`), concurrent in-flight limit, static credit multipliers (`1×`, `1.5×`, `1.6×`), and optional prepaid Add-on credit support for premium add-on models.
 
-For tier limits, rolling window schedules, and load-based multipliers, see [Quotas & Limits](/en/coding-plan/quota-and-limits).
+For exact tier credit budgets and window rules, see [Quotas & Limits](/en/coding-plan/quota-and-limits).
 
 ## Frequently Asked Questions
 
 <AccordionGroup>
   <Accordion title="Does the Coding Plan renew automatically?">
-    No. Invoices are paid once per 30-day billing cycle. The platform sends renewal reminder emails 3 days prior to expiration.
+    No. Invoices cover one 30-day billing cycle at a time. The platform sends renewal reminder emails 3 days before expiration.
   </Accordion>
-  <Accordion title="What happens when quota is exhausted?">
-    Requests hard-stop until the 5-hour or weekly window resets. Your PAYG deposit balance is never deducted.
+  <Accordion title="What happens when credit in a window is exhausted?">
+    Requests hard-stop until the 5-hour, 7-day, or 30-day window resets. Your standard PAYG deposit balance is never deducted.
   </Accordion>
-  <Accordion title="Can I use a coding key on standard /v1 endpoints?">
-    No. Coding keys only operate on `/coding/v1` and `/coding/anthropic`. Standard keys prefixed with `nsk_` are required for general PAYG endpoints.
+  <Accordion title="Can I use a coding key on /v1 or from plain curl?">
+    No. Coding keys only work on `/coding/paas/v1` and `/coding/paas/anthropic` from recognized coding clients (Claude Code, Codex CLI, OpenCode, Cline, Cursor, Continue, Aider, Windsurf, Kilo Code, etc.). Raw `curl` or plain SDK calls return `403 coding_client_not_supported`.
   </Accordion>
   <Accordion title="Which models can I access?">
-    All models available in the Neosantara catalog that are permitted within your specific subscription tier.
+    You can call every model in your tier allowlist, plus designated add-on models when you hold at least IDR 100 in your prepaid Add-on balance.
   </Accordion>
 </AccordionGroup>

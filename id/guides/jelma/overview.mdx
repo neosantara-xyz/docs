@@ -42,7 +42,7 @@ Jelma mendukung eksekusi lokal dan deployment provisioning instance cloud:
 Jelma mendeteksi jenis API key yang Anda gunakan secara otomatis:
 
 - **Pay-As-You-Go (PAYG)**: Jika menggunakan key standar (`nsk_...`), Jelma mengarahkan request ke `/v1` atau `/anthropic` dengan pemotongan saldo per-token.
-- **Coding Plan**: Jika menggunakan coding key (`nsk_code_...`), Jelma mengarahkan request ke `/coding/v1` atau `/coding/anthropic` dengan kuota prompt.
+- **Coding Plan**: Jika menggunakan coding key (`nsk_code_...`), Jelma mengarahkan request ke `/coding/paas/v1` atau `/coding/paas/anthropic` menggunakan kredit Coding Plan.
 
 ## Pemilihan Model & Routing
 

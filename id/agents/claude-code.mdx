@@ -44,6 +44,25 @@ Claude Code akan langsung terhubung ke Neosantara menggunakan model default `cla
   </Step>
 </Steps>
 
+### Memakai model selain Claude
+
+Claude Code memakai beberapa model sekaligus: model utama, model kecil untuk tugas latar (judul sesi, ringkasan), dan model subagent. Saat memakai model lain, misalnya `minimax-m2.7`, arahkan semuanya ke model yang sama:
+
+```bash
+export ANTHROPIC_MODEL="minimax-m2.7"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="minimax-m2.7"
+export ANTHROPIC_SMALL_FAST_MODEL="minimax-m2.7"   # untuk Claude Code versi lama
+export CLAUDE_CODE_SUBAGENT_MODEL="minimax-m2.7"
+```
+
+Daftar model yang tersedia ada di [Katalog Model](https://app.neosantara.xyz/models).
+
+| Gejala | Penjelasan |
+| :-- | :-- |
+| Peringatan `Model 'minimax-m2.7' isn't recognized` | Berasal dari Claude Code, bukan dari gateway. Request tetap berjalan normal. Claude Code menganggap konteks model 200K token untuk keputusan kompaksi. |
+| Tugas latar memakai model Claude padahal Anda memilih model lain | `ANTHROPIC_DEFAULT_HAIKU_MODEL` / `ANTHROPIC_SMALL_FAST_MODEL` belum diatur. |
+| Hanya tampil "Thought for Ns" tanpa jawaban | Laporkan ke support dengan nama model dan waktu kejadian. Gateway mencatat giliran yang hanya berisi thinking per model sehingga kasusnya bisa ditelusuri. |
+
 ## Metode 2: Menambahkan Server MCP Neosantara
 
 Jika Anda ingin Claude Code mengakses tools Neosantara seperti pembuatan gambar atau katalog model aktif, tambahkan Neosantara sebagai server MCP:

@@ -1,6 +1,6 @@
 ---
 title: "Kuota & Batasan Coding Plan"
-description: "Mekanisme perhitungan kuota prompt, jendela rolling 5 jam dan mingguan, batas konkurensi, dan multiplier beban."
+description: "Mekanisme kredit Rupiah, 3 jendela pengeluaran (5 jam, mingguan, 30 hari), batas konkurensi, multiplier statis, limit harian gratis, dan add-on."
 icon: "gauge"
 related:
   - /id/coding-plan/overview
@@ -8,56 +8,74 @@ related:
   - /id/coding-plan/model-routes
 ---
 
-Halaman ini merupakan panduan resmi mengenai cara kuota dihitung, dipantau, dan diberlakukan pada Neosantara Coding Plan.
+Halaman ini menjelaskan cara perhitungan kuota kredit, pembatasan model per tier, multiplier statis, batas harian model gratis, serta saldo Add-on pada Neosantara Coding Plan.
 
-## Definisi 1 Prompt
+## Mekanisme Kredit Rupiah
 
-Kuota Coding Plan dihitung **berdasarkan prompt, bukan jumlah token**. Satu prompt dihitung setara dengan **satu giliran interaksi user** (*turn*) di coding tool, terlepas dari berapa banyak sub-panggilan model yang dipicu oleh agent secara internal.
+Berbeda dari paket flat berbasis jumlah hitungan prompt tetap, backend Coding Plan mengalokasikan **kredit Rupiah bulanan sebesar 1,4× harga paket**:
+
+- **Biaya per request:** setiap request yang berhasil memotong kredit sebesar `(harga PAYG model yang diminta dalam IDR) × (multiplier statis model)`.
+- **Request gagal gratis:** apabila request gagal sebelum selesai, kredit tidak dipotong.
+- **Isolasi saldo PAYG:** saat batas jendela habis, request berhenti sementara (*hard-stop*) dan **tidak** memotong saldo deposit PAYG standar Anda.
+
+## Jendela Pengeluaran & Trial
+
+Gateway menegakkan **tiga jendela batas pengeluaran independen** dari kredit bulanan Anda, dihitung berdasarkan waktu aktivasi paket:
+
+| Jendela | Porsi Kredit | Perilaku Reset |
+| :-- | :-- | :-- |
+| **Rolling 5 Jam** | Maks 20% dari kredit bulanan | Jendela berjalan 5 jam (`5 menit` bucket), terbuka lagi saat pemakaian lama keluar dari rentang 5 jam. |
+| **Rolling 7 Hari (Mingguan)** | Maks 50% dari kredit bulanan | Jendela berjalan 7 hari (`1 jam` bucket), bergerak otomatis setiap jam. |
+| **Siklus 30 Hari** | 100% kredit bulanan | Reset penuh pada siklus 30 hari berikutnya setelah perpanjangan/aktivasi. |
+
+### Tier Paket & Trial
+
+| Tier Paket | Harga Bulanan | Kredit 5 Jam (20%) | Kredit Mingguan (50%) | Kredit 30 Hari (100%) | Konkurensi In-Flight | Model Diizinkan |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| **Trial (3 Hari)** | Gratis (1× per akun) | Rp 5.000 | Rp 12.500 | Rp 25.000 | 4 request | 15 model (tier Hemat) |
+| **Coding Hemat** | Rp 149.000 | Rp 41.720 | Rp 104.300 | Rp 208.600 | 4 request | 15 model |
+| **Coding Reguler** | Rp 499.000 | Rp 139.720 | Rp 349.300 | Rp 698.600 | 10 request | 26 model |
+| **Coding Eksklusif** | Rp 1.290.000 | Rp 361.200 | Rp 903.000 | Rp 1.806.000 | 20 request | 29 model |
 
 <Note>
-  Satu instruksi seperti *"refactor modul autentikasi dan jalankan unit test"* dapat memicu 15 hingga 20 panggilan model di balik layar (membaca file, iterasi reasoning, menjalankan command shell). Seluruh siklus interaksi tersebut tetap dihitung sebagai **1 prompt**.
+  Pemakaian dalam satu siklus 30 hari dibatasi oleh jendela mana saja yang habis lebih dulu (5 jam, 7 hari, atau total 30 hari).
 </Note>
-
-## Jendela Kuota
-
-Sistem menerapkan dua batasan waktu independen:
-
-| Jendela Waktu | Sifat & Perilaku |
-| :-- | :-- |
-| **Rolling 5 Jam** | Reset otomatis secara bertahap 5 jam setelah request pertama dalam siklus dikirim. |
-| **Mingguan** | Reset penuh setiap 7 hari kalender dihitung dari waktu aktivasi paket langganan. |
-
-- **Tanpa Biaya Tambahan (Zero Overage)**: Saat kuota pada salah satu jendela habis, request akan dihentikan sementara (*hard-stop*) sampai siklus reset berikutnya.
-- **Isolasi Saldo Deposit**: Kuota coding plan tidak pernah memotong saldo deposit Pay-As-You-Go akun Anda.
-
-## Perbandingan Tier Paket
-
-| Tier Paket | Limit 5 Jam | Limit Mingguan | Maks Request Bersamaan | Harga Bulanan |
-| :-- | :-- | :-- | :-- | :-- |
-| **Coding Hemat** | ~80 prompt | ~400 prompt | 4 request | Rp 149.000 |
-| **Coding Reguler** | ~400 prompt | ~2.000 prompt | 10 request | Rp 499.000 |
-| **Coding Eksklusif** | ~1.600 prompt | ~8.000 prompt | 20 request | Rp 1.290.000 |
 
 ### Batas Konkurensi In-Flight
 
-Batas request bersamaan (*in-flight concurrency*) membatasi berapa banyak proses agent yang dapat berjalan secara simultan pada saat yang sama. Jika batas konkurensi tercapai, request baru akan ditolak sementara hingga proses sebelumnya selesai.
+Batas konkurensi membatasi jumlah request aktif yang diproses bersamaan oleh subagent atau beberapa sesi IDE sekaligus (`4 / 10 / 20`). Jika penuh, request baru ditolak sementara sampai request yang sedang berjalan selesai.
 
-## Multiplier Model Berbasis Beban
+## Bobot Multiplier Model (Statis)
 
-Setiap prompt yang dikirimkan menggunakan kuota sesuai dengan koefisien multiplier model yang digunakan. Model kategori flagship menyesuaikan multiplier ketika kapasitas upstream mengalami beban tinggi (*under load*):
+Setiap pemakaian model pada kuota paket dikalikan dengan **bobot multiplier statis** (tidak pernah berubah dinamis karena beban upstream):
 
-| Kategori Model | Contoh Model | Kondisi Normal | Kondisi Under Load |
-| :-- | :-- | :-- | :-- |
-| **Flagship Reasoning** | `claude-4.5-sonnet`, `claude-4.5-opus` | 2× | 3× |
-| **Mid-Tier Standard** | `gpt-4.1-mini`, `qwen-2.5-coder` | 2× | 2× |
-| **Model Ringan / Cepat** | `gemini-3-flash`, `glm-4.7-flash` | 1× | 1× |
+| Bobot | Kriteria | Contoh Model |
+| :-- | :-- | :-- |
+| **1×** | Model utama & gateway standar | `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-sonnet-5.5`, `claude-opus-5.5`, `gemini-3-flash`, `gemini-3.1-flash-lite`, `gemini-4-hydrogen`, `gemini-4-argon`, `gpt-6-luna`, `garda-core`, `minimax-m2.7`, `gpt-oss-120b`, `mimo-v2.6-flash-free` |
+| **1.5×** | Model upstream berbayar standar | `deepseek-v4-flash`, `deepseek-v4.1-flash`, `glm-5.3-flash`, `minimax-m3`, `claude-4.5-sonnet`, `claude-4.5-opus`, `claude-4-5-haiku`, `muse-spark-1.3`, `muse-wonder-1.0`, `muse-ember-1.0`, `ernie-5.5-flash-preview-free`, `mimo-v2.5`, `mimo-v2.5-pro` |
+| **1.6×** | Model berat upstream berbayar | `deepseek-v4-pro`, `kimi-k3`, `glm-5.3`, `gpt-6.1-sol` |
 
 <Note>
-  Status beban (*under load*) dideteksi secara dinamis secara real-time berdasarkan tingkat error kapasitas provider upstream, bukan berdasarkan jadwal jam tetap.
+  Daftar model aktif per tier dan multiplier terkininya bisa langsung dicek di dashboard Coding Plan atau via `GET /v1/coding/plans`.
 </Note>
 
-## Tips Optimalisasi Kuota
+## Limit Harian Model Gratis
 
-1. **Gunakan Model Ringan untuk Tugas Rutin**: Gunakan model cepat seperti `gemini-3-flash` untuk pencarian file atau penulisan fungsi sederhana (hanya 1× kuota).
-2. **Simpan Model Flagship untuk Refactoring Kompleks**: Alokasikan model flagship untuk perancangan arsitektur multi-file dan debugging mendalam.
-3. **Gabungkan Konteks Relevan**: Satukan beberapa instruksi perbaikan kecil dalam satu giliran prompt untuk menghemat konsumsi kuota.
+Model tanpa biaya token (`input = 0`, `output = 0`, seperti `ernie-5.5-flash-preview-free` dan `mimo-v2.6-flash-free`) tidak memotong saldo kredit Rupiah, tetapi dibatasi maksimal **100 request per hari (reset 00:00 UTC)** per pengguna. Gateway menyertakan header `x-neosantara-coding-free-daily-limit` dan `x-neosantara-coding-free-daily-remaining` pada respons.
+
+## Model Add-on & Saldo Prepaid
+
+Model yang terdaftar sebagai **Add-on** (misalnya `gemini-4-argon` atau `claude-fable-5.1` saat diaktifkan di konfigurasi add-on) tidak masuk pemotongan kredit flat paket dan tidak bergantung pada batas 5 jam/mingguan paket. Biaya pemakaiannya dipotong langsung dari **Saldo Add-on Prepaid** (tarif PAYG model + margin 40%, minimal saldo Rp 100 sebelum request).
+
+| Paket Top-Up Add-on | Nominal |
+| :-- | :-- |
+| **Starter** | Rp 50.000 |
+| **Basic** | Rp 100.000 |
+| **Standard** | Rp 250.000 |
+| **Premium** | Rp 500.000 |
+
+## Tips Optimalisasi Kredit
+
+1. **Gunakan Model Hemat Token & 1× untuk Iterasi Cepat**: manfaatkan `mimo-v2.6-flash-free` (maks 100 req/hari) atau model berbiaya ringan seperti `gemini-3.1-flash-lite` / `deepseek-v4.1-flash` untuk pencarian kode dan unit test ringan.
+2. **Manfaatkan Prompt Caching**: jaga prefix `system` dan definisi `tools` tetap konsisten agar token cache hit mengurangi pemotongan kredit per request.
+3. **Pantau Sisa Jendela**: cek sisa kredit 5 jam, mingguan, dan 30 hari melalui [Dashboard Coding Plan](https://app.neosantara.xyz/coding-plan) atau `GET /v1/coding/status`.

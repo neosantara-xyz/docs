@@ -1,6 +1,6 @@
 ---
 title: "Coding Plan Quickstart"
-description: "Quick setup guide for Neosantara Coding Plan, creating coding keys, and connecting agents."
+description: "Quick setup guide for Neosantara Coding Plan, trial or subscription activation, coding keys, and agent integration."
 icon: "rocket"
 related:
   - /en/coding-plan/overview
@@ -8,64 +8,64 @@ related:
   - /en/coding-plan/tool-integration
 ---
 
-This guide walks you through setting up the Neosantara Coding Plan, issuing your first coding key, and configuring your coding agents.
+This guide covers activating the Neosantara Coding Plan, generating a coding key, and connecting supported coding clients.
 
 ## Configuration Steps
 
 <Steps>
   <Step title="Sign In to Dashboard">
-    Visit the [Neosantara Dashboard](https://app.neosantara.xyz) and log in to your account.
+    Visit the [Neosantara Dashboard](https://app.neosantara.xyz) and sign in to your account.
   </Step>
 
-  <Step title="Activate Coding Plan">
-    Navigate to [Coding Plan](https://app.neosantara.xyz/coding-plan) and choose your plan tier:
+  <Step title="Activate a Plan or Claim Trial">
+    Open [Coding Plan](https://app.neosantara.xyz/coding-plan) and pick a tier (monthly credit equals **1.4× the subscription price**):
 
-    | Tier | 5-Hour Limit | Weekly Limit | Monthly Price |
-    | :-- | :-- | :-- | :-- |
-    | **Coding Hemat** | ~80 prompts | ~400 prompts | IDR 149,000 |
-    | **Coding Reguler** | ~400 prompts | ~2,000 prompts | IDR 499,000 |
-    | **Coding Eksklusif** | ~1,600 prompts | ~8,000 prompts | IDR 1,290,000 |
+    | Tier | 5-Hour Cap (20%) | Weekly Cap (50%) | 30-Day Credit (100%) | Monthly Price |
+    | :-- | :-- | :-- | :-- | :-- |
+    | **Coding Hemat** | IDR 41,720 | IDR 104,300 | IDR 208,600 | IDR 149,000 |
+    | **Coding Reguler** | IDR 139,720 | IDR 349,300 | IDR 698,600 | IDR 499,000 |
+    | **Coding Eksklusif** | IDR 361,200 | IDR 903,000 | IDR 1,806,000 | IDR 1,290,000 |
 
-    Complete payment via Mayar invoice. The plan activates within 2 minutes of payment confirmation.
+    Pay the Mayar invoice for activation. Eligible accounts can also claim a one-time **3-Day Free Trial** on Coding Hemat with **IDR 25,000** in coding credit (`POST /v1/coding/trial`).
   </Step>
 
   <Step title="Generate a Coding Key">
-    After activation, generate a dedicated coding key from [Coding Plan](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys). The generated key starts with `nsk_code_...`.
+    Once active, generate a coding key on [Coding Plan](https://app.neosantara.xyz/coding-plan) or [API Keys](https://app.neosantara.xyz/api-keys). Keys start with `nsk_code_` and use the `[CODE]` name prefix.
 
     <Warning>
-      Store your token securely. The raw key is displayed only once upon creation.
+      Save your key immediately. The raw secret is shown only once at creation.
     </Warning>
   </Step>
 
-  <Step title="Connect Your IDE or Agent Tool">
-    Neosantara Coding Plan integrates into any environment supporting OpenAI or Anthropic API formats:
+  <Step title="Connect a Supported Coding Tool">
+    Neosantara Coding Plan works with coding agents using OpenAI Chat/Responses or Anthropic Messages formats that identify themselves as supported clients:
 
     <CardGroup cols={2}>
       <Card title="Claude Code" icon="/images/integrations/claude-code.svg">
-        Official CLI agent from Anthropic using the Anthropic Messages protocol.
+        Anthropic's agentic CLI via Anthropic Messages (`/coding/paas/anthropic`).
       </Card>
-      <Card title="Cline" icon="/images/integrations/cline.svg">
-        Autonomous VS Code extension using OpenAI Chat Completions compatibility.
+      <Card title="Codex CLI & Cline" icon="/images/integrations/cline.svg">
+        Codex CLI (`/coding/paas/v1` Responses API) and Cline for VS Code.
       </Card>
-      <Card title="OpenCode & Continue" icon="/images/integrations/opencode.svg">
-        Open-source coding agents for the terminal and IDEs like VS Code and JetBrains.
+      <Card title="OpenCode, Kilo Code & Continue" icon="/images/integrations/opencode.svg">
+        Open-source coding agents for terminal, VS Code, and JetBrains IDEs.
       </Card>
       <Card title="Jelma Runner" icon="cpu">
-        Built-in CLI runner that automatically handles environments and model flags.
+        Neosantara's CLI runner that injects base URLs and credentials automatically.
       </Card>
     </CardGroup>
   </Step>
 
-  <Step title="Select Dedicated Base URLs">
-    Ensure your client points to the correct coding endpoint:
+  <Step title="Select Canonical Base URLs">
+    Configure your client with the canonical coding base URLs:
 
-    | Protocol | Base URL |
+    | Protocol | Canonical Base URL |
     | :-- | :-- |
-    | Anthropic Messages | `https://api.neosantara.xyz/coding/anthropic` |
-    | OpenAI Chat Completions | `https://api.neosantara.xyz/coding/v1` |
+    | Anthropic Messages | `https://api.neosantara.xyz/coding/paas/anthropic` |
+    | OpenAI Chat & Responses | `https://api.neosantara.xyz/coding/paas/v1` |
 
     <Warning>
-      Connecting with standard endpoints (`/v1` or `/anthropic`) results in a `403 coding_key_requires_coding_endpoint` error.
+      Sending a coding key to standard PAYG endpoints (`/v1` or `/anthropic`) fails with `403 coding_key_requires_coding_endpoint`. Calls from generic HTTP clients such as `curl` or raw SDKs fail with `403 coding_client_not_supported`.
     </Warning>
   </Step>
 </Steps>
@@ -74,15 +74,15 @@ This guide walks you through setting up the Neosantara Coding Plan, issuing your
 
 ### Claude Code
 
-Edit configuration in `~/.claude/settings.json`:
+Edit `~/.claude/settings.json` (choose a model permitted in your tier, such as `deepseek-v4.1-flash`, which works across Hemat, Trial, Reguler, and Eksklusif):
 
 ```json JSON icon="file-code"
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
-    "ANTHROPIC_AUTH_TOKEN": "nsk_code_YOUR_KEY",
-    "ANTHROPIC_MODEL": "claude-4.5-sonnet",
-    "ANTHROPIC_SMALL_FAST_MODEL": "gemini-3-flash",
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/paas/anthropic",
+    "ANTHROPIC_API_KEY": "nsk_code_YOUR_KEY",
+    "ANTHROPIC_MODEL": "deepseek-v4.1-flash",
+    "ANTHROPIC_SMALL_FAST_MODEL": "deepseek-v4.1-flash",
     "API_TIMEOUT_MS": "3600000"
   }
 }
@@ -90,20 +90,22 @@ Edit configuration in `~/.claude/settings.json`:
 
 ### Cline (VS Code)
 
-1. Open Cline extension settings in VS Code.
+1. Open Cline settings in VS Code.
 2. Set **API Provider** to `OpenAI Compatible`.
-3. Provide the following values:
-   - **Base URL**: `https://api.neosantara.xyz/coding/v1`
+3. Configure the following fields:
+   - **Base URL**: `https://api.neosantara.xyz/coding/paas/v1`
    - **API Key**: `nsk_code_YOUR_KEY`
-   - **Model**: `claude-4.5-sonnet` (or another supported model)
-4. Disable **Support Images** if not required.
+   - **Model**: `deepseek-v4.1-flash` (or `claude-sonnet-4-6` on Reguler / Eksklusif)
+4. Disable **Support Images** when using text-only models.
+
+For Codex CLI, OpenCode, Kilo Code, Continue, Aider, and Cursor configs, see [Tool Integration](/en/coding-plan/tool-integration).
 
 ## Verify Connection
 
-Run a simple prompt test from your terminal or extension:
+Send a quick coding prompt inside your agent:
 
 ```text Terminal icon="terminal"
 Write a TypeScript function to validate Indonesian phone numbers (+62 or 08 prefix).
 ```
 
-When the agent responds, your Coding Plan integration is verified and ready for production work.
+When the agent responds and your usage updates on the dashboard (`GET /v1/coding/status`), the setup is working.

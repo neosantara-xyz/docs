@@ -1,6 +1,6 @@
 ---
 title: "Integrasi Tool Coding"
-description: "Panduan konfigurasi IDE dan coding agent untuk Neosantara Coding Plan pada Claude Code, Cline, Cursor, dan OpenCode."
+description: "Panduan konfigurasi IDE dan coding agent untuk Neosantara Coding Plan pada Claude Code, Codex CLI, OpenCode, Kilo Code, Continue, Aider, Cline, dan Cursor."
 icon: "plug"
 related:
   - /id/coding-plan/quick-start
@@ -8,87 +8,191 @@ related:
   - /id/guides/jelma/overview
 ---
 
-Neosantara Coding Plan kompatibel dengan semua tool pengembangan software yang mendukung protokol **OpenAI Chat Completions** atau **Anthropic Messages**.
+Neosantara Coding Plan kompatibel dengan coding tool resmi yang mendukung protokol **OpenAI Chat Completions**, **OpenAI Responses**, atau **Anthropic Messages**.
 
 ## Pilihan Tool yang Didukung
 
 <CardGroup cols={2}>
   <Card title="Claude Code" icon="/images/integrations/claude-code.svg">
-    CLI agentic dari Anthropic. Menggunakan endpoint Anthropic Messages.
+    CLI agentic dari Anthropic menggunakan protokol Anthropic Messages (`/coding/paas/anthropic`).
   </Card>
-  <Card title="Cline" icon="/images/integrations/cline.svg">
-    Ekstensi otonom untuk VS Code. Menggunakan endpoint OpenAI-compatible.
+  <Card title="Codex CLI" icon="terminal">
+    CLI agentic resmi OpenAI (`@openai/codex`) menggunakan protokol OpenAI Responses (`wire_api = "responses"`).
   </Card>
-  <Card title="OpenCode & Continue" icon="/images/integrations/opencode.svg">
-    Agent koding open-source untuk terminal atau IDE VS Code dan JetBrains.
+  <Card title="OpenCode & Kilo Code" icon="/images/integrations/opencode.svg">
+    Agent coding open-source berbasis terminal (`opencode`, `kilo`) menggunakan endpoint OpenAI-compatible.
   </Card>
-  <Card title="Cursor" icon="/images/integrations/cursor.svg">
-    Editor AI dengan dukungan penambahan model OpenAI kustom.
+  <Card title="Continue, Aider, Cline & Cursor" icon="/images/integrations/cline.svg">
+    CLI dan ekstensi IDE yang terhubung lewat endpoint OpenAI-compatible (`/coding/paas/v1`).
   </Card>
 </CardGroup>
 
 ## Pemilihan Endpoint Coding
 
-| Protokol | Base URL | Tool Terkait |
+| Protokol | Base URL Kanonik | Tool Terkait |
 | :-- | :-- | :-- |
-| **Anthropic Messages** | `https://api.neosantara.xyz/coding/anthropic` | Claude Code, Goose, atau SDK Anthropic |
-| **OpenAI Chat Completions** | `https://api.neosantara.xyz/coding/v1` | Cline, OpenCode, Continue, Cursor |
+| **Anthropic Messages** | `https://api.neosantara.xyz/coding/paas/anthropic` | Claude Code |
+| **OpenAI Chat & Responses** | `https://api.neosantara.xyz/coding/paas/v1` | Codex CLI, OpenCode, Kilo Code, Cline, Roo Code, Aider, Continue, Cursor |
 
 <Warning>
-  Coding key (`nsk_code_*`) hanya valid pada endpoint di atas. Mengirim coding key ke endpoint PAYG standar (`/v1` atau `/anthropic`) akan menghasilkan response status `403`.
+  Coding key (`nsk_code_*`) hanya valid pada endpoint `/coding/paas/*` di atas dan hanya untuk coding tool yang dikenali. Mengirim coding key ke endpoint PAYG standar (`/v1` atau `/anthropic`) atau dari HTTP client generik (`curl`, SDK polos) akan mengembalikan status `403`.
 </Warning>
 
 ## Panduan Konfigurasi Per Tool
 
 ### 1. Claude Code
 
-Sunting berkas konfigurasi di `~/.claude/settings.json`:
+Edit `~/.claude/settings.json` (atau export sebagai environment variable):
 
 ```json JSON icon="file-code"
 {
   "env": {
-    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/anthropic",
-    "ANTHROPIC_AUTH_TOKEN": "nsk_code_KEY_ANDA",
-    "ANTHROPIC_MODEL": "claude-4.5-sonnet",
-    "ANTHROPIC_SMALL_FAST_MODEL": "gemini-3-flash",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-4.5-sonnet",
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/paas/anthropic",
+    "ANTHROPIC_API_KEY": "nsk_code_KEY_ANDA",
+    "ANTHROPIC_MODEL": "deepseek-v4.1-flash",
+    "ANTHROPIC_SMALL_FAST_MODEL": "deepseek-v4.1-flash",
     "API_TIMEOUT_MS": "3600000"
   }
 }
 ```
 
-Pastikan variabel environment `ANTHROPIC_AUTH_TOKEN` atau `ANTHROPIC_BASE_URL` di shell tidak menimpa pengaturan di atas.
+Pastikan variabel `ANTHROPIC_AUTH_TOKEN` atau `ANTHROPIC_BASE_URL` di shell tidak menimpa pengaturan di atas.
 
-### 2. Cline (VS Code)
+### 2. Codex CLI (`@openai/codex`)
 
-1. Buka ekstensi **[Cline](https://cline.bot/?utm_source=neosantara-docs&utm_medium=referral)** di bilah samping VS Code.
-2. Klik ikon gerigi untuk membuka Settings.
-3. Atur **API Provider** ke `OpenAI Compatible`.
-4. Isi parameter berikut:
-   - **Base URL**: `https://api.neosantara.xyz/coding/v1`
-   - **API Key**: `nsk_code_KEY_ANDA`
-   - **Model ID**: `claude-4.5-sonnet` (atau model lain dari tier Anda)
-5. Nonaktifkan opsi **Support Images** untuk menghemat bandwidth jika hanya memproses kode teks.
+Codex CLI memerlukan `wire_api = "responses"` pada `~/.codex/config.toml`:
 
-### 3. OpenCode & Continue
+```toml TOML icon="file-code"
+model = "deepseek-v4.1-flash"
+model_provider = "neosantara"
 
-Konfigurasikan settings provider:
-
-```text Configuration icon="terminal"
-Base URL: https://api.neosantara.xyz/coding/v1
-API Key:  nsk_code_KEY_ANDA
-Model:    claude-4.5-sonnet
+[model_providers.neosantara]
+name = "Neosantara Coding Gateway"
+base_url = "https://api.neosantara.xyz/coding/paas/v1"
+wire_api = "responses"
+env_key = "CODEX_API_KEY"
 ```
 
-### 4. Cursor
+Export API key lalu jalankan Codex:
 
-1. Buka **[Cursor](https://www.cursor.com/?utm_source=neosantara-docs&utm_medium=referral) Settings** -> **Models** -> **Add Custom Model**.
-2. Masukkan konfigurasi:
-   - **OpenAI Base URL**: `https://api.neosantara.xyz/coding/v1`
-   - **API Key**: `nsk_code_KEY_ANDA`
-   - **Model Name**: `claude-4.5-sonnet`
+```bash Terminal icon="terminal"
+export CODEX_API_KEY="nsk_code_KEY_ANDA"
+codex exec "Buat unit test untuk modul auth"
+```
 
-### 5. Jelma CLI Runner (Otomatis)
+### 3. OpenCode CLI (`opencode`)
+
+Buat konfigurasi di `~/.config/opencode/opencode.json`:
+
+```json JSON icon="file-code"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "neosantara": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Neosantara Coding Gateway",
+      "options": {
+        "baseURL": "https://api.neosantara.xyz/coding/paas/v1",
+        "apiKey": "{env:NEOSANTARA_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": {
+          "name": "DeepSeek V4.1 Flash",
+          "limit": { "context": 128000, "output": 8192 }
+        }
+      }
+    }
+  }
+}
+```
+
+```bash Terminal icon="terminal"
+export NEOSANTARA_API_KEY="nsk_code_KEY_ANDA"
+opencode run -m neosantara/deepseek-v4.1-flash "Jelaskan struktur proyek ini"
+```
+
+### 4. Kilo Code CLI (`@kilocode/cli`)
+
+Buat konfigurasi di `~/.config/kilo/kilo.jsonc`:
+
+```json JSON icon="file-code"
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "neosantara/deepseek-v4.1-flash",
+  "provider": {
+    "neosantara": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Neosantara Coding Gateway",
+      "options": {
+        "baseURL": "https://api.neosantara.xyz/coding/paas/v1",
+        "apiKey": "{env:NEOSANTARA_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4.1-flash": {
+          "name": "DeepSeek V4.1 Flash",
+          "tool_call": true,
+          "limit": { "context": 128000, "output": 8192 }
+        }
+      }
+    }
+  }
+}
+```
+
+### 5. Continue CLI (`@continuedev/cli` / `cn`)
+
+Pada mode CLI (`provider: openai`), SDK bawaan mengirim `User-Agent` generik (`ls/JS ...`). Tambahkan header `x-continue-unique-id` di `~/.continue/config.yaml` agar terdeteksi oleh Coding Plan guard:
+
+```yaml YAML icon="file-code"
+name: Neosantara Coding Plan
+version: 1.0.0
+schema: v1
+models:
+  - name: DeepSeek V4.1 Flash
+    provider: openai
+    model: deepseek-v4.1-flash
+    apiBase: https://api.neosantara.xyz/coding/paas/v1
+    apiKey: nsk_code_KEY_ANDA
+    requestOptions:
+      headers:
+        x-continue-unique-id: continue-cli
+    capabilities:
+      - tool_use
+    roles:
+      - chat
+      - edit
+      - apply
+```
+
+### 6. Aider (`aider-chat`)
+
+Saat memakai prefix `openai/`, Aider mengirim `User-Agent` default Python SDK (`OpenAI/Python ...`). Tambahkan `extra_headers` di `.aider.model.settings.yml`:
+
+```yaml YAML icon="file-code"
+- name: openai/deepseek-v4.1-flash
+  edit_format: whole
+  extra_params:
+    extra_headers:
+      User-Agent: aider/0.86.2
+```
+
+Jalankan Aider dengan menunjuk file settings tersebut:
+
+```bash Terminal icon="terminal"
+export OPENAI_API_BASE="https://api.neosantara.xyz/coding/paas/v1"
+export OPENAI_API_KEY="nsk_code_KEY_ANDA"
+aider --model openai/deepseek-v4.1-flash --model-settings-file .aider.model.settings.yml
+```
+
+### 7. Cline, Roo Code (VS Code) & Cursor
+
+Atur **API Provider** ke `OpenAI Compatible` (Cline / Roo Code) atau **Add Custom Model** (Cursor):
+
+- **Base URL**: `https://api.neosantara.xyz/coding/paas/v1`
+- **API Key**: `nsk_code_KEY_ANDA`
+- **Model ID**: model yang tersedia pada tier Coding Plan Anda (misalnya `deepseek-v4.1-flash` atau `claude-sonnet-4-6`).
+
+### 8. Jelma CLI Runner (Otomatis)
 
 Gunakan Jelma untuk menjalankan agent tanpa konfigurasi file manual:
 
@@ -97,4 +201,4 @@ jelma claude local
 jelma opencode local
 ```
 
-Jelma akan secara otomatis membaca key Coding Plan Anda dan menginjeksi base URL yang sesuai.
+Jelma otomatis membaca key Coding Plan Anda dan menginjeksi base URL yang sesuai.

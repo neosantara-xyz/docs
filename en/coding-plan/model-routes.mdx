@@ -8,46 +8,46 @@ related:
   - /en/guides/jelma/overview
 ---
 
-**Model Routes** allows Coding Plan subscribers to create virtual model aliases that map to a sequence (*chain*) of real models. When the primary model encounters upstream capacity exhaustion or rate limits, the gateway fails over to the next configured model in the chain without client-side retry logic.
+**Model Routes** lets Coding Plan subscribers define virtual model aliases that map to an ordered fallback chain of real catalog models. When the primary model encounters upstream capacity errors or rate limits, the gateway fails over automatically to the next model in the chain.
 
 <Note>
-  Model Routes requires an **active Coding Plan subscription** (paid or trial) and operates exclusively through dedicated coding endpoints with coding keys (`nsk_code_*`).
+  Model Routes requires an **active Coding Plan subscription** (paid or trial) and must be called with a coding key (`nsk_code_*`) through `/coding/paas/v1` or `/coding/paas/anthropic`.
 </Note>
 
 ## How It Works
 
-```
+```text
 Virtual Name: my-coder
        │
        ▼
 1. Primary Model: claude-4.5-sonnet
        │ (on capacity error)
        ▼
-2. Fallback Model: gemini-3-flash
+2. Fallback Model: deepseek-v4.1-flash
 ```
 
-1. You create a virtual alias (for example `my-coder`) and assign an ordered sequence of models (such as `["claude-4.5-sonnet", "gemini-3-flash"]`).
-2. When submitting requests with `model: "my-coder"` to the coding endpoints, the gateway attempts the primary model first.
-3. If the primary provider reports an upstream capacity error, the gateway dispatches the payload to the next model in your chain.
+1. You define a virtual alias (such as `my-coder`) in the dashboard or via `POST /v1/coding/model-routes` with an ordered list of models (`["claude-4.5-sonnet", "deepseek-v4.1-flash"]`).
+2. Sending requests with `model: "my-coder"` to coding endpoints executes the first model in the chain.
+3. If the primary model fails due to upstream capacity limits, the gateway dispatches the request to the next model in your chain.
 
 ## Tier Limits
 
 | Subscription Tier | Max Models Per Chain | Max Routes Per Account |
 | :-- | :-- | :-- |
-| **Coding Hemat** | 3 models | 10 routes |
+| **Coding Hemat (incl. Trial)** | 3 models | 3 routes |
 | **Coding Reguler** | 5 models | 10 routes |
-| **Coding Eksklusif** | 8 models | 10 routes |
+| **Coding Eksklusif** | 8 models | 25 routes |
 
 ## Route Creation Rules
 
-- Virtual alias names must not conflict with native catalog model IDs (for example, you cannot name a route `claude-4.5-sonnet`).
-- Route names are case-insensitive and unique to your user account.
-- Every model included in a chain must belong to your active tier allowlist.
-- Maximum length for virtual route names is 100 characters.
+- Virtual route names cannot collide with existing catalog model IDs or aliases (for example, you cannot name a route `claude-4.5-sonnet`).
+- Route names are case-insensitive and unique per account.
+- Every model in the chain must be permitted for your active Coding Plan tier (or enabled via add-on models).
+- Route names allow up to 100 characters matching `^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$`.
 
 ## Using Virtual Routes in Clients
 
-Once defined in your dashboard, supply the virtual alias to your coding agent:
+Once configured, supply the virtual alias as your model ID:
 
 ### 1. Jelma CLI
 
@@ -58,11 +58,13 @@ jelma opencode local --model my-coder
 
 ### 2. Claude Code
 
-Edit configuration in `~/.claude/settings.json`:
+Edit `~/.claude/settings.json`:
 
 ```json JSON icon="file-code"
 {
   "env": {
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/paas/anthropic",
+    "ANTHROPIC_API_KEY": "nsk_code_YOUR_KEY",
     "ANTHROPIC_MODEL": "my-coder"
   }
 }
@@ -70,7 +72,7 @@ Edit configuration in `~/.claude/settings.json`:
 
 ### 3. Cline / OpenCode
 
-Set the model field in your settings panel:
+Enter the virtual route name in your model setting (with Base URL set to `https://api.neosantara.xyz/coding/paas/v1`):
 
 ```text Configuration icon="terminal"
 Model: my-coder

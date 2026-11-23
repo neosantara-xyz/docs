@@ -11,9 +11,9 @@ Documentation is written in multiple languages (`id/` and `en/`). Treat the prim
 - **Site builder:** Mintlify. Pages are `.mdx` with YAML frontmatter (`title`, `description`).
 - **Navigation:** `docs.json` is the source of truth. Adding a page means adding it there too.
 - **Neosantara source:** Accessible at `../nusantaraai` (or `..`). Read it before writing about APIs, parameters, or behavior. Don't guess from memory or training data.
-- **Live Models Sync:** Run `python3 scripts/sync_models.py` to fetch active models and token pricing directly from the live API (`https://api.neosantara.xyz/v1/models`) into `_snippets/models-table.mdx`.
+- **Live Models Sync:** Run `python3 scripts/sync_models.py` to fetch active models and token pricing directly from the live API (`https://api.neosantara.xyz/v1/models`) into `snippets/models-table.mdx` and its capability tables.
 - **OpenAPI Spec:** Run `python3 scripts/sync_openapi.py` to sync `openapi.json` into `api-reference/openapi.json`.
-- **Reusable snippets:** `_snippets/` holds shared install steps, auth headers, setup blocks, and recurring components. Check there before duplicating content.
+- **Reusable snippets:** `snippets/` holds shared install steps, auth headers, setup blocks, model tables, and recurring components. Check there before duplicating content.
 - **Multilingual structure:** Uses Mintlify's `navigation.languages` configuration for localized docs (`en/` for English, `id/` for Bahasa Indonesia). Keep translated content in language-specific directories.
 - **Verification scripts:** Run `python3 scripts/validate_docs.py` and `python3 scripts/check_snippets.py` before finalizing any documentation PR or task.
 
@@ -308,10 +308,10 @@ Use language-specific directories for content:
 
 ```text
 new-docs/
-├── _snippets/           # Shared reusable snippets across languages
+├── snippets/            # Shared reusable snippets and generated model tables
 │   ├── set-api-key.mdx
 │   └── base-url-config.mdx
-├── en/                  # English documentation (Primary)
+├── en/                  # English translation of the Indonesian source docs
 │   ├── index.mdx
 │   ├── quickstart.mdx
 │   ├── gateway/
@@ -408,7 +408,7 @@ Before writing any billing, rate limit, or routing documentation, ALWAYS verify 
    - **DSPy**: Native model integration via `dspy.LM("neosantara/<model>")`. Focus on explaining declarative programming, task signatures, modules (`Predict`, `ChainOfThought`, `RLM`), and optimizers. Do not mention internal LiteLLM wiring or harp on omitted base URLs.
 3. **Durable PAYG Billing (`service/billingReservationService.js`)**:
    - Credit lifecycle: `reserve` -> `settle` -> `refund`.
-   - Balances and ledger use `NUMERIC(20,6)` in Rupiah (IDR). Minimum deposit floor is Rp 15.000 via Mayar (QRIS/VA).
+   - Balances and ledger use `NUMERIC(20,6)` in Rupiah (IDR). Minimum deposit floor is Rp 50.000 via Mayar (QRIS/VA).
 4. **Indonesian Guardrails**:
    - UU PDP No. 27/2022 automated PII redaction activated per-request via `X-Guard: on` / `X-Guard: enabled`.
 
@@ -557,7 +557,7 @@ When translated, preserve the three-layer structure and product meaning. Do not 
 | `<Tabs>` + `<Tab title>` | Alternative views of the same content (Bash, .env, PowerShell) |
 | `<Accordion>` / `<AccordionGroup>` | FAQ entries, optional details |
 | `<Note>` `<Tip>` `<Warning>` `<Info>` `<Check>` | Callouts. Use sparingly. |
-| `<Snippet file="name.mdx">` or `import Snippet from '/_snippets/...'` | Pull shared content from `_snippets/` |
+| `<Snippet file="name.mdx">` or `import Snippet from '/snippets/...'` | Pull shared content from `snippets/` |
 | `<Frame>` | Wrap images that need a caption or border |
 
 When translating components:

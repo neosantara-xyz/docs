@@ -44,6 +44,25 @@ Claude Code connects to Neosantara using the default flagship model `claude-sonn
   </Step>
 </Steps>
 
+### Using non-Claude models
+
+Claude Code uses several models at once: the main model, a small model for background tasks (session titles, summaries), and a subagent model. When you use another model, for example `minimax-m2.7`, point all of them at the same model:
+
+```bash
+export ANTHROPIC_MODEL="minimax-m2.7"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="minimax-m2.7"
+export ANTHROPIC_SMALL_FAST_MODEL="minimax-m2.7"   # for older Claude Code versions
+export CLAUDE_CODE_SUBAGENT_MODEL="minimax-m2.7"
+```
+
+See the [Model Catalog](https://app.neosantara.xyz/models) for available models.
+
+| Symptom | Explanation |
+| :-- | :-- |
+| Warning `Model 'minimax-m2.7' isn't recognized` | Comes from Claude Code, not the gateway. Requests work normally. Claude Code assumes a 200K-token context for its compaction decisions. |
+| Background tasks use a Claude model although you picked another one | `ANTHROPIC_DEFAULT_HAIKU_MODEL` / `ANTHROPIC_SMALL_FAST_MODEL` is not set. |
+| Only "Thought for Ns" appears with no answer | Report it to support with the model name and time. The gateway records thinking-only turns per model so the case can be traced. |
+
 ## Method 2: Adding Neosantara MCP Server
 
 To equip Claude Code with Neosantara tools such as image generation or model catalog queries, attach Neosantara as an MCP server:

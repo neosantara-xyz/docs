@@ -8,46 +8,46 @@ related:
   - /id/guides/jelma/overview
 ---
 
-**Model Routes** memungkinkan pengguna Coding Plan mendefinisikan nama alias model virtual yang memetakan ke rantai (*chain*) beberapa model riil. Jika model utama dalam rantai mengalami kendala kapasitas atau rate limit upstream, request otomatis dialihkan ke model cadangan secara transparan tanpa perlu logika retry manual di aplikasi Anda.
+**Model Routes** memungkinkan pengguna Coding Plan mendefinisikan nama alias model virtual yang memetakan ke rantai (*chain*) beberapa model riil. Jika model utama mengalami kendala kapasitas atau rate limit upstream, gateway otomatis mengalihkan eksekusi ke model cadangan berikutnya tanpa logika retry di sisi client.
 
 <Note>
-  Fitur Model Routes hanya dapat diakses oleh akun dengan **Coding Plan aktif** (berbayar atau trial) dan menggunakan coding key (`nsk_code_*`) melalui endpoint coding.
+  Fitur Model Routes hanya tersedia untuk akun dengan **Coding Plan aktif** (berbayar atau trial) dan dipanggil menggunakan coding key (`nsk_code_*`) melalui endpoint `/coding/paas/v1` atau `/coding/paas/anthropic`.
 </Note>
 
 ## Cara Kerja
 
-```
+```text
 Nama Virtual: my-coder
        │
        ▼
 1. Model Utama: claude-4.5-sonnet
        │ (jika error kapasitas)
        ▼
-2. Model Cadangan: gemini-3-flash
+2. Model Cadangan: deepseek-v4.1-flash
 ```
 
-1. Anda membuat nama virtual (contoh: `my-coder`) dan menentukan urutan model (contoh: `["claude-4.5-sonnet", "gemini-3-flash"]`).
-2. Saat mengirimkan request dengan parameter `model: "my-coder"` ke endpoint coding, gateway akan mengeksekusi model pertama.
-3. Jika model pertama gagal karena masalah kapasitas upstream, gateway secara instan mengalihkan eksekusi ke model berikutnya.
+1. Anda membuat nama virtual (contoh: `my-coder`) di dashboard atau `POST /v1/coding/model-routes` dengan urutan model (contoh: `["claude-4.5-sonnet", "deepseek-v4.1-flash"]`).
+2. Saat mengirim request dengan `model: "my-coder"` ke endpoint coding, gateway mengeksekusi model pertama.
+3. Jika model pertama gagal karena kapasitas upstream, gateway langsung mencoba model berikutnya dalam rantai.
 
 ## Batasan Per Tier
 
-| Tier Paket | Maks Model Per Rantai | Maks Rantai Per Pengguna |
+| Tier Paket | Maks Model Per Rantai | Maks Rute Per Pengguna |
 | :-- | :-- | :-- |
-| **Coding Hemat** | 3 model | 10 rute |
+| **Coding Hemat (termasuk Trial)** | 3 model | 3 rute |
 | **Coding Reguler** | 5 model | 10 rute |
-| **Coding Eksklusif** | 8 model | 10 rute |
+| **Coding Eksklusif** | 8 model | 25 rute |
 
 ## Aturan Konfigurasi
 
-- Nama virtual tidak boleh bertabrakan dengan ID model riil yang sudah terdaftar di katalog (contoh: tidak boleh menamai rute `claude-4.5-sonnet`).
-- Nama virtual bersifat *case-insensitive* dan unik per akun pengguna.
-- Setiap model di dalam rantai harus merupakan model yang diizinkan untuk tier Coding Plan Anda.
-- Panjang maksimal nama rute adalah 100 karakter.
+- Nama virtual tidak boleh bertabrakan dengan ID model riil yang terdaftar di katalog (misalnya tidak boleh dinamai `claude-4.5-sonnet`).
+- Nama virtual bersifat *case-insensitive* dan unik per pengguna.
+- Setiap model dalam rantai harus termasuk model yang diizinkan pada tier Coding Plan Anda (atau terdaftar di pool add-on).
+- Panjang maksimal nama rute adalah 100 karakter (`^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$`).
 
 ## Cara Menggunakan di Coding Agent
 
-Setelah rute dibuat di dashboard, gunakan nama virtual tersebut sebagai nilai parameter model di coding tool Anda:
+Setelah rute dibuat di dashboard, isi nama virtual tersebut sebagai parameter model di tool Anda:
 
 ### 1. Jelma CLI
 
@@ -63,6 +63,8 @@ Edit berkas `~/.claude/settings.json`:
 ```json JSON icon="file-code"
 {
   "env": {
+    "ANTHROPIC_BASE_URL": "https://api.neosantara.xyz/coding/paas/anthropic",
+    "ANTHROPIC_API_KEY": "nsk_code_KEY_ANDA",
     "ANTHROPIC_MODEL": "my-coder"
   }
 }
@@ -70,7 +72,7 @@ Edit berkas `~/.claude/settings.json`:
 
 ### 3. Cline / OpenCode
 
-Masukkan nama rute pada input model:
+Masukkan nama rute pada pengaturan model (pastikan base URL mengarah ke `https://api.neosantara.xyz/coding/paas/v1`):
 
 ```text Configuration icon="terminal"
 Model: my-coder

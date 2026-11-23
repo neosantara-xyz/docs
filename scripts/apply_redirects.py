@@ -2,15 +2,11 @@ import json
 import os
 
 DOCS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-EXT_DIR = os.path.join(os.path.dirname(DOCS_DIR), "external-docs")
 
 # 1. Load docs.json
 docs_json_path = os.path.join(DOCS_DIR, "docs.json")
 with open(docs_json_path, "r", encoding="utf-8") as f:
     new_docs = json.load(f)
-
-with open(os.path.join(EXT_DIR, "docs.json"), "r", encoding="utf-8") as f:
-    ext_docs = json.load(f)
 
 def extract_pages(nav):
     pages = []
@@ -219,20 +215,13 @@ for api_route, target in API_MAP.items():
     add_redirect(f"/en/{api_route}", target.replace("/id/", "/en/"))
     add_redirect(f"/id/{api_route}", target)
 
-# 3. Models
-models_dir = os.path.join(EXT_DIR, "models")
-if os.path.exists(models_dir):
-    for f in sorted(os.listdir(models_dir)):
-        if f.endswith(".mdx"):
-            model_slug = f[:-4]
-            add_redirect(f"/models/{model_slug}", "/id/gateway/models")
-            add_redirect(f"/en/models/{model_slug}", "/en/gateway/models")
-            add_redirect(f"/id/models/{model_slug}", "/id/gateway/models")
-
-# 4. Old external-docs redirects
-for r in ext_docs.get("redirects", []):
-    src = r["source"]
-    add_redirect(src, "/id/gateway/models" if "/models/" in src else "/id/gateway/overview")
+# Preserve redirects already curated in the canonical docs repo.
+for redirect in new_docs.get("redirects", []):
+    source = redirect.get("source")
+    destination = redirect.get("destination")
+    if source and destination and source not in seen_sources:
+        seen_sources.add(source)
+        redirects.append({"source": source, "destination": destination})
 
 print(f"Applying {len(redirects)} redirects to docs.json...")
 new_docs["redirects"] = redirects

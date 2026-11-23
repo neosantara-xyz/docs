@@ -1,33 +1,36 @@
 ---
 title: "Kebijakan Penggunaan Coding Plan"
-description: "Aturan dan pedoman penggunaan wajar (fair-use) untuk pelanggan Neosantara Coding Plan."
+description: "Aturan penggunaan wajar (fair-use), pembatasan client, dan penegakan jendela kredit untuk pelanggan Neosantara Coding Plan."
 icon: "shield-check"
 related:
   - /id/coding-plan/overview
   - /id/coding-plan/quota-and-limits
 ---
 
-Neosantara Coding Plan dirancang khusus untuk mendukung produktivitas pengembang software perorangan. Penggunaan layanan ini tunduk pada ketentuan dan pedoman batas wajar (*fair-use*) berikut.
+Neosantara Coding Plan ditujukan bagi pengembang perangkat lunak perorangan untuk alur kerja koding interaktif. Pemakaian layanan mengikuti aturan penggunaan wajar (*fair-use*) berikut.
 
 ## Ketentuan Penggunaan
 
-1. **Eksklusif untuk AI-Assisted Coding**: Paket ini hanya diperuntukkan bagi alur kerja koding yang menggunakan tool yang didukung melalui endpoint `/coding/v1` dan `/coding/anthropic`.
-2. **Satu Akun Per Pengguna**: Coding key bersifat personal. Pembagian kunci API (*key sharing*) ke pihak ketiga atau penggunaan bersama secara massal dalam organisasi tidak diperkenankan.
-3. **Larangan Penjualan Kembali**: Dilarang menjual kembali akses atau membuat layanan proxy pihak ketiga di atas endpoint Coding Plan Neosantara.
-4. **Larangan Otomasi Berlebih**: Penggunaan skrip otomasi yang bertujuan memanipulasi jumlah prompt atau membobol batasan rate limit dilarang.
+1. **Khusus Coding Tool & Endpoint Interaktif**: coding key (`nsk_code_*`) hanya diizinkan melalui `/coding/paas/v1` dan `/coding/paas/anthropic` dari coding client yang dikenali (Claude Code, Codex CLI, OpenCode, Kilo Code, Cline, Continue, Cursor, Copilot Chat, Windsurf, Aider, Zed, Goose, Jelma). Endpoint batch, file, gambar, audio, embedding, moderasi, dan OCR diblokir (`403 coding_endpoint_not_supported`).
+2. **Satu Akun Per Pengguna**: coding key bersifat personal. Berbagi key (*key sharing*) lintas tim atau penggunaan bersama dalam organisasi tidak diperbolehkan.
+3. **Larangan Penjualan Kembali**: dilarang membungkus atau menjual kembali akses Coding Plan sebagai layanan proxy atau backend produksi umum.
+4. **Larangan Otomasi Pengelakan Limit**: penggunaan skrip untuk mem-bypass limit harian model gratis (100 request/hari UTC) atau mengeksploitasi jendela kredit dilarang dan dicatat sebagai pelanggaran coding plan.
 
-## Mekanisme Penegakan Batas
+## Penegakan Batas Kuota
 
-| Jendela Waktu | Penegakan |
+| Jendela / Batas | Penegakan |
 | :-- | :-- |
-| **Rolling 5 Jam** | Request dihentikan sementara (*hard-stop*) begitu kuota tercapai; reset otomatis 5 jam kemudian. |
-| **Mingguan** | Request dihentikan sementara begitu batas mingguan tercapai; reset 7 hari sejak tanggal aktivasi. |
+| **Rolling 5 Jam (20%)** | Request dihentikan (*hard-stop*) saat kredit 5 jam habis; ruang kuota kembali terbuka seiring waktu. |
+| **Rolling 7 Hari (50%)** | Request dihentikan saat batas mingguan tercapai; kapasitas kembali terbuka bertahap tiap jam. |
+| **Siklus 30 Hari (100%)** | Request dihentikan saat seluruh kredit bulanan habis hingga perpanjangan paket berikutnya. |
+| **Model Gratis (100/hari)** | Pemakaian model zero-cost dibatasi maks 100 request/hari (reset 00:00 UTC). |
+| **Add-on Prepaid** | Model add-on hanya dapat dipanggil jika saldo Add-on prepaid mencukupi (minimal Rp 100). |
 
-- **Tanpa Overdraft**: Akun Anda tidak akan dikenakan biaya overage. Ketika kuota habis, permintaan baru akan ditolak dengan pesan error yang jelas hingga siklus berikutnya.
-- **Deteksi Beban Dinamis**: Multiplier model flagship dapat meningkat ke 3× saat provider hulu mengalami beban kapasitas tinggi, untuk menjaga keandalan throughput seluruh pengguna.
+- **Tanpa Overdraft**: akun tidak dikenakan biaya overage otomatis pada saldo PAYG saat kredit coding habis.
+- **Multiplier Statis**: multiplier model bersifat statis (`1×`, `1.5×`, `1.6×`) sesuai daftar tier dan tidak melonjak dinamis saat jam sibuk.
 
 ## Perlindungan Data & Privasi
 
-- Data prompt teks Anda tidak pernah digunakan untuk melatih model AI (*no training*).
-- Log request hanya disimpan untuk keperluan verifikasi akurasi billing dan audit keamanan.
-- Kebijakan penanganan data selaras dengan regulasi perlindungan data pribadi UU PDP No. 27/2022.
+- Konten prompt dan kode Anda tidak pernah dipakai untuk melatih model AI (*no training*).
+- Log metadata request disimpan untuk akurasi billing, penegakan kuota, dan audit keamanan.
+- Pengelolaan data mengikuti regulasi UU PDP No. 27/2022.

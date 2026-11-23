@@ -1,33 +1,36 @@
 ---
 title: "Coding Plan Usage Policy"
-description: "Fair-use policies, account rules, and operational guidelines for Neosantara Coding Plan subscribers."
+description: "Fair-use rules, coding client restrictions, and credit window enforcement for Neosantara Coding Plan subscribers."
 icon: "shield-check"
 related:
   - /en/coding-plan/overview
   - /en/coding-plan/quota-and-limits
 ---
 
-Neosantara Coding Plan is designed specifically for individual software developers using AI-assisted workflows. Usage is governed by the following fair-use terms.
+Neosantara Coding Plan is intended for individual software developers running interactive AI-assisted coding sessions. Usage is governed by the rules below.
 
-## Acceptable Use Guidelines
+## Acceptable Use Rules
 
-1. **Dedicated to Software Development**: The plan is restricted to coding workflows routing through `/coding/v1` and `/coding/anthropic` via supported coding clients.
-2. **Single-User Credential**: Coding keys are personal to your account. Sharing keys among multiple developers or proxying requests across an organization is prohibited.
-3. **No Resale or Redistribution**: Reselling access or wrapping coding endpoints inside commercial third-party proxies is strictly prohibited.
-4. **No Abuse Automation**: Automated scripts engineered to bypass prompt quotas or evade rate limits are prohibited.
+1. **Interactive Coding Clients & Endpoints Only**: coding keys (`nsk_code_*`) only work on `/coding/paas/v1` and `/coding/paas/anthropic` from recognized coding clients (Claude Code, Codex CLI, OpenCode, Kilo Code, Cline, Continue, Cursor, Copilot Chat, Windsurf, Aider, Zed, Goose, Jelma). Batch, file, image, audio, embedding, moderation, and OCR routes return `403 coding_endpoint_not_supported`.
+2. **Single-User Credential**: coding keys are personal to your account. Key sharing across teams or multi-user pooling is prohibited.
+3. **No Resale or General Proxying**: reselling Coding Plan access or wrapping coding endpoints into third-party production proxies is prohibited.
+4. **No Quota Circumvention**: automated scripts built to evade the 100-request/day UTC free-model cap or abuse concurrency/credit windows are prohibited and logged as policy violations.
 
-## Policy Enforcement
+## Limit Enforcement
 
-| Window | Enforcement Policy |
+| Window / Cap | Enforcement |
 | :-- | :-- |
-| **Rolling 5-Hour** | Hard-stop when quota is reached; resets automatically 5 hours later. |
-| **Weekly** | Hard-stop when weekly quota is reached; resets 7 days from plan activation. |
+| **Rolling 5-Hour (20%)** | Hard-stop when 5-hour credit reaches zero; capacity replenishes continuously as older 5-minute buckets expire. |
+| **Rolling 7-Day (50%)** | Hard-stop when 7-day credit reaches zero; capacity replenishes hourly as 1-hour buckets expire. |
+| **30-Day Cycle (100%)** | Hard-stop once monthly credit is spent until plan renewal. |
+| **Free Models (100/day)** | Zero-cost models are limited to 100 requests per UTC day per user. |
+| **Prepaid Add-on** | Add-on models require an active Prepaid Add-on balance of at least IDR 100. |
 
-- **No Overdraft**: Accounts are never assessed overage fees. When limits are reached, subsequent requests return informative errors until the next reset window.
-- **Dynamic Load Balancing**: Multipliers for flagship models may scale to 3× during upstream provider strain to preserve throughput stability across all subscribers.
+- **No Automatic Overdraft**: exhausted Coding Plan windows do not silently bill your standard PAYG deposit balance.
+- **Static Multipliers**: model multipliers remain fixed (`1×`, `1.5×`, `1.6×`) rather than fluctuating dynamically under load.
 
 ## Data Protection & Privacy
 
-- Prompts and source code are never used to train machine learning models.
-- Operational logs are retained solely for billing verification, error diagnosis, and fraud prevention.
-- Security architecture complies with Indonesian Personal Data Protection standards (UU PDP No. 27/2022).
+- Prompts and code sent through the gateway are never used to train models.
+- Request metadata is retained only for billing verification, quota enforcement, and security auditing.
+- Data handling complies with Indonesia's Personal Data Protection Law (UU PDP No. 27/2022).
