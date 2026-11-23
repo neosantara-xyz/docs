@@ -18,7 +18,7 @@ Berbeda dari paket flat berbasis jumlah hitungan prompt tetap, backend Coding Pl
 - **Request gagal gratis:** apabila request gagal sebelum selesai, kredit tidak dipotong.
 - **Isolasi saldo PAYG:** saat batas jendela habis, request berhenti sementara (*hard-stop*) dan **tidak** memotong saldo deposit PAYG standar Anda.
 
-## Jendela Pengeluaran & Trial
+## Jendela Pengeluaran
 
 Gateway menegakkan **tiga jendela batas pengeluaran independen** dari kredit bulanan Anda, dihitung berdasarkan waktu aktivasi paket:
 
@@ -28,11 +28,10 @@ Gateway menegakkan **tiga jendela batas pengeluaran independen** dari kredit bul
 | **Rolling 7 Hari (Mingguan)** | Maks 50% dari kredit bulanan | Jendela berjalan 7 hari (`1 jam` bucket), bergerak otomatis setiap jam. |
 | **Siklus 30 Hari** | 100% kredit bulanan | Reset penuh pada siklus 30 hari berikutnya setelah perpanjangan/aktivasi. |
 
-### Tier Paket & Trial
+### Batas Kredit Per Tier
 
 | Tier Paket | Harga Bulanan | Kredit 5 Jam (20%) | Kredit Mingguan (50%) | Kredit 30 Hari (100%) | Konkurensi In-Flight | Model Diizinkan |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| **Trial (3 Hari)** | Gratis (1× per akun) | Rp 5.000 | Rp 12.500 | Rp 25.000 | 4 request | 15 model (tier Hemat) |
 | **Coding Hemat** | Rp 149.000 | Rp 41.720 | Rp 104.300 | Rp 208.600 | 4 request | 15 model |
 | **Coding Reguler** | Rp 499.000 | Rp 139.720 | Rp 349.300 | Rp 698.600 | 10 request | 26 model |
 | **Coding Eksklusif** | Rp 1.290.000 | Rp 361.200 | Rp 903.000 | Rp 1.806.000 | 20 request | 29 model |

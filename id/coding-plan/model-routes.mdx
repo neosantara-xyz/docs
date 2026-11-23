@@ -11,7 +11,7 @@ related:
 **Model Routes** memungkinkan pengguna Coding Plan mendefinisikan nama alias model virtual yang memetakan ke rantai (*chain*) beberapa model riil. Jika model utama mengalami kendala kapasitas atau rate limit upstream, gateway otomatis mengalihkan eksekusi ke model cadangan berikutnya tanpa logika retry di sisi client.
 
 <Note>
-  Fitur Model Routes hanya tersedia untuk akun dengan **Coding Plan aktif** (berbayar atau trial) dan dipanggil menggunakan coding key (`nsk_code_*`) melalui endpoint `/coding/paas/v1` atau `/coding/paas/anthropic`.
+  Fitur Model Routes hanya tersedia untuk akun dengan **Coding Plan aktif** dan dipanggil menggunakan coding key (`nsk_code_*`) melalui endpoint `/coding/paas/v1` atau `/coding/paas/anthropic`.
 </Note>
 
 ## Cara Kerja
@@ -34,7 +34,7 @@ Nama Virtual: my-coder
 
 | Tier Paket | Maks Model Per Rantai | Maks Rute Per Pengguna |
 | :-- | :-- | :-- |
-| **Coding Hemat (termasuk Trial)** | 3 model | 3 rute |
+| **Coding Hemat** | 3 model | 3 rute |
 | **Coding Reguler** | 5 model | 10 rute |
 | **Coding Eksklusif** | 8 model | 25 rute |
 

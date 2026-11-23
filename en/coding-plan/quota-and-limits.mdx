@@ -18,7 +18,7 @@ Instead of flat request-turn counts, the backend allocates a monthly **Rupiah cr
 - **Failed requests cost nothing:** requests that fail before completion do not consume credit.
 - **PAYG balance isolation:** once any credit window is exhausted, requests hard-stop until the window resets and never charge your standard PAYG deposit balance.
 
-## Spend Windows & Free Trial
+## Spend Windows
 
 Three independent spending windows govern your 30-day cycle anchored to plan activation:
 
@@ -28,11 +28,10 @@ Three independent spending windows govern your 30-day cycle anchored to plan act
 | **Rolling 7-Day (Weekly)** | Max 50% of monthly credit | Sliding 7-day window (`1-hour` buckets); capacity frees up hourly. |
 | **30-Day Cycle** | 100% of monthly credit | Resets cleanly upon renewal or new 30-day activation. |
 
-### Tier Credit Limits & Trial
+### Tier Credit Limits
 
 | Tier | Monthly Price | 5-Hour Cap (20%) | Weekly Cap (50%) | 30-Day Credit (100%) | In-Flight Concurrency | Allowed Models |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| **Trial (3 Days)** | Free (1× per user) | IDR 5,000 | IDR 12,500 | IDR 25,000 | 4 requests | 15 models (Hemat tier) |
 | **Coding Hemat** | IDR 149,000 | IDR 41,720 | IDR 104,300 | IDR 208,600 | 4 requests | 15 models |
 | **Coding Reguler** | IDR 499,000 | IDR 139,720 | IDR 349,300 | IDR 698,600 | 10 requests | 26 models |
 | **Coding Eksklusif** | IDR 1,290,000 | IDR 361,200 | IDR 903,000 | IDR 1,806,000 | 20 requests | 29 models |

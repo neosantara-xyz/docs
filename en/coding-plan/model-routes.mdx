@@ -11,7 +11,7 @@ related:
 **Model Routes** lets Coding Plan subscribers define virtual model aliases that map to an ordered fallback chain of real catalog models. When the primary model encounters upstream capacity errors or rate limits, the gateway fails over automatically to the next model in the chain.
 
 <Note>
-  Model Routes requires an **active Coding Plan subscription** (paid or trial) and must be called with a coding key (`nsk_code_*`) through `/coding/paas/v1` or `/coding/paas/anthropic`.
+  Model Routes requires an **active Coding Plan subscription** and must be called with a coding key (`nsk_code_*`) through `/coding/paas/v1` or `/coding/paas/anthropic`.
 </Note>
 
 ## How It Works
@@ -34,7 +34,7 @@ Virtual Name: my-coder
 
 | Subscription Tier | Max Models Per Chain | Max Routes Per Account |
 | :-- | :-- | :-- |
-| **Coding Hemat (incl. Trial)** | 3 models | 3 routes |
+| **Coding Hemat** | 3 models | 3 routes |
 | **Coding Reguler** | 5 models | 10 routes |
 | **Coding Eksklusif** | 8 models | 25 routes |
 
