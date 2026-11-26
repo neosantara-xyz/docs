@@ -26,6 +26,46 @@
     }
   ],
   "paths": {
+    "/v1/api/v1/stats/public/announcements": {
+      "get": {
+        "operationId": "getApiV1StatsPublicAnnouncements",
+        "tags": [
+          "Public"
+        ],
+        "summary": "List active dashboard announcements",
+        "description": "Returns active, schedule-windowed bilingual announcements ordered by priority.",
+        "responses": {
+          "200": {
+            "description": "List of active announcements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "error": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/v1/mcp/audit-web": {
       "post": {
         "operationId": "postV1McpAuditWeb",
@@ -165,6 +205,46 @@
             }
           }
         ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/public/announcements": {
+      "get": {
+        "operationId": "getV1PublicAnnouncements",
+        "tags": [
+          "Public"
+        ],
+        "summary": "List active dashboard announcements",
+        "description": "Returns active, schedule-windowed bilingual announcements ordered by priority.",
+        "responses": {
+          "200": {
+            "description": "List of active announcements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "error": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
         "security": [
           {
             "bearerAuth": []
@@ -763,6 +843,127 @@
                                     "required": [
                                       "type",
                                       "image_url"
+                                    ],
+                                    "additionalProperties": true
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "input_audio"
+                                      },
+                                      "input_audio": {
+                                        "type": "object",
+                                        "properties": {
+                                          "data": {
+                                            "type": "string"
+                                          },
+                                          "format": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "data",
+                                          "format"
+                                        ],
+                                        "additionalProperties": true
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "input_audio"
+                                    ],
+                                    "additionalProperties": true
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "audio_url"
+                                      },
+                                      "audio_url": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "url": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "url"
+                                            ],
+                                            "additionalProperties": true
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "audio_url"
+                                    ],
+                                    "additionalProperties": true
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "video_url"
+                                      },
+                                      "video_url": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "url": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "url"
+                                            ],
+                                            "additionalProperties": true
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "type",
+                                      "video_url"
+                                    ],
+                                    "additionalProperties": true
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "const": "input_file"
+                                      },
+                                      "file_id": {
+                                        "type": "string"
+                                      },
+                                      "file_data": {
+                                        "type": "string"
+                                      },
+                                      "file_url": {
+                                        "type": "string"
+                                      },
+                                      "filename": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
                                     ],
                                     "additionalProperties": true
                                   },
@@ -4150,6 +4351,9 @@
                               "name": {
                                 "type": "string"
                               },
+                              "namespace": {
+                                "type": "string"
+                              },
                               "arguments": {
                                 "type": "string"
                               },
@@ -4168,6 +4372,45 @@
                               "call_id",
                               "name",
                               "arguments"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "custom_tool_call"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "call_id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "namespace": {
+                                "type": "string"
+                              },
+                              "input": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "in_progress",
+                                  "completed",
+                                  "incomplete"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "id",
+                              "call_id",
+                              "name",
+                              "input"
                             ]
                           },
                           {
@@ -4446,6 +4689,43 @@
                               "id",
                               "code_interpreter"
                             ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "code_interpreter_call"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "container_id": {
+                                "type": "string"
+                              },
+                              "outputs": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {}
+                              },
+                              "code_interpreter": {}
+                            },
+                            "required": [
+                              "type",
+                              "id"
+                            ],
+                            "additionalProperties": true
                           },
                           {
                             "type": "object",
@@ -4787,6 +5067,59 @@
                                             "required": [
                                               "type"
                                             ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_audio"
+                                              },
+                                              "input_audio": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "data": {
+                                                    "type": "string"
+                                                  },
+                                                  "format": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                "additionalProperties": true
+                                              },
+                                              "data": {
+                                                "type": "string"
+                                              },
+                                              "format": {
+                                                "type": "string"
+                                              },
+                                              "audio_url": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_video"
+                                              },
+                                              "video_url": {
+                                                "type": "string"
+                                              },
+                                              "file_id": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
                                           }
                                         ]
                                       }
@@ -4982,6 +5315,59 @@
                                             "required": [
                                               "type"
                                             ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_audio"
+                                              },
+                                              "input_audio": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "data": {
+                                                    "type": "string"
+                                                  },
+                                                  "format": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                "additionalProperties": true
+                                              },
+                                              "data": {
+                                                "type": "string"
+                                              },
+                                              "format": {
+                                                "type": "string"
+                                              },
+                                              "audio_url": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_video"
+                                              },
+                                              "video_url": {
+                                                "type": "string"
+                                              },
+                                              "file_id": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
                                           }
                                         ]
                                       }
@@ -5103,6 +5489,59 @@
                                             "required": [
                                               "type"
                                             ]
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_audio"
+                                              },
+                                              "input_audio": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "data": {
+                                                    "type": "string"
+                                                  },
+                                                  "format": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                "additionalProperties": true
+                                              },
+                                              "data": {
+                                                "type": "string"
+                                              },
+                                              "format": {
+                                                "type": "string"
+                                              },
+                                              "audio_url": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string",
+                                                "const": "input_video"
+                                              },
+                                              "video_url": {
+                                                "type": "string"
+                                              },
+                                              "file_id": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "additionalProperties": true
                                           }
                                         ]
                                       }
@@ -5259,6 +5698,9 @@
                                   "type": "string"
                                 },
                                 "name": {
+                                  "type": "string"
+                                },
+                                "namespace": {
                                   "type": "string"
                                 },
                                 "arguments": {
@@ -5891,11 +6333,164 @@
                           "created_at": {
                             "type": "string"
                           },
+                          "max_input_tokens": {
+                            "type": "number"
+                          },
+                          "max_tokens": {
+                            "type": "number"
+                          },
                           "context_window": {
                             "type": "number"
                           },
                           "max_output_tokens": {
                             "type": "number"
+                          },
+                          "capabilities": {
+                            "type": "object",
+                            "properties": {
+                              "image_input": {
+                                "type": "object",
+                                "properties": {
+                                  "supported": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "supported"
+                                ]
+                              },
+                              "pdf_input": {
+                                "type": "object",
+                                "properties": {
+                                  "supported": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "supported"
+                                ]
+                              },
+                              "structured_outputs": {
+                                "type": "object",
+                                "properties": {
+                                  "supported": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "supported"
+                                ]
+                              },
+                              "thinking": {
+                                "type": "object",
+                                "properties": {
+                                  "supported": {
+                                    "type": "boolean"
+                                  },
+                                  "types": {
+                                    "type": "object",
+                                    "properties": {
+                                      "enabled": {
+                                        "type": "object",
+                                        "properties": {
+                                          "supported": {
+                                            "type": "boolean"
+                                          }
+                                        },
+                                        "required": [
+                                          "supported"
+                                        ]
+                                      },
+                                      "adaptive": {
+                                        "type": "object",
+                                        "properties": {
+                                          "supported": {
+                                            "type": "boolean"
+                                          }
+                                        },
+                                        "required": [
+                                          "supported"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "enabled",
+                                      "adaptive"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "supported",
+                                  "types"
+                                ]
+                              },
+                              "effort": {
+                                "type": "object",
+                                "properties": {
+                                  "supported": {
+                                    "type": "boolean"
+                                  },
+                                  "low": {
+                                    "type": "object",
+                                    "properties": {
+                                      "supported": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "supported"
+                                    ]
+                                  },
+                                  "medium": {
+                                    "type": "object",
+                                    "properties": {
+                                      "supported": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "supported"
+                                    ]
+                                  },
+                                  "high": {
+                                    "type": "object",
+                                    "properties": {
+                                      "supported": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "supported"
+                                    ]
+                                  },
+                                  "max": {
+                                    "type": "object",
+                                    "properties": {
+                                      "supported": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "supported"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "supported",
+                                  "low",
+                                  "medium",
+                                  "high",
+                                  "max"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "image_input",
+                              "pdf_input",
+                              "structured_outputs",
+                              "thinking",
+                              "effort"
+                            ]
                           }
                         },
                         "required": [
@@ -5903,6 +6498,8 @@
                           "id",
                           "display_name",
                           "created_at",
+                          "max_input_tokens",
+                          "max_tokens",
                           "context_window",
                           "max_output_tokens"
                         ]
@@ -6024,11 +6621,164 @@
                     "created_at": {
                       "type": "string"
                     },
+                    "max_input_tokens": {
+                      "type": "number"
+                    },
+                    "max_tokens": {
+                      "type": "number"
+                    },
                     "context_window": {
                       "type": "number"
                     },
                     "max_output_tokens": {
                       "type": "number"
+                    },
+                    "capabilities": {
+                      "type": "object",
+                      "properties": {
+                        "image_input": {
+                          "type": "object",
+                          "properties": {
+                            "supported": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "supported"
+                          ]
+                        },
+                        "pdf_input": {
+                          "type": "object",
+                          "properties": {
+                            "supported": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "supported"
+                          ]
+                        },
+                        "structured_outputs": {
+                          "type": "object",
+                          "properties": {
+                            "supported": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "supported"
+                          ]
+                        },
+                        "thinking": {
+                          "type": "object",
+                          "properties": {
+                            "supported": {
+                              "type": "boolean"
+                            },
+                            "types": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "object",
+                                  "properties": {
+                                    "supported": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "supported"
+                                  ]
+                                },
+                                "adaptive": {
+                                  "type": "object",
+                                  "properties": {
+                                    "supported": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "supported"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "enabled",
+                                "adaptive"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "supported",
+                            "types"
+                          ]
+                        },
+                        "effort": {
+                          "type": "object",
+                          "properties": {
+                            "supported": {
+                              "type": "boolean"
+                            },
+                            "low": {
+                              "type": "object",
+                              "properties": {
+                                "supported": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "supported"
+                              ]
+                            },
+                            "medium": {
+                              "type": "object",
+                              "properties": {
+                                "supported": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "supported"
+                              ]
+                            },
+                            "high": {
+                              "type": "object",
+                              "properties": {
+                                "supported": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "supported"
+                              ]
+                            },
+                            "max": {
+                              "type": "object",
+                              "properties": {
+                                "supported": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "supported"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "supported",
+                            "low",
+                            "medium",
+                            "high",
+                            "max"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "image_input",
+                        "pdf_input",
+                        "structured_outputs",
+                        "thinking",
+                        "effort"
+                      ]
                     }
                   },
                   "required": [
@@ -6036,6 +6786,8 @@
                     "id",
                     "display_name",
                     "created_at",
+                    "max_input_tokens",
+                    "max_tokens",
                     "context_window",
                     "max_output_tokens"
                   ]
